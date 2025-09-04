@@ -162,6 +162,38 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     }
   };
 
+  const handleWorkingHoursInput = (e) => {
+    const value = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      workingHours: value
+    }));
+  };
+
+  const handleWorkingHoursKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const input = e.target;
+      const value = input.value.replace(/,/g, ''); // Remove existing commas
+      
+      // Check if it's a valid number
+      if (!isNaN(value) && value !== '') {
+        // Format with commas
+        const formattedValue = parseInt(value).toLocaleString();
+        // Add "saat" suffix
+        const finalValue = `${formattedValue} saat`;
+        
+        setFormData(prev => ({
+          ...prev,
+          workingHours: finalValue
+        }));
+        
+        // Close keyboard by blurring the input
+        input.blur();
+      }
+    }
+  };
+
   const handleKeyInformationChange = (tabNumber) => {
     setKeyInformation(tabNumber);
   };
@@ -324,7 +356,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       setSalesPrice(20000);
     }
 
-    alert(editingService ? 'Servis kaydı güncellendi!' : 'Servis kaydı başarıyla oluşturuldu!');
+    alert(editingService ? 'Proje güncellendi!' : 'Proje başarıyla oluşturuldu!');
   };
 
   return (
@@ -432,7 +464,8 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     <input
       type="text"
       value={formData.workingHours}
-      onChange={(e) => handleInputChange('workingHours', e.target.value)}
+      onChange={handleWorkingHoursInput}
+      onKeyPress={handleWorkingHoursKeyPress}
       placeholder="Çalışma saati"
     />
   </div>
