@@ -1,70 +1,169 @@
-# Getting Started with Create React App
+# Service Receipt Management System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A React-based web application for creating and managing service receipts with real-time currency conversion and profit analysis. Features a clean black and white design matching the provided specifications.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+### ✅ Completed Features
 
-### `npm start`
+- **🏠 Navigation Sidebar**: Clean white sidebar with black text, exactly matching the uploaded design
+- **📝 Service Receipt Form**: Complete "Create New Service Receipt" form with:
+  - Machine information (name, year, hours, serial number)
+  - Operating system selection with tabbed interface
+  - Measurement probe settings (radio button selections)
+  - Accessory data input
+  
+- **💰 Cost Management**: 
+  - Dynamic cost details with add/delete functionality
+  - Multi-currency support (EUR, TRY, USD)
+  - Real-time EUR conversion display
+  - Professional cost table with delete icons
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **📊 Sales & Profit Analysis**:
+  - Live profit calculation
+  - Visual profit margin indicator
+  - Real-time EUR-TRY conversion
+  - Summary cards for cost, sales, and profit
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **🌐 Currency Conversion**:
+  - Live exchange rates from external API
+  - Automatic rate refresh every 10 minutes
+  - Fallback rates for offline scenarios
+  - Professional currency formatting
 
-### `npm test`
+- **📱 Responsive Design**:
+  - Mobile-optimized layout
+  - Responsive grid system
+  - Touch-friendly interface
+  - Collapsible navigation on mobile
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Project Structure
 
-### `npm run build`
+```
+src/
+├── components/
+│   ├── Layout/
+│   │   ├── MainLayout.js
+│   │   └── MainLayout.css
+│   ├── Sidebar/
+│   │   ├── Sidebar.js
+│   │   └── Sidebar.css
+│   ├── ServiceReceipt/
+│   │   ├── CreateServiceReceipt.js
+│   │   ├── CreateServiceReceipt.css
+│   │   ├── CostDetails.js
+│   │   ├── CostDetails.css
+│   │   ├── SalesAnalysis.js
+│   │   └── SalesAnalysis.css
+│   └── common/
+├── services/
+│   └── currencyService.js
+├── App.js
+├── App.css
+└── index.css
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Design System
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- **Color Scheme**: Clean black and white design matching uploaded specifications
+- **Layout**: Professional form layout with proper field alignment
+- **Typography**: Clean, modern typography with proper hierarchy
+- **Responsive**: Mobile-first responsive design
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Technology Stack
 
-### `npm run eject`
+- **React 19.1.1**: Modern React with hooks
+- **CSS3**: Custom responsive styling with black/white theme
+- **Exchange Rate API**: Live currency conversion
+- **Create React App**: Development environment
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Getting Started
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Installation
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+1. Navigate to the project directory:
+```bash
+cd testmach
+```
 
-## Learn More
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+3. Start the development server:
+```bash
+npm start
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+4. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-### Code Splitting
+## Usage
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Creating a Service Receipt
 
-### Analyzing the Bundle Size
+1. **Machine Information**: Fill in machine details including name, year, hours, and serial number
+2. **Operating System**: Select from available options (Heidenhain, Siemens, Fanuc, Other)
+3. **Measurement Settings**: Configure probe settings using radio buttons
+4. **Cost Details**: 
+   - Click "Maliyet Ekle" to add new cost items
+   - Select currency (EUR, TRY, USD)
+   - Enter description and amount
+   - View real-time EUR conversion
+   - Delete items using trash icon
+5. **Sales Analysis**: 
+   - Enter sales price
+   - View automatic profit calculations
+   - Monitor profit margin with visual indicator
+   - See live TRY conversion
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Navigation
 
-### Making a Progressive Web App
+- Use the left sidebar to navigate between sections
+- Click menu items to switch views
+- Sidebar collapses automatically on mobile devices
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Currency Features
 
-### Advanced Configuration
+- **Live Rates**: Fetches current EUR exchange rates every 10 minutes
+- **Offline Support**: Falls back to cached rates when API is unavailable
+- **Multi-Currency**: Supports EUR, TRY, and USD with automatic conversion
+- **Real-time Display**: Shows converted amounts as you type
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## Responsive Design
 
-### Deployment
+The application is fully responsive with:
+- **Desktop**: Full sidebar and multi-column layouts
+- **Tablet**: Adapted grid layouts with maintained functionality
+- **Mobile**: Collapsible navigation and single-column forms
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## Future Enhancements
 
-### `npm run build` fails to minify
+Ready for additional screens and features:
+- User management interface
+- Service history and reporting
+- Advanced filtering and search
+- Data persistence and API integration
+- Multi-language support
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Performance
+
+- Optimized React components with proper state management
+- Efficient re-rendering with React hooks
+- Lazy loading ready for future code splitting
+- Minimal bundle size with tree shaking
+
+## Browser Support
+
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+---
+
+**Note**: This is the initial implementation matching the provided design specifications. The application is ready for additional features and screens as needed.

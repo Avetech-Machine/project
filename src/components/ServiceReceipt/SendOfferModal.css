@@ -1,0 +1,512 @@
+.send-offer-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.send-offer-modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 1000px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  border-bottom: 1px solid #e9ecef;
+  background-color: #f8f9fa;
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-button:hover {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.email-form-container {
+  padding: 30px;
+}
+
+.email-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group label {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.input-group input {
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.offer-document {
+  background: white;
+  border: 2px solid #000;
+  border-radius: 8px;
+  padding: 30px;
+  margin-bottom: 30px;
+  font-family: 'Times New Roman', serif;
+}
+
+.document-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  gap: 40px;
+}
+
+.sender-info,
+.receiver-info {
+  flex: 1;
+}
+
+.sender-info {
+  text-align: left;
+}
+
+.receiver-info {
+  text-align: right;
+}
+
+.company-name {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #000;
+}
+
+.info-row {
+  margin-bottom: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.info-row strong {
+  color: #000;
+}
+
+.offer-title {
+  text-align: center;
+  margin: 30px 0;
+  padding: 20px 0;
+  border-top: 2px solid #000;
+  border-bottom: 2px solid #000;
+}
+
+.offer-title h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.machine-details {
+  margin: 30px 0;
+}
+
+.machine-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #000;
+}
+
+.machine-table th {
+  background-color: #f8f9fa;
+  border: 1px solid #000;
+  padding: 12px;
+  text-align: left;
+  font-weight: bold;
+  font-size: 14px;
+  color: #000;
+}
+
+.machine-table td {
+  border: 1px solid #000;
+  padding: 15px;
+  vertical-align: top;
+  font-size: 14px;
+}
+
+.position {
+  font-weight: bold;
+  text-align: center;
+  color: #000;
+}
+
+.machine-name {
+  font-weight: bold;
+  font-size: 16px;
+  color: #000;
+}
+
+.quantity {
+  text-align: center;
+  font-weight: bold;
+  color: #000;
+}
+
+.machine-price {
+  font-weight: bold;
+  font-size: 16px;
+  color: #000;
+  text-align: right;
+}
+
+.offer-footer {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #000;
+}
+
+.total-section {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.total-row {
+  display: flex;
+  gap: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+}
+
+.total-price {
+  font-size: 20px;
+}
+
+.terms-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #000;
+}
+
+.terms-row {
+  margin-bottom: 10px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #000;
+}
+
+.terms-row strong {
+  color: #000;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.btn-cancel,
+.btn-send {
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-cancel {
+  background: white;
+  color: #6c757d;
+  border: 1px solid #d1d5db;
+}
+
+.btn-cancel:hover {
+  background: #f8f9fa;
+  color: #495057;
+}
+
+.btn-send {
+  background: #000;
+  color: white;
+}
+
+.btn-send:hover {
+  background: #333;
+  transform: translateY(-1px);
+}
+
+.btn-send:disabled,
+.btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.success-message {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.success-content {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+}
+
+.success-content h3 {
+  color: #28a745;
+  margin-bottom: 15px;
+  font-size: 20px;
+}
+
+.success-content p {
+  color: #6c757d;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+/* Additional Emails Styles */
+.additional-emails-container {
+  width: 100%;
+}
+
+.email-input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.email-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.email-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.btn-add-email {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.btn-add-email:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.btn-add-email:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.email-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.email-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.email-text {
+  color: #495057;
+  font-weight: 500;
+}
+
+.btn-remove-email {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 12px;
+}
+
+.btn-remove-email:hover {
+  background-color: #c82333;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .send-offer-modal {
+    margin: 10px;
+    max-height: 95vh;
+  }
+
+  .email-form-container {
+    padding: 20px;
+  }
+
+  .email-inputs {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .email-input-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-add-email {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .document-header {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .sender-info,
+  .receiver-info {
+    text-align: left;
+  }
+
+  .machine-table {
+    font-size: 12px;
+  }
+
+  .machine-table th,
+  .machine-table td {
+    padding: 8px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .btn-cancel,
+  .btn-send {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .send-offer-modal-overlay {
+    padding: 10px;
+  }
+
+  .modal-header {
+    padding: 15px 20px;
+  }
+
+  .modal-header h2 {
+    font-size: 20px;
+  }
+
+  .email-form-container {
+    padding: 15px;
+  }
+
+  .offer-document {
+    padding: 20px;
+  }
+
+  .offer-title h3 {
+    font-size: 20px;
+  }
+}

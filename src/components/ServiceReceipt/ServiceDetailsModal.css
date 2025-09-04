@@ -1,0 +1,254 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 700px;
+  min-width: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px 24px;
+  border-bottom: 2px solid #e9ecef;
+  background: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+}
+
+.modal-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+  text-align: center;
+  flex: 1;
+  letter-spacing: 0.5px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-button:hover {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.machine-info-container {
+  display: flex;
+  gap: 24px;
+  min-height: 500px;
+  align-items: flex-start;
+}
+
+.machine-specifications {
+  flex: 2; /* Bu satır, sol sütunu sağ sütunun iki katı genişliğinde yapar */
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.machine-identification {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e9ecef;
+  width: 100%;
+}
+
+.machine-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 16px 0;
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.technical-details {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e9ecef;
+  width: 100%;
+}
+
+.technical-details h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 16px 0;
+  text-align: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.spec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.spec-row:last-child {
+  border-bottom: none;
+}
+
+.spec-label {
+  font-size: 14px;
+  color: #495057;
+  font-weight: 500;
+  flex: 1;
+  text-align: left;
+}
+
+.spec-value {
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 600;
+  flex: 1;
+  text-align: right;
+  padding-left: 16px;
+}
+
+.machine-image-section {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 200px;
+}
+
+.machine-image-placeholder {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  position: relative;
+}
+
+.image-placeholder-text {
+  text-align: center;
+  color: #6c757d;
+}
+
+.image-placeholder-text span {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.image-placeholder-text small {
+  font-size: 12px;
+  color: #868e96;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 10px;
+  }
+  
+  .modal-content {
+    max-width: 95vw;
+    min-width: auto;
+  }
+  
+  .modal-header {
+    padding: 16px 20px 12px 20px;
+  }
+  
+  .modal-header h2 {
+    font-size: 18px;
+  }
+  
+  .modal-body {
+    padding: 16px;
+  }
+  
+  .machine-info-container {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .machine-image-placeholder {
+    height: 250px;
+  }
+  
+  .spec-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .spec-value {
+    text-align: left;
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-header h2 {
+    font-size: 16px;
+  }
+  
+  .machine-title {
+    font-size: 16px;
+  }
+  
+  .technical-details h4 {
+    font-size: 14px;
+  }
+  
+  .spec-label,
+  .spec-value {
+    font-size: 13px;
+  }
+  
+  .machine-image-placeholder {
+    height: 200px;
+  }
+}

@@ -1,0 +1,118 @@
+/* Ana Sidebar Konteyneri */
+.sidebar {
+    width: 250px; /* Genişlik artırıldı */
+    background: #ffffff;
+    height: calc(100vh - 20px); /* Üst ve alt boşluklar için yükseklik ayarlandı */
+    position: fixed;
+    left: 10px; /* Soldan boşluk verildi */
+    top: 0px; /* Yukarıdan boşluk verildi */
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.05); /* Daha yumuşak bir gölge */
+    padding: 8px; /* Genel iç boşluk */
+    box-sizing: border-box;
+    border-radius: 12px; /* Köşeler yuvarlaklaştırıldı */
+  }
+  
+  /* Sidebar içeriği için ek bir sarmalayıcı */
+  .sidebar-content {
+    width: 100%;
+  }
+  
+  /* Menü Bölümleri (Servis İşlemleri, Kullanıcı İşlemleri vb.) */
+  .menu-section {
+    margin-bottom: 15px;
+  }
+  
+  /* Bölüm Başlıkları - Daha spesifik selector kullanarak çakışmaları önlüyoruz */
+  .sidebar .section-header {
+    padding: 6px 16px 8px 16px;
+  }
+  
+  .sidebar .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #666666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  /* Her bir menü öğesi */
+  .sidebar .menu-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    margin: 2px 0;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333333;
+  }
+  
+  /* Menü öğesinin üzerine gelindiğindeki stil */
+  .sidebar .menu-item:hover {
+    background-color: #f5f5f5;
+  }
+  
+  /* Aktif (seçili) menü öğesi stili */
+  .sidebar .menu-item.active {
+    background-color: #e8e8e8;
+    font-weight: 600;
+    color: #000000;
+  }
+  
+  /* Menü İkonları */
+  .sidebar .menu-icon {
+    margin-right: 14px;
+    font-size: 18px;
+    color: #666666;
+    transition: color 0.2s ease;
+  }
+
+  /* --- YENİ EKLENEN KOD BAŞLANGICI --- */
+
+  /* Ana Menü ikonuna özel stil */
+  .sidebar .menu-section:first-child .menu-item .menu-icon {
+    color: #007bff; /* Mavi renk */
+  }
+
+  /* Aktif Ana Menü ikonuna özel stil */
+  .sidebar .menu-section:first-child .menu-item.active .menu-icon {
+    color: #0056b3; /* Aktif durum için daha koyu mavi */
+  }
+
+  /* --- YENİ EKLENEN KOD SONU --- */
+  
+  /* Aktif menü öğesinin ikonu */
+  .sidebar .menu-item.active .menu-icon {
+    color: #333333;
+  }
+  
+  /* Menü metni */
+  .sidebar .menu-label {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* Mobil Cihazlar için Uyumluluk */
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 250px; /* Mobil için genişlik ayarı */
+      /* Mobil görünümde kenar boşluklarını sıfırlayabilirsiniz */
+      top: 0;
+      left: 0;
+      height: 100vh;
+      border-radius: 0;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease-in-out;
+    }
+  
+    .sidebar.open {
+      transform: translateX(0);
+    }
+  }
