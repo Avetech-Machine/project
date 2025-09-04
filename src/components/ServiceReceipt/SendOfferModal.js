@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaTimes, FaPaperPlane, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaTimes, FaPaperPlane, FaPlus, FaTrash, FaPencilAlt } from 'react-icons/fa';
 import './SendOfferModal.css';
 
 const SendOfferModal = ({ service, onClose }) => {
@@ -16,6 +16,12 @@ const SendOfferModal = ({ service, onClose }) => {
   const [newEmail, setNewEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [editingField, setEditingField] = useState(null);
+  const [editableTexts, setEditableTexts] = useState({
+    deliveryTerms: 'Makineler garanti dışıdır. Yükleme maliyetleri, nakliye maliyetleri ve makine kurulum maliyetleri satıcının sorumluluğundadır.',
+    paymentTerms: 'yükleme öncesi nihai ödeme',
+    deliveryDate: 'Önceden anlaşma sonrası'
+  });
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -39,6 +45,32 @@ const SendOfferModal = ({ service, onClose }) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleAddEmail();
+    }
+  };
+
+  const handleEditClick = (field) => {
+    setEditingField(field);
+  };
+
+  const handleEditSave = (field, value) => {
+    setEditableTexts(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    setEditingField(null);
+  };
+
+  const handleEditCancel = () => {
+    setEditingField(null);
+  };
+
+  const handleEditKeyPress = (e, field) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleEditSave(field, e.target.value);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleEditCancel();
     }
   };
 
@@ -201,19 +233,19 @@ const SendOfferModal = ({ service, onClose }) => {
 
                 <div className="receiver-info">
                   <div className="company-name">
-                    <strong>BESTTECH CNC Makine Sanayi Ve Ticaret Limited Şirketi</strong>
+                    <strong>Avitech Metal Technologies Inc.</strong>
                   </div>
                   <div className="info-row">
-                    <strong>Adres:</strong> OSTİM OSB MAH.1234. CADDE NO: 15 YENİMAHALLE ANKARA
+                    <strong>Adres:</strong> Rüzgarlıbahçe, K Plaza 34805 Beykoz/Istanbul, Turkey
                   </div>
                   <div className="info-row">
-                    <strong>Telefon:</strong> +90 537 849 37 09
+                    <strong>Telefon:</strong> +90 541 563 49 90
                   </div>
                   <div className="info-row">
-                    <strong>İletişim Kişisi:</strong> Bahri Eraslan
+                    <strong>İletişim Kişisi:</strong> Bora Urçar
                   </div>
                   <div className="info-row">
-                    <strong>E-Mail:</strong> info@besttechcnc.com
+                    <strong>E-Mail:</strong> bora.urcar@avitech.com.tr
                   </div>
                 </div>
               </div>
@@ -246,20 +278,134 @@ const SendOfferModal = ({ service, onClose }) => {
               <div className="offer-footer">
                 <div className="total-section">
                   <div className="total-row">
-                    <span>TOTAL:</span>
+                    <span>TOPLAM:</span>
                     <span className="total-price">{formatCurrency(formData.salesPrice, 'EUR')}</span>
                   </div>
                 </div>
                 
                 <div className="terms-section">
                   <div className="terms-row">
-                    <strong>Terms of Delivery:</strong> Machines are without guarantee. Exclusive loading costs, transport costs and machine installation costs are under seller's responsibility.
+                    <strong>Teslimat Şartları:</strong> 
+                    {editingField === 'deliveryTerms' ? (
+                      <div className="edit-input-container">
+                        <input
+                          type="text"
+                          value={editableTexts.deliveryTerms}
+                          onChange={(e) => setEditableTexts(prev => ({ ...prev, deliveryTerms: e.target.value }))}
+                          onKeyDown={(e) => handleEditKeyPress(e, 'deliveryTerms')}
+                          onBlur={() => handleEditSave('deliveryTerms', editableTexts.deliveryTerms)}
+                          className="edit-input"
+                          autoFocus
+                        />
+                        <div className="edit-actions">
+                          <button 
+                            type="button" 
+                            className="btn-save-edit" 
+                            onClick={() => handleEditSave('deliveryTerms', editableTexts.deliveryTerms)}
+                          >
+                            ✓
+                          </button>
+                          <button 
+                            type="button" 
+                            className="btn-cancel-edit" 
+                            onClick={handleEditCancel}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="editable-text" onClick={() => handleEditClick('deliveryTerms')}>
+                          {editableTexts.deliveryTerms}
+                        </span>
+                        <button className="edit-icon" type="button" onClick={() => handleEditClick('deliveryTerms')}>
+                          <FaPencilAlt />
+                        </button>
+                      </>
+                    )}
                   </div>
                   <div className="terms-row">
-                    <strong>Terms of Payment:</strong> final payment before loading
+                    <strong>Ödeme Şartları:</strong> 
+                    {editingField === 'paymentTerms' ? (
+                      <div className="edit-input-container">
+                        <input
+                          type="text"
+                          value={editableTexts.paymentTerms}
+                          onChange={(e) => setEditableTexts(prev => ({ ...prev, paymentTerms: e.target.value }))}
+                          onKeyDown={(e) => handleEditKeyPress(e, 'paymentTerms')}
+                          onBlur={() => handleEditSave('paymentTerms', editableTexts.paymentTerms)}
+                          className="edit-input"
+                          autoFocus
+                        />
+                        <div className="edit-actions">
+                          <button 
+                            type="button" 
+                            className="btn-save-edit" 
+                            onClick={() => handleEditSave('paymentTerms', editableTexts.paymentTerms)}
+                          >
+                            ✓
+                          </button>
+                          <button 
+                            type="button" 
+                            className="btn-cancel-edit" 
+                            onClick={handleEditCancel}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="editable-text" onClick={() => handleEditClick('paymentTerms')}>
+                          {editableTexts.paymentTerms}
+                        </span>
+                        <button className="edit-icon" type="button" onClick={() => handleEditClick('paymentTerms')}>
+                          <FaPencilAlt />
+                        </button>
+                      </>
+                    )}
                   </div>
                   <div className="terms-row">
-                    <strong>Delivery Date:</strong> After prior agreement
+                    <strong>Teslimat Tarihi:</strong> 
+                    {editingField === 'deliveryDate' ? (
+                      <div className="edit-input-container">
+                        <input
+                          type="text"
+                          value={editableTexts.deliveryDate}
+                          onChange={(e) => setEditableTexts(prev => ({ ...prev, deliveryDate: e.target.value }))}
+                          onKeyDown={(e) => handleEditKeyPress(e, 'deliveryDate')}
+                          onBlur={() => handleEditSave('deliveryDate', editableTexts.deliveryDate)}
+                          className="edit-input"
+                          autoFocus
+                        />
+                        <div className="edit-actions">
+                          <button 
+                            type="button" 
+                            className="btn-save-edit" 
+                            onClick={() => handleEditSave('deliveryDate', editableTexts.deliveryDate)}
+                          >
+                            ✓
+                          </button>
+                          <button 
+                            type="button" 
+                            className="btn-cancel-edit" 
+                            onClick={handleEditCancel}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="editable-text" onClick={() => handleEditClick('deliveryDate')}>
+                          {editableTexts.deliveryDate}
+                        </span>
+                        <button className="edit-icon" type="button" onClick={() => handleEditClick('deliveryDate')}>
+                          <FaPencilAlt />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

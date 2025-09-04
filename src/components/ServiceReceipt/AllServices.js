@@ -22,17 +22,29 @@ const AllServices = ({ onEditService }) => {
   const [isProposalsModalOpen, setIsProposalsModalOpen] = useState(false);
   const [isSendOfferModalOpen, setIsSendOfferModalOpen] = useState(false);
 
-  // Demo data - this will be replaced with actual cached data
+  // Load services from localStorage or use demo data
   useEffect(() => {
-    // Clear localStorage once to ensure updated demo data is loaded
-    localStorage.removeItem('serviceReceipts');
+    loadServicesFromStorage();
     
+    // Refresh services when window gains focus (e.g., when navigating back)
+    const handleFocus = () => {
+      loadServicesFromStorage();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
+  const loadServicesFromStorage = () => {
     // Check if there are any cached services in localStorage
     const cachedServices = localStorage.getItem('serviceReceipts');
     if (cachedServices) {
       setServices(JSON.parse(cachedServices));
     } else {
-      // Demo data for initial display
+      // Demo data for initial display (only if no cached data exists)
       const demoServices = [
         {
           id: 'DMG-2020-001',
@@ -173,7 +185,7 @@ const AllServices = ({ onEditService }) => {
       setServices(demoServices);
       localStorage.setItem('serviceReceipts', JSON.stringify(demoServices));
     }
-  }, []);
+  };
 
   const handleInfoClick = (service) => {
     setSelectedService(service);
