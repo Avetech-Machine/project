@@ -233,7 +233,7 @@ const SendOfferModal = ({ service, onClose }) => {
 
                 <div className="receiver-info">
                   <div className="company-name">
-                    <strong>Avitech Metal Technologies Inc.</strong>
+                    <strong>Avitech Metal Teknolojileri Anonim Şirketi</strong>
                   </div>
                   <div className="info-row">
                     <strong>Adres:</strong> Rüzgarlıbahçe, K Plaza 34805 Beykoz/Istanbul, Turkey
