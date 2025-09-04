@@ -106,6 +106,13 @@
   margin-bottom: 16px;
 }
 
+.selection-instruction {
+  font-size: 14px;
+  color: #6c757d;
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
 .proposals-list {
   display: flex;
   flex-direction: column;
@@ -117,11 +124,20 @@
   border-radius: 8px;
   padding: 16px;
   background-color: white;
-  transition: box-shadow 0.2s ease;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
 }
 
 .proposal-card:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: #007bff;
+}
+
+.proposal-card.selected {
+  border-color: #28a745;
+  background-color: #f8fff9;
+  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
 }
 
 .proposal-header {
@@ -240,7 +256,8 @@
 }
 
 .btn-sell,
-.btn-close {
+.btn-close,
+.btn-complete {
   padding: 10px 20px;
   border: none;
   border-radius: 6px;
@@ -260,6 +277,16 @@
 
 .btn-sell:hover {
   background-color: #1e7e34;
+  transform: translateY(-1px);
+}
+
+.btn-complete {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.btn-complete:hover {
+  background-color: #138496;
   transform: translateY(-1px);
 }
 

@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AiOutlineClose, AiOutlineEuro } from 'react-icons/ai';
 import { FaCheck } from 'react-icons/fa';
 import './ViewProposalsModal.css';
 
 const ViewProposalsModal = ({ service, onClose, onSell }) => {
+  const [selectedProposalId, setSelectedProposalId] = useState(null);
+
   if (!service) return null;
 
   const formatCurrency = (amount, currency = 'EUR') => {
@@ -21,6 +23,17 @@ const ViewProposalsModal = ({ service, onClose, onSell }) => {
 
   const handleSell = () => {
     if (onSell) {
+      onSell(service);
+    }
+    onClose();
+  };
+
+  const handleProposalClick = (proposalId) => {
+    setSelectedProposalId(selectedProposalId === proposalId ? null : proposalId);
+  };
+
+  const handleComplete = () => {
+    if (selectedProposalId && onSell) {
       onSell(service);
     }
     onClose();
@@ -88,9 +101,14 @@ const ViewProposalsModal = ({ service, onClose, onSell }) => {
 
           <div className="proposals-section">
             <h3>Gönderilen Teklifler</h3>
+            <p className="selection-instruction">Bir teklif seçmek için tıklayın:</p>
             <div className="proposals-list">
               {proposals.map((proposal) => (
-                <div key={proposal.id} className="proposal-card">
+                <div 
+                  key={proposal.id} 
+                  className={`proposal-card ${selectedProposalId === proposal.id ? 'selected' : ''}`}
+                  onClick={() => handleProposalClick(proposal.id)}
+                >
                   <div className="proposal-header">
                     <div className="proposal-info">
                       <h4>{proposal.proposalNumber}</h4>
@@ -127,10 +145,17 @@ const ViewProposalsModal = ({ service, onClose, onSell }) => {
           </div>
 
           <div className="modal-actions">
-            <button className="btn-sell" onClick={handleSell}>
-              <FaCheck className="btn-icon" />
-              Satışı Tamamla
-            </button>
+            {selectedProposalId ? (
+              <button className="btn-complete" onClick={handleComplete}>
+                <FaCheck className="btn-icon" />
+                Tamamlandı
+              </button>
+            ) : (
+              <button className="btn-sell" onClick={handleSell}>
+                <FaCheck className="btn-icon" />
+                Satışı Tamamla
+              </button>
+            )}
             <button className="btn-close" onClick={onClose}>
               Kapat
             </button>

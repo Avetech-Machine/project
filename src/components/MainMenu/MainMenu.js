@@ -17,11 +17,13 @@ import {
   AiOutlineClose
 } from 'react-icons/ai';
 import ServiceDetailsModal from '../ServiceReceipt/ServiceDetailsModal';
+import SendOfferModal from '../ServiceReceipt/SendOfferModal';
 import './MainMenu.css';
 
 const MainMenu = () => {
   const [selectedService, setSelectedService] = useState(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [isSendOfferModalOpen, setIsSendOfferModalOpen] = useState(false);
 
   // Mock data for the dashboard cards
   const dashboardStats = [
@@ -285,8 +287,8 @@ const MainMenu = () => {
   };
 
   const handleEditClick = (service) => {
-    // Handle edit click - could open edit form or navigate to edit page
-    console.log('Edit clicked for service:', service);
+    setSelectedService(service);
+    setIsSendOfferModalOpen(true);
   };
 
   const getStatusClass = (status) => {
@@ -402,6 +404,14 @@ const MainMenu = () => {
         <ServiceDetailsModal 
           service={selectedService} 
           onClose={handleCloseModal} 
+        />
+      )}
+
+      {/* Send Offer Modal */}
+      {isSendOfferModalOpen && selectedService && (
+        <SendOfferModal
+          service={selectedService}
+          onClose={() => setIsSendOfferModalOpen(false)}
         />
       )}
     </div>

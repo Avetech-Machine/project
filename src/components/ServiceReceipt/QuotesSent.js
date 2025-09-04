@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import ServiceDetailsModal from './ServiceDetailsModal';
 import ProfitAnalysisModal from './ProfitAnalysisModal';
+import SendOfferModal from './SendOfferModal';
 import { 
   AiOutlineInfoCircle, 
   AiOutlineEdit, 
   AiOutlineCalendar,
   AiOutlineSetting,
-  AiOutlineEuro
+  AiOutlineEuro,
+  AiOutlineEye
 } from 'react-icons/ai';
 import { FaChartLine, FaPaperPlane } from 'react-icons/fa';
 import './AllServices.css';
@@ -16,6 +18,7 @@ const QuotesSent = ({ onEditService }) => {
   const [selectedService, setSelectedService] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfitModalOpen, setIsProfitModalOpen] = useState(false);
+  const [isSendOfferModalOpen, setIsSendOfferModalOpen] = useState(false);
 
   // Demo data - this will be replaced with actual cached data
   useEffect(() => {
@@ -64,9 +67,8 @@ const QuotesSent = ({ onEditService }) => {
   };
 
   const handleEditClick = (service) => {
-    if (onEditService) {
-      onEditService(service);
-    }
+    setSelectedService(service);
+    setIsSendOfferModalOpen(true);
   };
 
   const handleCostDetailClick = (service) => {
@@ -170,6 +172,13 @@ const QuotesSent = ({ onEditService }) => {
         <ProfitAnalysisModal
           service={selectedService}
           onClose={() => setIsProfitModalOpen(false)}
+        />
+      )}
+
+      {isSendOfferModalOpen && selectedService && (
+        <SendOfferModal
+          service={selectedService}
+          onClose={() => setIsSendOfferModalOpen(false)}
         />
       )}
     </div>
