@@ -4,10 +4,6 @@ import './SendOfferModal.css';
 
 const SendOfferModal = ({ service, onClose }) => {
   const [formData, setFormData] = useState({
-    customerEmail: '',
-    customerName: '',
-    customerPhone: '',
-    customerCompany: '',
     ccList: '',
     documentDate: new Date().toLocaleDateString('tr-TR'),
     salesPrice: service?.salesPrice || 20000
@@ -18,6 +14,11 @@ const SendOfferModal = ({ service, onClose }) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [editingField, setEditingField] = useState(null);
   const [editableTexts, setEditableTexts] = useState({
+    companyName: '',
+    address: '',
+    contactPerson: '',
+    phone: '',
+    email: '',
     deliveryTerms: 'Makineler garanti dışıdır. Yükleme maliyetleri, nakliye maliyetleri ve makine kurulum maliyetleri satıcının sorumluluğundadır.',
     paymentTerms: 'yükleme öncesi nihai ödeme',
     deliveryDate: 'Önceden anlaşma sonrası'
@@ -79,7 +80,7 @@ const SendOfferModal = ({ service, onClose }) => {
     setIsSubmitting(true);
     
     // Combine all emails for display
-    const allEmails = [formData.customerEmail, ...additionalEmails].filter(Boolean);
+    const allEmails = [...additionalEmails].filter(Boolean);
     
     // Simulate email sending process
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -114,45 +115,6 @@ const SendOfferModal = ({ service, onClose }) => {
           <form onSubmit={handleSubmit}>
             <div className="email-inputs">
               <div className="input-group">
-                <label>Müşteri Adı:</label>
-                <input
-                  type="text"
-                  value={formData.customerName}
-                  onChange={(e) => handleInputChange('customerName', e.target.value)}
-                  placeholder="Müşteri Adı"
-                  required
-                />
-              </div>
-              <div className="input-group">
-                <label>Müşteri E-posta Adresi:</label>
-                <input
-                  type="email"
-                  value={formData.customerEmail}
-                  onChange={(e) => handleInputChange('customerEmail', e.target.value)}
-                  placeholder="müşteri@firma.com"
-                  required
-                />
-              </div>
-              <div className="input-group">
-                <label>Telefon Numarası:</label>
-                <input
-                  type="tel"
-                  value={formData.customerPhone}
-                  onChange={(e) => handleInputChange('customerPhone', e.target.value)}
-                  placeholder="+90 5XX XXX XX XX"
-                />
-              </div>
-              <div className="input-group">
-                <label>Mail Listesine Ekle (CC):</label>
-                <input
-                  type="text"
-                  value={formData.ccList}
-                  onChange={(e) => handleInputChange('ccList', e.target.value)}
-                  placeholder="ek@firma.com, diger@firma.com"
-                />
-              </div>
-              
-              <div className="input-group">
                 <label>Fiyat (EUR):</label>
                 <input
                   type="number"
@@ -166,7 +128,7 @@ const SendOfferModal = ({ service, onClose }) => {
               
               {/* Additional Emails Section */}
               <div className="input-group">
-                <label>Ek E-posta Adresleri:</label>
+                <label>Mail Listesine Ekle (CC):</label>
                 <div className="additional-emails-container">
                   <div className="email-input-row">
                     <input
@@ -184,7 +146,6 @@ const SendOfferModal = ({ service, onClose }) => {
                       disabled={!newEmail.trim() || !newEmail.includes('@')}
                     >
                       <FaPlus />
-                      Ekle
                     </button>
                   </div>
                   
@@ -211,20 +172,225 @@ const SendOfferModal = ({ service, onClose }) => {
             <div className="offer-document">
               <div className="document-header">
                 <div className="sender-info">
-                  <div className="company-name">
-                    <strong>DİJİTAL GÜÇ İŞLEM TEST SİSTEMLERİ ELEKTRONİK SAN. VE TİC. A.Ş</strong>
+                  <div className="info-row">
+                    <strong>Şirket Adı:</strong> 
+                    {editingField === 'companyName' ? (
+                      <div className="edit-input-container">
+                        <input
+                          type="text"
+                          value={editableTexts.companyName}
+                          onChange={(e) => setEditableTexts(prev => ({ ...prev, companyName: e.target.value }))}
+                          onKeyDown={(e) => handleEditKeyPress(e, 'companyName')}
+                          onBlur={() => handleEditSave('companyName', editableTexts.companyName)}
+                          className="edit-input"
+                          autoFocus
+                        />
+                        <div className="edit-actions">
+                          <button 
+                            type="button" 
+                            className="btn-save-edit" 
+                            onClick={() => handleEditSave('companyName', editableTexts.companyName)}
+                          >
+                            ✓
+                          </button>
+                          <button 
+                            type="button" 
+                            className="btn-cancel-edit" 
+                            onClick={handleEditCancel}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <span 
+                          className={`editable-text ${!editableTexts.companyName ? 'placeholder' : ''}`} 
+                          onClick={() => handleEditClick('companyName')}
+                        >
+                          {editableTexts.companyName || 'Şirket Adı'}
+                        </span>
+                        <button className="edit-icon" type="button" onClick={() => handleEditClick('companyName')}>
+                          <FaPencilAlt />
+                        </button>
+                      </>
+                    )}
                   </div>
                   <div className="info-row">
-                    <strong>Adres:</strong> Ostim OSB mah. 1201 Cad. No:122/A YENİMAHALLE/ANKARA
+                    <strong>Adres:</strong> 
+                    {editingField === 'address' ? (
+                      <div className="edit-input-container">
+                        <input
+                          type="text"
+                          value={editableTexts.address}
+                          onChange={(e) => setEditableTexts(prev => ({ ...prev, address: e.target.value }))}
+                          onKeyDown={(e) => handleEditKeyPress(e, 'address')}
+                          onBlur={() => handleEditSave('address', editableTexts.address)}
+                          className="edit-input"
+                          autoFocus
+                        />
+                        <div className="edit-actions">
+                          <button 
+                            type="button" 
+                            className="btn-save-edit" 
+                            onClick={() => handleEditSave('address', editableTexts.address)}
+                          >
+                            ✓
+                          </button>
+                          <button 
+                            type="button" 
+                            className="btn-cancel-edit" 
+                            onClick={handleEditCancel}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <span 
+                          className={`editable-text ${!editableTexts.address ? 'placeholder' : ''}`} 
+                          onClick={() => handleEditClick('address')}
+                        >
+                          {editableTexts.address || 'Adres'}
+                        </span>
+                        <button className="edit-icon" type="button" onClick={() => handleEditClick('address')}>
+                          <FaPencilAlt />
+                        </button>
+                      </>
+                    )}
                   </div>
                   <div className="info-row">
-                    <strong>İletişim Kişisi:</strong> Sefer Erseven
+                    <strong>İletişim Kişisi:</strong> 
+                    {editingField === 'contactPerson' ? (
+                      <div className="edit-input-container">
+                        <input
+                          type="text"
+                          value={editableTexts.contactPerson}
+                          onChange={(e) => setEditableTexts(prev => ({ ...prev, contactPerson: e.target.value }))}
+                          onKeyDown={(e) => handleEditKeyPress(e, 'contactPerson')}
+                          onBlur={() => handleEditSave('contactPerson', editableTexts.contactPerson)}
+                          className="edit-input"
+                          autoFocus
+                        />
+                        <div className="edit-actions">
+                          <button 
+                            type="button" 
+                            className="btn-save-edit" 
+                            onClick={() => handleEditSave('contactPerson', editableTexts.contactPerson)}
+                          >
+                            ✓
+                          </button>
+                          <button 
+                            type="button" 
+                            className="btn-cancel-edit" 
+                            onClick={handleEditCancel}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <span 
+                          className={`editable-text ${!editableTexts.contactPerson ? 'placeholder' : ''}`} 
+                          onClick={() => handleEditClick('contactPerson')}
+                        >
+                          {editableTexts.contactPerson || 'İletişim Kişisi'}
+                        </span>
+                        <button className="edit-icon" type="button" onClick={() => handleEditClick('contactPerson')}>
+                          <FaPencilAlt />
+                        </button>
+                      </>
+                    )}
                   </div>
                   <div className="info-row">
-                    <strong>Telefon:</strong> +90 533 713 18 66
+                    <strong>Telefon:</strong> 
+                    {editingField === 'phone' ? (
+                      <div className="edit-input-container">
+                        <input
+                          type="text"
+                          value={editableTexts.phone}
+                          onChange={(e) => setEditableTexts(prev => ({ ...prev, phone: e.target.value }))}
+                          onKeyDown={(e) => handleEditKeyPress(e, 'phone')}
+                          onBlur={() => handleEditSave('phone', editableTexts.phone)}
+                          className="edit-input"
+                          autoFocus
+                        />
+                        <div className="edit-actions">
+                          <button 
+                            type="button" 
+                            className="btn-save-edit" 
+                            onClick={() => handleEditSave('phone', editableTexts.phone)}
+                          >
+                            ✓
+                          </button>
+                          <button 
+                            type="button" 
+                            className="btn-cancel-edit" 
+                            onClick={handleEditCancel}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <span 
+                          className={`editable-text ${!editableTexts.phone ? 'placeholder' : ''}`} 
+                          onClick={() => handleEditClick('phone')}
+                        >
+                          {editableTexts.phone || 'Telefon'}
+                        </span>
+                        <button className="edit-icon" type="button" onClick={() => handleEditClick('phone')}>
+                          <FaPencilAlt />
+                        </button>
+                      </>
+                    )}
                   </div>
                   <div className="info-row">
-                    <strong>E-Mail:</strong> sefer.erseven@dijitest.com.tr
+                    <strong>E-Mail:</strong> 
+                    {editingField === 'email' ? (
+                      <div className="edit-input-container">
+                        <input
+                          type="text"
+                          value={editableTexts.email}
+                          onChange={(e) => setEditableTexts(prev => ({ ...prev, email: e.target.value }))}
+                          onKeyDown={(e) => handleEditKeyPress(e, 'email')}
+                          onBlur={() => handleEditSave('email', editableTexts.email)}
+                          className="edit-input"
+                          autoFocus
+                        />
+                        <div className="edit-actions">
+                          <button 
+                            type="button" 
+                            className="btn-save-edit" 
+                            onClick={() => handleEditSave('email', editableTexts.email)}
+                          >
+                            ✓
+                          </button>
+                          <button 
+                            type="button" 
+                            className="btn-cancel-edit" 
+                            onClick={handleEditCancel}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <span 
+                          className={`editable-text ${!editableTexts.email ? 'placeholder' : ''}`} 
+                          onClick={() => handleEditClick('email')}
+                        >
+                          {editableTexts.email || 'E-Mail'}
+                        </span>
+                        <button className="edit-icon" type="button" onClick={() => handleEditClick('email')}>
+                          <FaPencilAlt />
+                        </button>
+                      </>
+                    )}
                   </div>
                   <div className="info-row">
                     <strong>Belge Tarihi:</strong> {formData.documentDate}
@@ -427,13 +593,9 @@ const SendOfferModal = ({ service, onClose }) => {
           <div className="success-message">
             <div className="success-content">
               <h3>Teklif Başarıyla Gönderildi!</h3>
-              <p>Teklif {formData.customerEmail} adresine gönderildi.</p>
               <p>Fiyat: {formatCurrency(formData.salesPrice, 'EUR')}</p>
               {additionalEmails.length > 0 && (
                 <p>Ek E-posta Adresleri: {additionalEmails.join(', ')}</p>
-              )}
-              {formData.ccList && (
-                <p>CC: {formData.ccList}</p>
               )}
             </div>
           </div>
