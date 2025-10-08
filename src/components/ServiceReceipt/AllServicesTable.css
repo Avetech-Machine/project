@@ -1,0 +1,226 @@
+.all-services {
+  padding: 40px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.services-header {
+  margin-bottom: 30px;
+}
+
+.services-header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.services-header p {
+  font-size: 16px;
+  color: #6c757d;
+  margin: 0;
+}
+
+/* Action buttons container for closed projects */
+.action-buttons-container {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Hide empty action buttons container to prevent spacing issues */
+.action-buttons-container:empty {
+  display: none;
+  margin-bottom: 0;
+}
+
+.btn-see-cost-all,
+.btn-submit-info-all {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 160px;
+}
+
+.btn-see-cost-all {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-see-cost-all:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+.btn-submit-info-all {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-submit-info-all:hover {
+  background-color: #1e7e34;
+  transform: translateY(-1px);
+}
+
+/* Table container */
+.services-table-container {
+  max-width: 1400px;
+  margin: 0 auto 40px auto;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.services-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.services-table thead {
+  background-color: #f8f9fa;
+}
+
+.services-table th {
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 600;
+  color: #2c3e50;
+  border-bottom: 2px solid #dee2e6;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.services-table tbody tr {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid white;
+  transition: background-color 0.2s ease;
+}
+
+.services-table tbody tr:hover {
+  background-color: #e9ecef;
+}
+
+.services-table tbody tr:nth-child(even) {
+  background-color: #f1f3f4;
+}
+
+.services-table tbody tr:nth-child(even):hover {
+  background-color: #e9ecef;
+}
+
+.services-table td {
+  padding: 16px 20px;
+  border-right: 1px solid white;
+  vertical-align: middle;
+}
+
+.services-table td:last-child {
+  border-right: none;
+}
+
+.service-row {
+  height: 60px;
+}
+
+/* Table column styles */
+.form-number {
+  font-weight: 600;
+  color: #2c3e50;
+  text-align: center;
+  width: 100px;
+}
+
+.company-name {
+  font-weight: 500;
+  color: #2c3e50;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.device-name {
+  font-weight: 500;
+  color: #2c3e50;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.start-date {
+  font-weight: 500;
+  color: #2c3e50;
+  text-align: center;
+  width: 120px;
+}
+
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .services-table-container {
+    margin: 0 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .services-table-container {
+    margin: 0 16px;
+    overflow-x: auto;
+  }
+  
+  .services-table {
+    min-width: 600px;
+  }
+  
+  .services-table th,
+  .services-table td {
+    padding: 12px 16px;
+  }
+
+  .action-buttons-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btn-see-cost-all,
+  .btn-submit-info-all {
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .all-services {
+    padding: 16px;
+  }
+  
+  .services-header h1 {
+    font-size: 24px;
+  }
+  
+  .services-table-container {
+    margin: 0 8px;
+  }
+  
+  .services-table th,
+  .services-table td {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
