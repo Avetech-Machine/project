@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaTimes, FaPaperPlane, FaPlus, FaTrash, FaPencilAlt } from 'react-icons/fa';
+import projectService from '../../services/projectService';
 import './SendOfferModal.css';
 
 const SendOfferModal = ({ service, onClose }) => {
@@ -12,6 +13,7 @@ const SendOfferModal = ({ service, onClose }) => {
   const [newEmail, setNewEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState(null);
   const [editingField, setEditingField] = useState(null);
   const [editableTexts, setEditableTexts] = useState({
     companyName: '',
@@ -78,20 +80,43 @@ const SendOfferModal = ({ service, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
     
-    // Combine all emails for display
-    const allEmails = [...additionalEmails].filter(Boolean);
-    
-    // Simulate email sending process
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setShowSuccess(true);
-    
-    // Close modal after showing success message
-    setTimeout(() => {
-      onClose();
-    }, 2000);
+    try {
+      // Prepare offer data for API
+      const offerData = {
+        salesPrice: formData.salesPrice,
+        documentDate: formData.documentDate,
+        ccList: additionalEmails.filter(Boolean),
+        companyInfo: {
+          companyName: editableTexts.companyName,
+          address: editableTexts.address,
+          contactPerson: editableTexts.contactPerson,
+          phone: editableTexts.phone,
+          email: editableTexts.email
+        },
+        terms: {
+          deliveryTerms: editableTexts.deliveryTerms,
+          paymentTerms: editableTexts.paymentTerms,
+          deliveryDate: editableTexts.deliveryDate
+        }
+      };
+      
+      // Send offer via API
+      await projectService.sendOffer(service.id, offerData);
+      
+      setIsSubmitting(false);
+      setShowSuccess(true);
+      
+      // Close modal after showing success message
+      setTimeout(() => {
+        onClose();
+      }, 2000);
+    } catch (err) {
+      console.error('Error sending offer:', err);
+      setError(err.message || 'Teklif gönderilirken bir hata oluştu');
+      setIsSubmitting(false);
+    }
   };
 
   const formatCurrency = (amount, currency = 'EUR') => {
@@ -576,6 +601,12 @@ const SendOfferModal = ({ service, onClose }) => {
                 </div>
               </div>
             </div>
+
+            {error && (
+              <div className="error-message">
+                <p>Hata: {error}</p>
+              </div>
+            )}
 
             <div className="form-actions">
               <button type="button" className="btn-cancel" onClick={onClose} disabled={isSubmitting}>

@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CostDetails from './CostDetails';
 import SalesAnalysis from './SalesAnalysis';
 import { getExchangeRates } from '../../services/currencyService';
+import projectService from '../../services/projectService';
+import { useAuth } from '../../contexts/AuthContext';
 import { FaEuroSign, FaChartLine, FaPlus, FaCamera, FaTimes } from 'react-icons/fa';
 import './CreateServiceReceipt.css';
 
 const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     // Machine Information
     machineName: '',
@@ -55,6 +60,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     USD: 1.09
   });
   const [isRatesLoading, setIsRatesLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Fetch live exchange rates
   useEffect(() => {
@@ -288,75 +294,145 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     return `${machinePrefix}-${year}-${timestamp}`;
   };
 
-  const handleSave = () => {
-    // Create service object
-    const serviceData = {
-      id: editingService?.id || generateServiceId(),
-      ...formData,
-      keyInformation: keyInformation, // Add key information to saved data
-      projectCode: projectCode, // Add project code to saved data
-      costDetails: costDetails,
-      totalCost: totalCost,
-      salesPrice: salesPrice,
-      netProfit: netProfit,
-      profitMargin: parseFloat(profitMargin),
-      createdDate: editingService?.createdDate || new Date().toLocaleDateString('tr-TR'),
-      status: editingService?.status || 'Taslak'
+  // Validate and clean data for JSON serialization
+  const validateAndCleanData = (data) => {
+    try {
+      // Test if data can be serialized
+      JSON.stringify(data);
+      return data;
+    } catch (error) {
+      console.error('JSON serialization error:', error);
+      console.error('Problematic data:', data);
+      throw new Error('Veri JSON formatına dönüştürülemiyor');
+    }
+  };
+
+  // Map form data to API format - Exact structure as specified
+  const mapFormDataToAPI = () => {
+    const apiData = {
+      projectCode: `PRJ-${projectCode}`,
+      machineName: formData.machineName || '',
+      model: formData.machineName || '', // Using machineName as model since no separate model field
+      make: (formData.machineName && formData.machineName.split(' ')[0]) || 'Unknown', // Extract make from machine name
+      year: parseInt(formData.year) || 2024,
+      hoursOperated: parseInt(formData.workingHours) || 0,
+      rpm: parseInt(formData.repairHours) || 0, // Using repairHours as rpm
+      serialNumber: formData.serialNumber || '',
+      takimSayisi: parseInt(formData.teamCount) || 0,
+      netWeight: (formData.machineNetWeight && !isNaN(parseFloat(formData.machineNetWeight))) ? parseFloat(formData.machineNetWeight) : null,
+      additionalWeight: (formData.additionalWeight && !isNaN(parseFloat(formData.additionalWeight))) ? parseFloat(formData.additionalWeight) : null,
+      operatingSystem: formData.operatingSystem || '',
+      anahtarBilgisi: keyInformation || '',
+      takimOlcmeProbu: formData.teamMeasurementProbe === 'Var',
+      parcaOlcmeProbu: formData.partMeasurementProbe === 'Var',
+      ictenSuVerme: formData.insideWaterGiving === 'Var',
+      konveyor: formData.conveyor === 'Var',
+      kagitFiltre: formData.paperFilter === 'Var',
+      xMovement: true, // Default values as shown in example
+      yMovement: true,
+      zMovement: true,
+      bMovement: false,
+      cMovement: false,
+      additionalEquipment: formData.accessoryData || '',
+      costDetails: costDetails.map(cost => `${cost.description}: ${cost.currency} ${cost.amount}`).join(', '),
+      priceDetails: `Base price: ${salesPrice}, Total cost: ${totalCost}, Net profit: ${netProfit}`,
+      status: "TEMPLATE",
+      photos: (formData.photos && Array.isArray(formData.photos)) ? formData.photos.map(photo => photo.url).filter(url => url) : []
     };
-
-    // Special handling for Haas VF-4SS - preserve "Satıldı" status
-    if (editingService?.id === 'HAAS-2021-012') {
-      serviceData.status = 'Satıldı';
-    }
-
-    // Get existing services from localStorage
-    const existingServices = JSON.parse(localStorage.getItem('serviceReceipts') || '[]');
     
-    if (editingService) {
-      // Update existing service
-      const updatedServices = existingServices.map(service => 
-        service.id === editingService.id ? serviceData : service
-      );
-      localStorage.setItem('serviceReceipts', JSON.stringify(updatedServices));
-    } else {
-      // Add new service
-      const updatedServices = [...existingServices, serviceData];
-      localStorage.setItem('serviceReceipts', JSON.stringify(updatedServices));
-    }
+    return validateAndCleanData(apiData);
+  };
 
-    // Call the callback if provided
-    if (onSaveComplete) {
-      onSaveComplete(serviceData);
-    }
+  const handleSave = async () => {
+    if (isSaving) return; // Prevent multiple submissions
+    
+    setIsSaving(true);
+    try {
+      // Map form data to API format
+      const apiData = mapFormDataToAPI();
+      
+      // Log the data being sent to API
+      console.log('=== API REQUEST DATA ===');
+      console.log('Raw API Data:', apiData);
+      console.log('JSON Stringified:', JSON.stringify(apiData, null, 2));
+      console.log('========================');
+      
+      // Call API to create project
+      const response = await projectService.createProject(apiData);
+      
+      // Create service object for local storage (for backward compatibility)
+      const serviceData = {
+        id: response.id || generateServiceId(),
+        ...formData,
+        keyInformation: keyInformation,
+        projectCode: projectCode,
+        costDetails: costDetails,
+        totalCost: totalCost,
+        salesPrice: salesPrice,
+        netProfit: netProfit,
+        profitMargin: parseFloat(profitMargin),
+        createdDate: new Date().toLocaleDateString('tr-TR'),
+        status: 'TEMPLATE',
+        apiId: response.id // Store API ID for future reference
+      };
 
-    // Reset form if creating new service
-    if (!editingService) {
-      setFormData({
-        machineName: '',
-        year: '2024',
-        workingHours: '',
-        repairHours: '',
-        serialNumber: '',
-        teamCount: '2',
-        machineNetWeight: '',
-        additionalWeight: '',
-        operatingSystem: 'Heidenhain',
-        teamMeasurementProbe: 'Var',
-        partMeasurementProbe: 'Var',
-        insideWaterGiving: 'Yok',
-        conveyor: 'Yok',
-        paperFilter: 'Yok',
-        accessoryData: '',
-        photos: []
-      });
-      setCostDetails([
-        { id: 1, description: 'Otel', currency: 'EUR', amount: 200 },
-        { id: 2, description: 'Lojistik', currency: 'EUR', amount: 10000 }
-      ]);
-      setSalesPrice(20000);
-    }
+      // Get existing services from localStorage
+      const existingServices = JSON.parse(localStorage.getItem('serviceReceipts') || '[]');
+      
+      if (editingService) {
+        // Update existing service
+        const updatedServices = existingServices.map(service => 
+          service.id === editingService.id ? serviceData : service
+        );
+        localStorage.setItem('serviceReceipts', JSON.stringify(updatedServices));
+      } else {
+        // Add new service
+        const updatedServices = [...existingServices, serviceData];
+        localStorage.setItem('serviceReceipts', JSON.stringify(updatedServices));
+      }
 
-    alert(editingService ? 'Proje güncellendi!' : 'Proje başarıyla oluşturuldu!');
+      // Call the callback if provided
+      if (onSaveComplete) {
+        onSaveComplete(serviceData);
+      }
+      
+      // Navigate to all services page
+      navigate('/allServices');
+
+      // Reset form if creating new service
+      if (!editingService) {
+        setFormData({
+          machineName: '',
+          year: '2024',
+          workingHours: '',
+          repairHours: '',
+          serialNumber: '',
+          teamCount: '2',
+          machineNetWeight: '',
+          additionalWeight: '',
+          operatingSystem: 'Heidenhain',
+          teamMeasurementProbe: 'Var',
+          partMeasurementProbe: 'Var',
+          insideWaterGiving: 'Yok',
+          conveyor: 'Yok',
+          paperFilter: 'Yok',
+          accessoryData: '',
+          photos: []
+        });
+        setCostDetails([
+          { id: 1, description: 'Otel', currency: 'EUR', amount: 200 },
+          { id: 2, description: 'Lojistik', currency: 'EUR', amount: 10000 }
+        ]);
+        setSalesPrice(20000);
+      }
+
+      alert(editingService ? 'Proje güncellendi!' : 'Proje başarıyla oluşturuldu!');
+    } catch (error) {
+      console.error('Proje kaydetme hatası:', error);
+      alert(`Proje kaydedilirken bir hata oluştu: ${error.message}`);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -750,8 +826,13 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       {/* Action Buttons */}
       <div className="form-actions">
         <button type="button" className="btn-cancel">İptal</button>
-        <button type="button" className="btn-save" onClick={handleSave}>
-          {editingService ? 'Güncelle' : 'Kaydet'}
+        <button 
+          type="button" 
+          className="btn-save" 
+          onClick={handleSave}
+          disabled={isSaving}
+        >
+          {isSaving ? 'Kaydediliyor...' : (editingService ? 'Güncelle' : 'Kaydet')}
         </button>
       </div>
 

@@ -99,6 +99,51 @@
     text-overflow: ellipsis;
   }
   
+  /* Kullanıcı Bilgisi Bölümü */
+  .user-section {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid #e8e8e8;
+  }
+
+  .user-info {
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #007bff;
+  }
+
+  .user-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 2px;
+  }
+
+  .user-username {
+    display: block;
+    font-size: 12px;
+    color: #666666;
+    font-style: italic;
+  }
+
+  .logout-item {
+    color: #dc3545 !important;
+    border: 1px solid #dc3545;
+    background-color: transparent;
+  }
+
+  .logout-item:hover {
+    background-color: #dc3545 !important;
+    color: white !important;
+  }
+
+  .logout-item .menu-icon {
+    color: inherit;
+  }
+
   /* Mobil Cihazlar için Uyumluluk */
   @media (max-width: 768px) {
     .sidebar {

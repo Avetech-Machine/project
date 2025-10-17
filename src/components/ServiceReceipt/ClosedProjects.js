@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ServiceDetailsModal from './ServiceDetailsModal';
 import ProfitAnalysisModal from './ProfitAnalysisModal';
+import projectService from '../../services/projectService';
 import { 
   AiOutlineInfoCircle, 
   AiOutlineEdit, 
@@ -18,46 +19,50 @@ const ClosedProjects = ({ onEditService }) => {
   const [selectedService, setSelectedService] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfitModalOpen, setIsProfitModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Demo data - this will be replaced with actual cached data
+  // Fetch projects with SOLD status from API
   useEffect(() => {
-    // Check if there are any cached services in localStorage
-    const cachedServices = localStorage.getItem('serviceReceipts');
-    if (cachedServices) {
-      const allServices = JSON.parse(cachedServices);
-      // Filter only services with "Satıldı" status
-      const closedServices = allServices.filter(service => service.status === 'Satıldı');
-      setServices(closedServices);
-    } else {
-      // Demo data for initial display
-      const demoServices = [
-        {
-          id: 'HAAS-2021-012',
-          machineName: 'Haas VF-4SS',
-          year: '2021',
-          operatingSystem: 'Haas Control',
-          serialNumber: 'HAAS-2021-012',
-          createdDate: '10.01.2024',
-          status: 'Satıldı',
-          totalCost: 12500,
-          salesPrice: 12500,
-          netProfit: 4000,
-          profitMargin: 32.0,
-          costDetails: [
-            { id: 1, description: 'Taşıma', currency: 'EUR', amount: 800 },
-            { id: 2, description: 'Montaj', currency: 'EUR', amount: 3700 }
-          ],
-          workingHours: '5000',
-          repairHours: '800',
-          teamCount: '2',
-          teamMeasurementProbe: 'Yok',
-          partMeasurementProbe: 'Var',
-          insideWaterGiving: 'Yok',
-          accessoryData: 'Otomatik Takım Değiştirici'
-        }
-      ];
-      setServices(demoServices);
-    }
+    const fetchClosedProjects = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await projectService.getProjectsByStatus('SOLD');
+        
+        // Transform API data to match the expected format
+        const transformedServices = data.map(project => ({
+          id: project.id,
+          machineName: project.title,
+          year: project.year,
+          operatingSystem: project.operatingSystem,
+          serialNumber: project.serialNumber,
+          createdDate: project.createdAt ? new Date(project.createdAt).toLocaleDateString('tr-TR') : '-',
+          status: 'Satıldı', // All projects from this endpoint will show as "Satıldı"
+          totalCost: project.totalCost || 0,
+          salesPrice: project.salesPrice || 0,
+          netProfit: project.netProfit || 0,
+          profitMargin: project.profitMargin || 0,
+          costDetails: project.costDetails || [],
+          workingHours: project.hoursOperated || '-',
+          repairHours: project.repairHours || '-',
+          teamCount: project.teamCount || '-',
+          teamMeasurementProbe: project.takimOlcmeProbu ? 'Var' : 'Yok',
+          partMeasurementProbe: project.parcaOlcmeProbu ? 'Var' : 'Yok',
+          insideWaterGiving: project.ictenSuVerme ? 'Var' : 'Yok',
+          accessoryData: project.additionalEquipment || '-'
+        }));
+        
+        setServices(transformedServices);
+      } catch (err) {
+        console.error('Error fetching closed projects:', err);
+        setError(err.message || 'Kapatılan projeler yüklenirken bir hata oluştu');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClosedProjects();
   }, []);
 
   const handleInfoClick = (service) => {
@@ -115,14 +120,28 @@ const ClosedProjects = ({ onEditService }) => {
         <p>Satılmış ve tamamlanmış projelerinizi buradan görüntüleyebilirsiniz.</p>
       </div>
 
-      {/* Action buttons above the cards */}
-      <div className="action-buttons-container">
-        
-          
-      </div>
+      {loading && (
+        <div className="loading-state">
+          <p>Projeler yükleniyor...</p>
+        </div>
+      )}
 
-      <div className="services-grid">
-        {services.map((service) => (
+      {error && (
+        <div className="error-state">
+          <p>Hata: {error}</p>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <>
+          {/* Action buttons above the cards */}
+          <div className="action-buttons-container">
+            
+            
+          </div>
+
+          <div className="services-grid">
+            {services.map((service) => (
           <div key={service.id} className="service-card">
             <div className="card-header">
               <h3 className="machine-name">{service.machineName}</h3>
@@ -168,7 +187,9 @@ const ClosedProjects = ({ onEditService }) => {
             </div>
           </div>
         ))}
-      </div>
+          </div>
+        </>
+      )}
 
       {isModalOpen && selectedService && (
         <ServiceDetailsModal

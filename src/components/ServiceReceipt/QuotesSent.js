@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ServiceDetailsModal from './ServiceDetailsModal';
 import ProfitAnalysisModal from './ProfitAnalysisModal';
 import SendOfferModal from './SendOfferModal';
+import projectService from '../../services/projectService';
 import { 
   AiOutlineInfoCircle, 
   AiOutlineEdit, 
@@ -19,46 +20,50 @@ const QuotesSent = ({ onEditService }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfitModalOpen, setIsProfitModalOpen] = useState(false);
   const [isSendOfferModalOpen, setIsSendOfferModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Demo data - this will be replaced with actual cached data
+  // Fetch projects with OFFER_SENT status from API
   useEffect(() => {
-    // Check if there are any cached services in localStorage
-    const cachedServices = localStorage.getItem('serviceReceipts');
-    if (cachedServices) {
-      const allServices = JSON.parse(cachedServices);
-      // Filter only services with "Gönderildi" status
-      const quotesSentServices = allServices.filter(service => service.status === 'Gönderildi');
-      setServices(quotesSentServices);
-    } else {
-      // Demo data for initial display
-      const demoServices = [
-        {
-          id: 'DMG-2020-001',
-          machineName: 'DMG MORI DMU 50',
-          year: '2020',
-          operatingSystem: 'FANUC',
-          serialNumber: 'DMG-2020-001',
-          createdDate: '15.01.2024',
-          status: 'Gönderildi',
-          totalCost: 15500,
-          salesPrice: 22000,
-          netProfit: 6500,
-          profitMargin: 29.5,
-          costDetails: [
-            { id: 1, description: 'Otel', currency: 'EUR', amount: 200 },
-            { id: 2, description: 'Lojistik', currency: 'EUR', amount: 10000 }
-          ],
-          workingHours: '8000',
-          repairHours: '1500',
-          teamCount: '2',
-          teamMeasurementProbe: 'Var',
-          partMeasurementProbe: 'Var',
-          insideWaterGiving: 'Yok',
-          accessoryData: 'Takım Çantası'
-        }
-      ];
-      setServices(demoServices);
-    }
+    const fetchQuotesSentProjects = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await projectService.getProjectsByStatus('OFFER_SENT');
+        
+        // Transform API data to match the expected format
+        const transformedServices = data.map(project => ({
+          id: project.id,
+          machineName: project.title,
+          year: project.year,
+          operatingSystem: project.operatingSystem,
+          serialNumber: project.serialNumber,
+          createdDate: project.createdAt ? new Date(project.createdAt).toLocaleDateString('tr-TR') : '-',
+          status: 'Gönderildi', // All projects from this endpoint will show as "Gönderildi"
+          totalCost: project.totalCost || 0,
+          salesPrice: project.salesPrice || 0,
+          netProfit: project.netProfit || 0,
+          profitMargin: project.profitMargin || 0,
+          costDetails: project.costDetails || [],
+          workingHours: project.hoursOperated || '-',
+          repairHours: project.repairHours || '-',
+          teamCount: project.teamCount || '-',
+          teamMeasurementProbe: project.takimOlcmeProbu ? 'Var' : 'Yok',
+          partMeasurementProbe: project.parcaOlcmeProbu ? 'Var' : 'Yok',
+          insideWaterGiving: project.ictenSuVerme ? 'Var' : 'Yok',
+          accessoryData: project.additionalEquipment || '-'
+        }));
+        
+        setServices(transformedServices);
+      } catch (err) {
+        console.error('Error fetching quotes sent projects:', err);
+        setError(err.message || 'Teklif gönderilen projeler yüklenirken bir hata oluştu');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuotesSentProjects();
   }, []);
 
   const handleInfoClick = (service) => {
@@ -105,8 +110,21 @@ const QuotesSent = ({ onEditService }) => {
         <p>Teklif gönderilmiş projelerinizi buradan görüntüleyebilir ve yönetebilirsiniz.</p>
       </div>
 
-      <div className="services-grid">
-        {services.map((service) => (
+      {loading && (
+        <div className="loading-state">
+          <p>Projeler yükleniyor...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="error-state">
+          <p>Hata: {error}</p>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div className="services-grid">
+          {services.map((service) => (
           <div key={service.id} className="service-card">
             <div className="card-header">
               <h3 className="machine-name">{service.machineName}</h3>
@@ -159,7 +177,8 @@ const QuotesSent = ({ onEditService }) => {
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {isModalOpen && selectedService && (
         <ServiceDetailsModal

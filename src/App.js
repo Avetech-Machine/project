@@ -1,79 +1,154 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import MainLayout from './components/Layout/MainLayout';
 import CreateServiceReceipt from './components/ServiceReceipt/CreateServiceReceipt';
 import AllServices from './components/ServiceReceipt/AllServices';
 import QuotesSent from './components/ServiceReceipt/QuotesSent';
 import ClosedProjects from './components/ServiceReceipt/ClosedProjects';
 import MainMenu from './components/MainMenu/MainMenu';
+import Login from './components/Login/Login';
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import './App.css';
 
-function App() {
-  const [activeComponent, setActiveComponent] = useState('main-menu');
+function AppContent() {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [editingService, setEditingService] = useState(null);
 
   const handleEditService = (service) => {
     setEditingService(service);
-    setActiveComponent('create-service');
+    navigate('/createService');
   };
 
   const handleSaveComplete = (savedService) => {
     setEditingService(null);
-    setActiveComponent('all-services');
-  };
-
-  const renderContent = () => {
-    switch (activeComponent) {
-      case 'create-service':
-        return (
-          <CreateServiceReceipt 
-            editingService={editingService}
-            onSaveComplete={handleSaveComplete}
-          />
-        );
-      case 'main-menu':
-        return <MainMenu />;
-      case 'all-services':
-        return (
-          <AllServices 
-            onEditService={handleEditService}
-          />
-        );
-      case 'quotes-sent':
-        return (
-          <QuotesSent 
-            onEditService={handleEditService}
-          />
-        );
-      case 'closed-projects':
-        return (
-          <ClosedProjects 
-            onEditService={handleEditService}
-          />
-        );
-      default:
-        return (
-          <div className="placeholder-content">
-            <h1>Sayfa Bulunamadı</h1>
-            <p>Seçilen sayfa henüz hazır değil.</p>
-          </div>
-        );
-    }
-  };
-
-  const handleMenuItemChange = (menuItem) => {
-    // Reset editing service when manually navigating to create-service
-    if (menuItem === 'create-service' && editingService) {
-      setEditingService(null);
-    }
-    setActiveComponent(menuItem);
+    // Navigation will be handled by React Router
   };
 
   return (
-    <div className="App">
-      <MainLayout activeMenuItem={activeComponent} setActiveMenuItem={handleMenuItemChange}>
-        {renderContent()}
-      </MainLayout>
-    </div>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route 
+        path="/" 
+        element={
+          isAuthenticated() ? 
+            <Navigate to="/mainMenu" replace /> : 
+            <Navigate to="/login" replace />
+        } 
+      />
+      <Route 
+        path="/*" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Routes>
+                <Route path="/mainMenu" element={<MainMenu />} />
+                <Route 
+                  path="/createService" 
+                  element={
+                    <CreateServiceReceipt 
+                      editingService={editingService}
+                      onSaveComplete={handleSaveComplete}
+                    />
+                  } 
+                />
+                <Route 
+                  path="/allServices" 
+                  element={
+                    <AllServices 
+                      onEditService={handleEditService}
+                    />
+                  } 
+                />
+                <Route 
+                  path="/quotesSent" 
+                  element={
+                    <QuotesSent 
+                      onEditService={handleEditService}
+                    />
+                  } 
+                />
+                <Route 
+                  path="/closedProjects" 
+                  element={
+                    <ClosedProjects 
+                      onEditService={handleEditService}
+                    />
+                  } 
+                />
+                <Route 
+                  path="/allUsers" 
+                  element={
+                    <div className="placeholder-content">
+                      <h1>Tüm Kullanıcılar</h1>
+                      <p>Bu sayfa henüz hazır değil.</p>
+                    </div>
+                  } 
+                />
+                <Route 
+                  path="/newUser" 
+                  element={
+                    <div className="placeholder-content">
+                      <h1>Yeni Kullanıcı</h1>
+                      <p>Bu sayfa henüz hazır değil.</p>
+                    </div>
+                  } 
+                />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <div className="placeholder-content">
+                      <h1>Profilim</h1>
+                      <p>Bu sayfa henüz hazır değil.</p>
+                    </div>
+                  } 
+                />
+                <Route 
+                  path="/manual" 
+                  element={
+                    <div className="placeholder-content">
+                      <h1>Kullanım Kılavuzu</h1>
+                      <p>Bu sayfa henüz hazır değil.</p>
+                    </div>
+                  } 
+                />
+                <Route 
+                  path="/errorReceipts" 
+                  element={
+                    <div className="placeholder-content">
+                      <h1>Hatalı Proje Formları</h1>
+                      <p>Bu sayfa henüz hazır değil.</p>
+                    </div>
+                  } 
+                />
+                <Route 
+                  path="*" 
+                  element={
+                    <div className="placeholder-content">
+                      <h1>Sayfa Bulunamadı</h1>
+                      <p>Seçilen sayfa henüz hazır değil.</p>
+                    </div>
+                  } 
+                />
+              </Routes>
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <AppContent />
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 

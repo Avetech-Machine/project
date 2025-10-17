@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FaFileInvoice, 
   FaPaperPlane, 
@@ -18,263 +18,139 @@ import {
 } from 'react-icons/ai';
 import ServiceDetailsModal from '../ServiceReceipt/ServiceDetailsModal';
 import SendOfferModal from '../ServiceReceipt/SendOfferModal';
+import projectService from '../../services/projectService';
 import './MainMenu.css';
 
 const MainMenu = () => {
   const [selectedService, setSelectedService] = useState(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [isSendOfferModalOpen, setIsSendOfferModalOpen] = useState(false);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [projectCounts, setProjectCounts] = useState(null);
+  const [countsLoading, setCountsLoading] = useState(true);
+  const [countsError, setCountsError] = useState(null);
+  const projectsPerPage = 6;
 
-  // Mock data for the dashboard cards
+  // Fetch projects data on component mount
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await projectService.getProjects();
+        setProjects(data || []);
+      } catch (err) {
+        console.error('Error fetching projects:', err);
+        setError(err.message || 'Projeler yüklenirken bir hata oluştu');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  // Fetch project counts by status
+  useEffect(() => {
+    const fetchProjectCounts = async () => {
+      try {
+        setCountsLoading(true);
+        setCountsError(null);
+        const data = await projectService.getProjectCountsByStatus();
+        setProjectCounts(data);
+      } catch (err) {
+        console.error('Error fetching project counts:', err);
+        setCountsError(err.message || 'Proje sayıları yüklenirken bir hata oluştu');
+      } finally {
+        setCountsLoading(false);
+      }
+    };
+
+    fetchProjectCounts();
+  }, []);
+
+  // Calculate dashboard stats from API data
+  const completedProjects = projectCounts?.statusCounts?.SOLD || 0;
+  const submittedOffers = projectCounts?.statusCounts?.OFFER_SENT || 0;
+
   const dashboardStats = [
     {
       title: 'Kapanan Projeler',
-      count: 1,
+      count: completedProjects,
       icon: FaFileInvoice,
-      color: 'green'
+      color: 'green',
+      loading: countsLoading,
+      error: countsError
     },
     {
       title: 'Teklif Gönderilen Projeler',
-      count: 1,
+      count: submittedOffers,
       icon: FaPaperPlane,
-      color: 'blue'
+      color: 'blue',
+      loading: countsLoading,
+      error: countsError
     }
   ];
 
-  // Mock data for the services cards - converted from table data
-  const serviceData = [
-    {
-      id: '927',
-      machineName: 'LF 426CB',
-      year: '2025',
-      operatingSystem: 'CNC',
-      serialNumber: 'LF-426CB-927',
-      createdDate: '26.08.2025',
-      status: 'TAMAMLANMIŞ',
-      totalCost: 15500,
-      salesPrice: 22000,
-      netProfit: 6500,
-      profitMargin: 29.5,
-      costDetails: [
-        { id: 1, description: 'Servis', currency: 'EUR', amount: 15500 }
-      ],
-      workingHours: '8000',
-      repairHours: '1500',
-      teamCount: '2',
-      teamMeasurementProbe: 'Var',
-      partMeasurementProbe: 'Var',
-      insideWaterGiving: 'Yok',
-      accessoryData: 'Takım Çantası',
-      firmName: 'Durendus Pres İmlt. San. ve Tic. Ltd. Şti.',
-      technician: 'Suat Çınar',
-      // Additional technical details for ServiceDetailsModal
-      brand: 'LF',
-      model: '426CB',
-      controlUnit: 'CNC',
-      xMovements: '426 mm',
-      yMovements: '320 mm',
-      zMovements: '320 mm',
-      bMovements: '360°',
-      cMovements: '360°',
-      spindleSpeed: '8000 rpm',
-      toolCount: '24',
-      holderType: 'BT40',
-      machineDimensions: '1200 x 800 x 1800 mm',
-      machinePower: '15 kW',
-      internalCoolant: 'Var',
-      chipConveyor: 'Var',
-      paperFilter: 'Var',
-      maxMaterialWeight: '500 kg',
-      machineWeight: '2500 kg',
-      operatingHours: '8000 saat',
-      otherInfo: 'Takım Çantası dahil'
-    },
-    {
-      id: '926',
-      machineName: 'ROD 426/2500',
-      year: '2025',
-      operatingSystem: 'CNC',
-      serialNumber: 'ROD-426-926',
-      createdDate: '22.08.2025',
-      status: 'TAMAMLANMIŞ',
-      totalCost: 12000,
-      salesPrice: 18000,
-      netProfit: 6000,
-      profitMargin: 33.3,
-      costDetails: [
-        { id: 1, description: 'Servis', currency: 'EUR', amount: 12000 }
-      ],
-      workingHours: '12000',
-      repairHours: '2000',
-      teamCount: '3',
-      teamMeasurementProbe: 'Var',
-      partMeasurementProbe: 'Yok',
-      insideWaterGiving: 'Var',
-      accessoryData: 'Hidrolik Çakma Sistemi',
-      firmName: 'ADS AYHAN DIŞLI SAN. VE DIŞ. TİC. LTD. ŞTİ.',
-      technician: 'Suat Çınar',
-      // Additional technical details for ServiceDetailsModal
-      brand: 'ROD',
-      model: '426/2500',
-      controlUnit: 'CNC',
-      xMovements: '426 mm',
-      yMovements: '2500 mm',
-      zMovements: '400 mm',
-      bMovements: '360°',
-      cMovements: '360°',
-      spindleSpeed: '6000 rpm',
-      toolCount: '32',
-      holderType: 'BT50',
-      machineDimensions: '1500 x 3000 x 2200 mm',
-      machinePower: '22 kW',
-      internalCoolant: 'Var',
-      chipConveyor: 'Var',
-      paperFilter: 'Var',
-      maxMaterialWeight: '800 kg',
-      machineWeight: '3500 kg',
-      operatingHours: '12000 saat',
-      otherInfo: 'Hidrolik Çakma Sistemi dahil'
-    },
-    {
-      id: '925',
-      machineName: 'TS 460 EXCHANGE SE 660',
-      year: '2025',
-      operatingSystem: 'CNC',
-      serialNumber: 'TS-460-925',
-      createdDate: '22.08.2025',
-      status: 'TAMAMLANMIŞ',
-      totalCost: 15000,
-      salesPrice: 15000,
-      netProfit: 4000,
-      profitMargin: 26.7,
-      costDetails: [
-        { id: 1, description: 'Exchange', currency: 'EUR', amount: 15000 }
-      ],
-      workingHours: '5000',
-      repairHours: '800',
-      teamCount: '2',
-      teamMeasurementProbe: 'Yok',
-      partMeasurementProbe: 'Var',
-      insideWaterGiving: 'Yok',
-      accessoryData: 'Otomatik Takım Değiştirici',
-      firmName: 'GİMAS GİRGİN MAKİNA İMAL MONTAJ VE MÜH.SAN A.Ş',
-      technician: 'Suat Çınar',
-      // Additional technical details for ServiceDetailsModal
-      brand: 'TS',
-      model: '460 EXCHANGE SE 660',
-      controlUnit: 'CNC',
-      xMovements: '460 mm',
-      yMovements: '660 mm',
-      zMovements: '400 mm',
-      bMovements: '360°',
-      cMovements: '360°',
-      spindleSpeed: '10000 rpm',
-      toolCount: '16',
-      holderType: 'BT30',
-      machineDimensions: '1000 x 1200 x 1600 mm',
-      machinePower: '12 kW',
-      internalCoolant: 'Yok',
-      chipConveyor: 'Var',
-      paperFilter: 'Var',
-      maxMaterialWeight: '300 kg',
-      machineWeight: '1800 kg',
-      operatingHours: '5000 saat',
-      otherInfo: 'Otomatik Takım Değiştirici dahil'
-    },
-    {
-      id: '924',
-      machineName: 'MC 420 CC 422',
-      year: '2025',
-      operatingSystem: 'CNC',
-      serialNumber: 'MC-420-924',
-      createdDate: '22.08.2025',
-      status: 'TEKLİF GÖNDERİLECEK',
-      totalCost: 18000,
-      salesPrice: 18000,
-      netProfit: 6000,
-      profitMargin: 33.3,
-      costDetails: [
-        { id: 1, description: 'Servis', currency: 'EUR', amount: 18000 }
-      ],
-      workingHours: '10000',
-      repairHours: '1800',
-      teamCount: '3',
-      teamMeasurementProbe: 'Var',
-      partMeasurementProbe: 'Var',
-      insideWaterGiving: 'Var',
-      accessoryData: 'Takım Çantası',
-      firmName: 'DMG MORI İSTANBUL MAKİNE TİC.LTD.ŞTİ',
-      technician: 'Suat Çınar',
-      // Additional technical details for ServiceDetailsModal
-      brand: 'MC',
-      model: '420 CC 422',
-      controlUnit: 'CNC',
-      xMovements: '420 mm',
-      yMovements: '422 mm',
-      zMovements: '350 mm',
-      bMovements: '360°',
-      cMovements: '360°',
-      spindleSpeed: '12000 rpm',
-      toolCount: '20',
-      holderType: 'BT40',
-      machineDimensions: '1100 x 900 x 1900 mm',
-      machinePower: '18 kW',
-      internalCoolant: 'Var',
-      chipConveyor: 'Var',
-      paperFilter: 'Var',
-      maxMaterialWeight: '400 kg',
-      machineWeight: '2200 kg',
-      operatingHours: '10000 saat',
-      otherInfo: 'Takım Çantası dahil'
-    },
-    {
-      id: '923',
-      machineName: 'LS 486C / 820 mm',
-      year: '2025',
-      operatingSystem: 'CNC',
-      serialNumber: 'LS-486C-923',
-      createdDate: '22.08.2025',
-      status: 'TEKLİF GÖNDERİLECEK',
-      totalCost: 16000,
-      salesPrice: 16000,
-      netProfit: 5000,
-      profitMargin: 31.3,
-      costDetails: [
-        { id: 1, description: 'Servis', currency: 'EUR', amount: 16000 }
-      ],
-      workingHours: '9000',
-      repairHours: '1600',
-      teamCount: '2',
-      teamMeasurementProbe: 'Yok',
-      partMeasurementProbe: 'Var',
-      insideWaterGiving: 'Yok',
-      accessoryData: 'Hidrolik Çakma Sistemi',
-      firmName: 'DMG MORI İSTANBUL MAKİNE TİC.LTD.ŞTİ',
-      technician: 'Muhammet Tayyip Yormaz',
-      // Additional technical details for ServiceDetailsModal
-      brand: 'LS',
-      model: '486C / 820 mm',
-      controlUnit: 'CNC',
-      xMovements: '486 mm',
-      yMovements: '820 mm',
-      zMovements: '380 mm',
-      bMovements: '360°',
-      cMovements: '360°',
-      spindleSpeed: '9000 rpm',
-      toolCount: '18',
-      holderType: 'BT40',
-      machineDimensions: '1300 x 1000 x 2000 mm',
-      machinePower: '16 kW',
-      internalCoolant: 'Yok',
-      chipConveyor: 'Var',
-      paperFilter: 'Var',
-      maxMaterialWeight: '600 kg',
-      machineWeight: '2800 kg',
-      operatingHours: '9000 saat',
-      otherInfo: 'Hidrolik Çakma Sistemi dahil'
-    },
-    
-  ];
+  // Pagination logic
+  const totalPages = Math.ceil(projects.length / projectsPerPage);
+  const startIndex = (currentPage - 1) * projectsPerPage;
+  const endIndex = startIndex + projectsPerPage;
+  const currentProjects = projects.slice(startIndex, endIndex);
+
+  // Transform API data to match the expected format for the cards
+  const serviceData = currentProjects.map(project => ({
+    id: project.id || project._id,
+    machineName: project.title || project.machineName || 'N/A',
+    year: project.year || new Date(project.createdAt).getFullYear().toString(),
+    operatingSystem: project.model || project.operatingSystem || project.controlUnit || 'N/A',
+    serialNumber: project.serialNumber || 'N/A',
+    createdDate: project.createdAt ? new Date(project.createdAt).toLocaleDateString('tr-TR') : 'N/A',
+    status: project.status || 'UNKNOWN',
+    totalCost: project.totalCost || 0,
+    salesPrice: project.salesPrice || 0,
+    netProfit: project.netProfit || 0,
+    profitMargin: project.profitMargin || 0,
+    costDetails: project.costDetails || [],
+    workingHours: project.workingHours || '0',
+    repairHours: project.repairHours || '0',
+    teamCount: project.teamCount || '0',
+    teamMeasurementProbe: project.teamMeasurementProbe || 'N/A',
+    partMeasurementProbe: project.partMeasurementProbe || 'N/A',
+    insideWaterGiving: project.insideWaterGiving || 'N/A',
+    accessoryData: project.accessoryData || 'N/A',
+    firmName: project.firmName || 'N/A',
+    technician: project.technician || 'N/A',
+    // Additional technical details for ServiceDetailsModal
+    brand: project.brand || 'N/A',
+    model: project.model || 'N/A',
+    controlUnit: project.controlUnit || 'CNC',
+    xMovements: project.xMovements || 'N/A',
+    yMovements: project.yMovements || 'N/A',
+    zMovements: project.zMovements || 'N/A',
+    bMovements: project.bMovements || 'N/A',
+    cMovements: project.cMovements || 'N/A',
+    spindleSpeed: project.spindleSpeed || 'N/A',
+    toolCount: project.toolCount || 'N/A',
+    holderType: project.holderType || 'N/A',
+    machineDimensions: project.machineDimensions || 'N/A',
+    machinePower: project.machinePower || 'N/A',
+    internalCoolant: project.internalCoolant || 'N/A',
+    chipConveyor: project.chipConveyor || 'N/A',
+    paperFilter: project.paperFilter || 'N/A',
+    maxMaterialWeight: project.maxMaterialWeight || 'N/A',
+    machineWeight: project.machineWeight || 'N/A',
+    operatingHours: project.operatingHours || 'N/A',
+    otherInfo: project.otherInfo || 'N/A'
+  }));
+
+  // Pagination handlers
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   const handleInfoClick = (service) => {
     setSelectedService(service);
@@ -294,11 +170,18 @@ const MainMenu = () => {
   const getStatusClass = (status) => {
     switch (status) {
       case 'TAMAMLANMIŞ':
+      case 'SOLD':
         return 'status-approved';
       case 'TEKLİF GÖNDERİLECEK':
+      case 'TEMPLATE':
         return 'status-draft';
       case 'EXCHANGE CIHAZ TEKLİFİ':
+      case 'OFFER_SENT':
         return 'status-sent';
+      case 'BOUGHT':
+        return 'status-sold';
+      case 'CANCELLED':
+        return 'status-cancelled';
       default:
         return 'status-default';
     }
@@ -312,6 +195,16 @@ const MainMenu = () => {
         return 'TEKLİF GÖNDERİLECEK';
       case 'EXCHANGE CIHAZ TEKLİFİ':
         return 'EXCHANGE CIHAZ TEKLİFİ';
+      case 'SOLD':
+        return 'SATILDI';
+      case 'OFFER_SENT':
+        return 'TEKLİF GÖNDERİLDİ';
+      case 'TEMPLATE':
+        return 'TASLAK';
+      case 'BOUGHT':
+        return 'SATIN ALINDI';
+      case 'CANCELLED':
+        return 'İPTAL EDİLDİ';
       default:
         return status;
     }
@@ -337,7 +230,15 @@ const MainMenu = () => {
             </div>
             <div className="stat-content">
               <div className="stat-title">{stat.title}</div>
-              <div className="stat-count">{stat.count}</div>
+              <div className="stat-count">
+                {stat.loading ? (
+                  <span className="loading-text">Yükleniyor...</span>
+                ) : stat.error ? (
+                  <span className="error-text">Hata</span>
+                ) : (
+                  stat.count
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -349,8 +250,28 @@ const MainMenu = () => {
           <h2>Son Projeler</h2>
         </div>
 
-        <div className="services-grid">
-          {serviceData.map((service) => (
+        {loading && (
+          <div className="loading-state">
+            <p>Projeler yükleniyor...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="error-state">
+            <p>Hata: {error}</p>
+          </div>
+        )}
+
+        {!loading && !error && serviceData.length === 0 && (
+          <div className="empty-state">
+            <p>Henüz proje bulunmuyor.</p>
+          </div>
+        )}
+
+        {!loading && !error && serviceData.length > 0 && (
+          <>
+            <div className="services-grid">
+              {serviceData.map((service) => (
             <div key={service.id} className="service-card">
               <div className="card-header">
                 <h3 className="machine-name">{service.machineName}</h3>
@@ -396,7 +317,32 @@ const MainMenu = () => {
               </div>
             </div>
           ))}
-        </div>
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="pagination-controls">
+                <button 
+                  className="pagination-btn"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Önceki
+                </button>
+                <span className="pagination-info">
+                  Sayfa {currentPage} / {totalPages}
+                </span>
+                <button 
+                  className="pagination-btn"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Sonraki
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Service Details Modal */}

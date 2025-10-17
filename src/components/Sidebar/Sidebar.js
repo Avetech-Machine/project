@@ -1,4 +1,6 @@
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   AiOutlineHome, 
   AiOutlinePlus, 
@@ -10,32 +12,35 @@ import {
   AiOutlineDelete,
   AiOutlineWarning,
   AiOutlineSend,
-  AiOutlineCheckCircle
+  AiOutlineCheckCircle,
+  AiOutlineLogout
 } from 'react-icons/ai';
 import './Sidebar.css';
 
-// activeMenuItem ve setActiveMenuItem proptype'ları, hangi menü öğesinin aktif olduğunu belirlemek için kullanılır.
-const Sidebar = ({ activeMenuItem, setActiveMenuItem }) => {
+const Sidebar = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { logout, user } = useAuth();
   
   // Menü öğeleri, daha kolay yönetim için bir nesne içinde gruplandırıldı.
   const menuItems = {
     main: [
-      { id: 'main-menu', label: 'AVITECH', icon: AiOutlineHome }
+      { id: 'main-menu', label: user?.username || 'AVITECH', icon: AiOutlineHome, path: '/mainMenu' }
     ],
     services: [
-      { id: 'create-service', label: 'Yeni Proje Oluştur', icon: AiOutlinePlus },
-      { id: 'all-services', label: 'Bütün Projeler', icon: AiOutlineFolder },
-      { id: 'quotes-sent', label: 'Teklif Gönderilen Projeler', icon: AiOutlineSend },
-      { id: 'closed-projects', label: 'Kapatılan Projeler', icon: AiOutlineCheckCircle }
+      { id: 'create-service', label: 'Yeni Proje Oluştur', icon: AiOutlinePlus, path: '/createService' },
+      { id: 'all-services', label: 'Bütün Projeler', icon: AiOutlineFolder, path: '/allServices' },
+      { id: 'quotes-sent', label: 'Teklif Gönderilen Projeler', icon: AiOutlineSend, path: '/quotesSent' },
+      { id: 'closed-projects', label: 'Kapatılan Projeler', icon: AiOutlineCheckCircle, path: '/closedProjects' }
     ],
     users: [
-      { id: 'all-users', label: 'Tüm Kullanıcılar', icon: AiOutlineTeam },
-      { id: 'new-user', label: 'Yeni Kullanıcı', icon: AiOutlineUserAdd }, // İkon güncellendi
-      { id: 'profile', label: 'Profilim', icon: AiOutlineUser }
+      { id: 'all-users', label: 'Tüm Kullanıcılar', icon: AiOutlineTeam, path: '/allUsers' },
+      { id: 'new-user', label: 'Yeni Kullanıcı', icon: AiOutlineUserAdd, path: '/newUser' }, // İkon güncellendi
+      { id: 'profile', label: 'Profilim', icon: AiOutlineUser, path: '/profile' }
     ],
     other: [
-      { id: 'manual', label: 'Kullanım Kılavuzu', icon: AiOutlineFile },
-      { id: 'error-receipts', label: 'Hatalı Proje Formları', icon: AiOutlineDelete },
+      { id: 'manual', label: 'Kullanım Kılavuzu', icon: AiOutlineFile, path: '/manual' },
+      { id: 'error-receipts', label: 'Hatalı Proje Formları', icon: AiOutlineDelete, path: '/errorReceipts' },
     ]
   };
 
@@ -44,13 +49,18 @@ const Sidebar = ({ activeMenuItem, setActiveMenuItem }) => {
     return items.map(item => (
       <div 
         key={item.id}
-        className={`menu-item ${activeMenuItem === item.id ? 'active' : ''}`}
-        onClick={() => setActiveMenuItem(item.id)}
+        className={`menu-item ${location.pathname === item.path ? 'active' : ''}`}
+        onClick={() => navigate(item.path)}
       >
         <item.icon className="menu-icon" />
         <span className="menu-label">{item.label}</span>
       </div>
     ));
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
@@ -83,6 +93,18 @@ const Sidebar = ({ activeMenuItem, setActiveMenuItem }) => {
             <span className="section-title">DİĞER İÇERİKLER</span>
           </div>
           {renderMenuItems(menuItems.other)}
+        </div>
+
+        {/* Kullanıcı Bilgisi ve Çıkış */}
+        <div className="menu-section user-section">
+         
+          <div 
+            className="menu-item logout-item"
+            onClick={handleLogout}
+          >
+            <AiOutlineLogout className="menu-icon" />
+            <span className="menu-label">Çıkış Yap</span>
+          </div>
         </div>
       </div>
     </div>
