@@ -90,18 +90,61 @@ class ProjectService {
 
   async updateProject(id, projectData) {
     try {
+      // Log the request details
+      console.log('=== PROJECT UPDATE REQUEST ===');
+      console.log('URL:', `${API_BASE_URL}/api/projects/${id}`);
+      console.log('Method: PUT');
+      console.log('Headers:', {
+        ...authService.getAuthHeaders(),
+        'Content-Type': 'application/json',
+      });
+      console.log('Body (stringified):', JSON.stringify(projectData));
+      console.log('Body (raw):', projectData);
+      console.log('==============================');
+      
       const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
         method: 'PUT',
-        headers: authService.getAuthHeaders(),
+        headers: {
+          ...authService.getAuthHeaders(),
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(projectData),
       });
 
+      console.log('=== UPDATE RESPONSE DETAILS ===');
+      console.log('Status:', response.status);
+      console.log('Status Text:', response.statusText);
+      console.log('Headers:', Object.fromEntries(response.headers.entries()));
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Proje güncellenirken bir hata oluştu');
+        console.log('Error Response:', errorData);
+        console.log('Error Status:', response.status);
+        console.log('Error Status Text:', response.statusText);
+        console.log('==============================');
+        
+        // Provide more detailed error message
+        let errorMessage = 'Proje güncellenirken bir hata oluştu';
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.details) {
+          errorMessage = `Validation Error: ${JSON.stringify(errorData.details)}`;
+        } else if (response.status === 400) {
+          errorMessage = 'Geçersiz veri formatı. Lütfen tüm alanları kontrol edin.';
+        } else if (response.status === 404) {
+          errorMessage = 'Proje bulunamadı.';
+        } else if (response.status === 500) {
+          errorMessage = 'Sunucu hatası. Lütfen daha sonra tekrar deneyin.';
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
+      console.log('Success Response:', data);
+      console.log('==============================');
       return data;
     } catch (error) {
       console.error('Update project error:', error);

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { AiOutlineClose } from 'react-icons/ai';
+import { AiOutlineClose, AiOutlineEdit } from 'react-icons/ai';
 import projectService from '../../services/projectService';
+import EditProjectModal from './EditProjectModal';
 import './ServiceDetailsModal.css';
 
 const ServiceDetailsModal = ({ service, onClose }) => {
   const [projectDetails, setProjectDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     const fetchProjectDetails = async () => {
@@ -40,6 +42,30 @@ const ServiceDetailsModal = ({ service, onClose }) => {
     }
   };
 
+  const handleEditClick = () => {
+    setShowEditModal(true);
+  };
+
+  const handleEditModalClose = () => {
+    setShowEditModal(false);
+  };
+
+  const handleEditSaveComplete = (updatedProject) => {
+    // Refresh the project details after successful edit
+    if (service?.id) {
+      const fetchUpdatedDetails = async () => {
+        try {
+          const data = await projectService.getProjectById(service.id);
+          setProjectDetails(data);
+        } catch (err) {
+          console.error('Error refreshing project details:', err);
+        }
+      };
+      fetchUpdatedDetails();
+    }
+    setShowEditModal(false);
+  };
+
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal-content">
@@ -48,6 +74,15 @@ const ServiceDetailsModal = ({ service, onClose }) => {
           <button className="close-button" onClick={onClose}>
             <AiOutlineClose />
           </button>
+        </div>
+        
+        <div class="edit-button-container">
+        <button class="edit-button" onClick={handleEditClick}>
+            Düzenle
+        </button>
+    </div>
+
+    <div class="modal-body">
         </div>
 
         <div className="modal-body">
@@ -194,6 +229,15 @@ const ServiceDetailsModal = ({ service, onClose }) => {
           )}
         </div>
       </div>
+
+      {/* Edit Project Modal */}
+      {showEditModal && projectDetails && (
+        <EditProjectModal
+          project={projectDetails}
+          onClose={handleEditModalClose}
+          onSaveComplete={handleEditSaveComplete}
+        />
+      )}
     </div>
   );
 };

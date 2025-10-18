@@ -33,6 +33,14 @@
   border-radius: 8px 8px 0 0;
 }
 
+.edit-button-container {
+  display: flex;
+  justify-content: center; /* BU SATIR BUTONU YATAYDA ORTALAR */
+  padding: 16px 24px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
 .modal-header h2 {
   font-size: 20px;
   font-weight: 700;
@@ -62,6 +70,37 @@
 .close-button:hover {
   background-color: #e9ecef;
   color: #495057;
+}
+
+.edit-button {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+.edit-button:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.edit-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+.edit-icon {
+  font-size: 16px;
 }
 
 .modal-body {
@@ -205,6 +244,19 @@
     font-size: 18px;
   }
   
+  .edit-button-container {
+    padding: 12px 20px;
+  }
+  
+  .edit-button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .edit-icon {
+    font-size: 14px;
+  }
+  
   .modal-body {
     padding: 16px;
   }
@@ -250,5 +302,14 @@
   
   .machine-image-placeholder {
     height: 200px;
+  }
+  
+  .edit-button {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+  
+  .edit-icon {
+    font-size: 13px;
   }
 }

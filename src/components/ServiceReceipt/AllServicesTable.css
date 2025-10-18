@@ -259,7 +259,7 @@
 .company-name {
   font-weight: 500;
   color: #2c3e50;
-  max-width: 200px;
+  max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -268,7 +268,7 @@
 .device-name {
   font-weight: 500;
   color: #2c3e50;
-  max-width: 250px;
+  max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -280,6 +280,88 @@
   color: #2c3e50;
   text-align: center;
   width: 120px;
+}
+
+/* Operations column styles */
+.operations {
+  text-align: center;
+  width: 200px;
+  padding: 8px 12px !important;
+}
+
+.operation-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.operation-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background-color: transparent;
+}
+
+.operation-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.info-btn {
+  color: #007bff;
+  border: 1px solid #007bff;
+}
+
+.info-btn:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.submit-btn {
+  color: #28a745;
+  border: 1px solid #28a745;
+}
+
+.submit-btn:hover {
+  background-color: #28a745;
+  color: white;
+}
+
+.edit-btn {
+  color: #ffc107;
+  border: 1px solid #ffc107;
+}
+
+.edit-btn:hover {
+  background-color: #ffc107;
+  color: white;
+}
+
+.delete-btn {
+  color: #dc3545;
+  border: 1px solid #dc3545;
+}
+
+.delete-btn:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.loading-spinner-small {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #ffc107;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 
@@ -307,7 +389,7 @@
   }
   
   .services-table {
-    min-width: 600px;
+    min-width: 800px;
   }
   
   .services-table th,
@@ -354,5 +436,20 @@
   .services-table td {
     padding: 8px 12px;
     font-size: 12px;
+  }
+
+  .operations {
+    width: 160px;
+    padding: 6px 8px !important;
+  }
+
+  .operation-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .operation-buttons {
+    gap: 6px;
   }
 }

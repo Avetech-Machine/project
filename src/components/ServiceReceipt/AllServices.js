@@ -3,6 +3,7 @@ import ServiceDetailsModal from './ServiceDetailsModal';
 import ProfitAnalysisModal from './ProfitAnalysisModal';
 import ViewProposalsModal from './ViewProposalsModal';
 import SendOfferModal from './SendOfferModal';
+import EditProjectModal from './EditProjectModal';
 import projectService from '../../services/projectService';
 import { 
   AiOutlineInfoCircle, 
@@ -11,7 +12,8 @@ import {
   AiOutlineSetting,
   AiOutlineEuro,
   AiOutlineEye,
-  AiOutlineReload
+  AiOutlineReload,
+  AiOutlineDelete
 } from 'react-icons/ai';
 import { FaChartLine, FaPaperPlane } from 'react-icons/fa';
 import './AllServicesTable.css';
@@ -23,8 +25,10 @@ const AllServices = ({ onEditService }) => {
   const [isProfitModalOpen, setIsProfitModalOpen] = useState(false);
   const [isProposalsModalOpen, setIsProposalsModalOpen] = useState(false);
   const [isSendOfferModalOpen, setIsSendOfferModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [editingProjectId, setEditingProjectId] = useState(null);
 
   // Load projects from API
   useEffect(() => {
@@ -65,9 +69,19 @@ const AllServices = ({ onEditService }) => {
     setIsModalOpen(true);
   };
 
-  const handleEditClick = (service) => {
-    setSelectedService(service);
-    setIsSendOfferModalOpen(true);
+  const handleEditClick = async (service) => {
+    try {
+      setEditingProjectId(service.id);
+      // Fetch full project details from API
+      const fullProjectData = await projectService.getProjectById(service.id);
+      setSelectedService(fullProjectData);
+      setIsEditModalOpen(true);
+    } catch (error) {
+      console.error('Error fetching project details:', error);
+      alert(`Proje detayları yüklenirken bir hata oluştu: ${error.message}`);
+    } finally {
+      setEditingProjectId(null);
+    }
   };
 
   const handleCostDetailClick = (service) => {
@@ -86,6 +100,30 @@ const AllServices = ({ onEditService }) => {
       p.id === service.id ? { ...p, status: 'Satıldı' } : p
     );
     setProjects(updatedProjects);
+  };
+
+  const handleDeleteProject = async (projectId) => {
+    if (window.confirm('Bu projeyi silmek istediğinizden emin misiniz?')) {
+      try {
+        await projectService.deleteProject(projectId);
+        // Refresh the projects list after successful deletion
+        loadProjects();
+        alert('Proje başarıyla silindi!');
+      } catch (error) {
+        console.error('Delete project error:', error);
+        alert(`Proje silinirken bir hata oluştu: ${error.message}`);
+      }
+    }
+  };
+
+  const handleSubmitOffer = (service) => {
+    setSelectedService(service);
+    setIsSendOfferModalOpen(true);
+  };
+
+  const handleEditSaveComplete = (updatedProject) => {
+    // Refresh the projects list after successful update
+    loadProjects();
   };
 
   const getStatusClass = (status) => {
@@ -159,6 +197,7 @@ const AllServices = ({ onEditService }) => {
                 <th>FİRMA ADI</th>
                 <th>CİHAZ</th>
                 <th>BAŞLANGIÇ TARİHİ</th>
+                <th>İŞLEMLER</th>
               </tr>
             </thead>
             <tbody>
@@ -168,6 +207,43 @@ const AllServices = ({ onEditService }) => {
                   <td className="company-name">{project.make || 'Belirtilmemiş'}</td>
                   <td className="device-name">{project.title}</td>
                   <td className="start-date">{formatDate(project.createdAt)}</td>
+                  <td className="operations">
+                    <div className="operation-buttons">
+                      <button 
+                        className="operation-btn info-btn" 
+                        onClick={() => handleInfoClick(project)}
+                        title="Bilgi"
+                      >
+                        <AiOutlineInfoCircle />
+                      </button>
+                      <button 
+                        className="operation-btn submit-btn" 
+                        onClick={() => handleSubmitOffer(project)}
+                        title="Teklif Gönder"
+                      >
+                        <FaPaperPlane />
+                      </button>
+                      <button 
+                        className="operation-btn edit-btn" 
+                        onClick={() => handleEditClick(project)}
+                        title="Düzenle"
+                        disabled={editingProjectId === project.id}
+                      >
+                        {editingProjectId === project.id ? (
+                          <div className="loading-spinner-small"></div>
+                        ) : (
+                          <AiOutlineEdit />
+                        )}
+                      </button>
+                      <button 
+                        className="operation-btn delete-btn" 
+                        onClick={() => handleDeleteProject(project.id)}
+                        title="Sil"
+                      >
+                        <AiOutlineDelete />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -201,6 +277,14 @@ const AllServices = ({ onEditService }) => {
         <SendOfferModal
           service={selectedService}
           onClose={() => setIsSendOfferModalOpen(false)}
+        />
+      )}
+
+      {isEditModalOpen && selectedService && (
+        <EditProjectModal
+          project={selectedService}
+          onClose={() => setIsEditModalOpen(false)}
+          onSaveComplete={handleEditSaveComplete}
         />
       )}
     </div>
