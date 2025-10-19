@@ -164,18 +164,17 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       }
     } else {
       // For new projects, get the next available AVEMAK project code
-      // First try to get from API, fallback to localStorage
+      // Use the safe method that checks both API and localStorage
       const getNextProjectCode = async () => {
         try {
-          const apiProjects = await projectService.getProjects();
-          const nextAvemakCode = projectService.getNextAvemakProjectCode(apiProjects);
+          console.log('=== GETTING NEXT PROJECT CODE ===');
+          const nextAvemakCode = await projectService.getNextAvemakProjectCodeSafe();
+          console.log('Setting project code to:', nextAvemakCode);
           setProjectCode(nextAvemakCode);
         } catch (error) {
-          console.warn('Could not fetch projects from API, using localStorage:', error);
-          // Fallback to localStorage if API fails
-          const existingServices = JSON.parse(localStorage.getItem('serviceReceipts') || '[]');
-          const nextAvemakCode = projectService.getNextAvemakProjectCode(existingServices);
-          setProjectCode(nextAvemakCode);
+          console.error('Error getting next project code:', error);
+          // Ultimate fallback
+          setProjectCode('AVEMAK-001');
         }
       };
       
@@ -188,6 +187,18 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       ...prev,
       [field]: value
     }));
+  };
+
+  // Function to manually refresh project code (for testing)
+  const refreshProjectCode = async () => {
+    try {
+      console.log('=== MANUALLY REFRESHING PROJECT CODE ===');
+      const nextAvemakCode = await projectService.getNextAvemakProjectCodeSafe();
+      console.log('New project code:', nextAvemakCode);
+      setProjectCode(nextAvemakCode);
+    } catch (error) {
+      console.error('Error refreshing project code:', error);
+    }
   };
 
   const handleRpmInput = (e) => {
@@ -582,6 +593,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
         {/* Project Code Display */}
         <div className="project-code-display">
           Proje Kodu: {projectCode}
+          
         </div>
         <div className="form-row">
           <div className="form-group">

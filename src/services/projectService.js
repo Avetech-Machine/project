@@ -313,26 +313,78 @@ class ProjectService {
   // Utility function to get the next AVEMAK project code
   getNextAvemakProjectCode(existingProjects = []) {
     try {
+      console.log('=== AVEMAK PROJECT CODE GENERATION ===');
+      console.log('Existing projects:', existingProjects);
+      console.log('Number of existing projects:', existingProjects.length);
+      
       // Extract AVEMAK codes from existing projects
       const avemakCodes = existingProjects
         .map(project => {
+          console.log('Processing project:', project);
           if (project.projectCode && typeof project.projectCode === 'string' && project.projectCode.startsWith('AVEMAK-')) {
             const match = project.projectCode.match(/AVEMAK-(\d+)/);
-            return match ? parseInt(match[1]) : 0;
+            const code = match ? parseInt(match[1]) : 0;
+            console.log('Found AVEMAK code:', project.projectCode, '->', code);
+            return code;
           }
+          console.log('No AVEMAK code found for project:', project.projectCode);
           return 0;
         })
         .filter(code => code > 0);
 
+      console.log('Extracted AVEMAK codes:', avemakCodes);
+
       // Find the highest existing code, default to 0 if none exist
       const maxCode = avemakCodes.length > 0 ? Math.max(...avemakCodes) : 0;
+      console.log('Max existing code:', maxCode);
       
       // Return the next code in AVEMAK-XXX format
       const nextCode = maxCode + 1;
-      return `AVEMAK-${nextCode.toString().padStart(3, '0')}`;
+      const result = `AVEMAK-${nextCode.toString().padStart(3, '0')}`;
+      console.log('Next AVEMAK code:', result);
+      console.log('=====================================');
+      
+      return result;
     } catch (error) {
       console.error('Error generating next AVEMAK project code:', error);
       // Fallback to AVEMAK-001 if there's an error
+      return 'AVEMAK-001';
+    }
+  }
+
+  // Utility function to get the next AVEMAK project code with duplicate prevention
+  async getNextAvemakProjectCodeSafe() {
+    try {
+      console.log('=== SAFE AVEMAK PROJECT CODE GENERATION ===');
+      
+      // Get projects from both API and localStorage
+      let apiProjects = [];
+      let localStorageProjects = [];
+      
+      try {
+        apiProjects = await this.getProjects();
+        console.log('API projects for safe numbering:', apiProjects);
+      } catch (apiError) {
+        console.warn('Could not fetch projects from API for safe numbering:', apiError);
+      }
+      
+      // Check localStorage as well
+      const existingServices = JSON.parse(localStorage.getItem('serviceReceipts') || '[]');
+      console.log('LocalStorage projects for safe numbering:', existingServices);
+      localStorageProjects = existingServices;
+      
+      // Combine both sources
+      const allProjects = [...apiProjects, ...localStorageProjects];
+      console.log('All projects for safe numbering:', allProjects);
+      
+      // Get the next code
+      const nextCode = this.getNextAvemakProjectCode(allProjects);
+      console.log('Safe next AVEMAK code:', nextCode);
+      console.log('==========================================');
+      
+      return nextCode;
+    } catch (error) {
+      console.error('Error in safe AVEMAK project code generation:', error);
       return 'AVEMAK-001';
     }
   }
