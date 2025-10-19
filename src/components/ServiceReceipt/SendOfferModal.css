@@ -24,12 +24,13 @@
 
 .modal-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 20px 30px;
   border-bottom: 1px solid #e9ecef;
   background-color: #f8f9fa;
   border-radius: 12px 12px 0 0;
+  position: relative;
 }
 
 .modal-header h2 {
@@ -37,6 +38,22 @@
   font-size: 24px;
   font-weight: 600;
   color: #2c3e50;
+  text-align: center;
+}
+
+.header-right {
+  position: absolute;
+  top: 50%;
+  right: 30px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-right img {
+  height: 40px;
+  width: auto;
 }
 
 .close-button {
@@ -48,6 +65,7 @@
   padding: 8px;
   border-radius: 50%;
   transition: all 0.2s;
+  flex-shrink: 0;
 }
 
 .close-button:hover {
@@ -650,6 +668,14 @@
 
   .modal-header h2 {
     font-size: 20px;
+  }
+
+  .header-right {
+    right: 20px;
+  }
+
+  .header-right img {
+    height: 30px;
   }
 
   .email-form-container {

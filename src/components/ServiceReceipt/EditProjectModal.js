@@ -57,7 +57,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
   });
 
   const [keyInformation, setKeyInformation] = useState(1); // New state for key information tabs
-  const [projectCode, setProjectCode] = useState(1000); // Project code starting at 1000
+  const [projectCode, setProjectCode] = useState('AVEMAK-001'); // Project code starting at AVEMAK-001
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const fileInputRef = useRef(null);
@@ -180,12 +180,19 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       
       // Set project code if it exists, otherwise get next available code
       if (project.projectCode) {
-        // Extract number from project code like "PRJ-1001"
-        const codeMatch = project.projectCode.match(/PRJ-(\d+)/);
-        if (codeMatch) {
-          setProjectCode(parseInt(codeMatch[1]));
-        } else {
+        // If it's already in AVEMAK format, use it directly
+        if (project.projectCode.startsWith('AVEMAK-')) {
           setProjectCode(project.projectCode);
+        } else {
+          // If it's in old format (like PRJ-1001), convert to AVEMAK format
+          const codeMatch = project.projectCode.match(/PRJ-(\d+)/);
+          if (codeMatch) {
+            const codeNumber = parseInt(codeMatch[1]);
+            setProjectCode(`AVEMAK-${codeNumber.toString().padStart(3, '0')}`);
+          } else {
+            // Fallback to the original code
+            setProjectCode(project.projectCode);
+          }
         }
       }
       
@@ -431,7 +438,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
 
     const apiData = {
       id: project.id, // Include the project ID for update
-      projectCode: `PRJ-${projectCode}`, // Format project code properly
+      projectCode: projectCode, // Use AVEMAK project code directly
       machineName: formData.machineName || '',
       model: formData.machineName || '', // Use machine name as model for now
       make: formData.machineName || '', // Use machine name as make for now

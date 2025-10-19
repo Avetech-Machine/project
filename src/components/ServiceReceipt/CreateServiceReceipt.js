@@ -60,7 +60,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   });
 
   const [keyInformation, setKeyInformation] = useState(1); // New state for key information tabs
-  const [projectCode, setProjectCode] = useState(1000); // Project code starting at 1000
+  const [projectCode, setProjectCode] = useState('AVEMAK-001'); // Project code starting at AVEMAK-001
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const fileInputRef = useRef(null);
@@ -139,7 +139,20 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       
       // Set project code if it exists, otherwise get next available code
       if (editingService.projectCode) {
-        setProjectCode(editingService.projectCode);
+        // If it's already in AVEMAK format, use it directly
+        if (editingService.projectCode.startsWith('AVEMAK-')) {
+          setProjectCode(editingService.projectCode);
+        } else {
+          // If it's in old format (like PRJ-1001), convert to AVEMAK format
+          const codeMatch = editingService.projectCode.match(/PRJ-(\d+)/);
+          if (codeMatch) {
+            const codeNumber = parseInt(codeMatch[1]);
+            setProjectCode(`AVEMAK-${codeNumber.toString().padStart(3, '0')}`);
+          } else {
+            // Fallback to the original code
+            setProjectCode(editingService.projectCode);
+          }
+        }
       }
       
       if (editingService.costDetails) {
@@ -150,10 +163,23 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
         setSalesPrice(editingService.salesPrice);
       }
     } else {
-      // For new projects, get the next available project code
-      const existingServices = JSON.parse(localStorage.getItem('serviceReceipts') || '[]');
-      const maxProjectCode = Math.max(...existingServices.map(service => service.projectCode || 999), 999);
-      setProjectCode(maxProjectCode + 1);
+      // For new projects, get the next available AVEMAK project code
+      // First try to get from API, fallback to localStorage
+      const getNextProjectCode = async () => {
+        try {
+          const apiProjects = await projectService.getProjects();
+          const nextAvemakCode = projectService.getNextAvemakProjectCode(apiProjects);
+          setProjectCode(nextAvemakCode);
+        } catch (error) {
+          console.warn('Could not fetch projects from API, using localStorage:', error);
+          // Fallback to localStorage if API fails
+          const existingServices = JSON.parse(localStorage.getItem('serviceReceipts') || '[]');
+          const nextAvemakCode = projectService.getNextAvemakProjectCode(existingServices);
+          setProjectCode(nextAvemakCode);
+        }
+      };
+      
+      getNextProjectCode();
     }
   }, [editingService]);
 
@@ -338,7 +364,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   // Map form data to API format - Exact structure as specified
   const mapFormDataToAPI = () => {
     const apiData = {
-      projectCode: `PRJ-${projectCode}`,
+      projectCode: projectCode,
       machineName: formData.machineName || '',
       model: formData.machineName || '', // Using machineName as model since no separate model field
       make: (formData.machineName && formData.machineName.split(' ')[0]) || 'Unknown', // Extract make from machine name
@@ -695,7 +721,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             />
           </div>
           <div className="form-group">
-            <label>Gripper Tipi</label>
+            <label>Tutucu Tipi</label>
             <input
               type="text"
               value={formData.holderType}

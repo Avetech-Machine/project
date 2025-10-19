@@ -309,6 +309,33 @@ class ProjectService {
       throw error;
     }
   }
+
+  // Utility function to get the next AVEMAK project code
+  getNextAvemakProjectCode(existingProjects = []) {
+    try {
+      // Extract AVEMAK codes from existing projects
+      const avemakCodes = existingProjects
+        .map(project => {
+          if (project.projectCode && typeof project.projectCode === 'string' && project.projectCode.startsWith('AVEMAK-')) {
+            const match = project.projectCode.match(/AVEMAK-(\d+)/);
+            return match ? parseInt(match[1]) : 0;
+          }
+          return 0;
+        })
+        .filter(code => code > 0);
+
+      // Find the highest existing code, default to 0 if none exist
+      const maxCode = avemakCodes.length > 0 ? Math.max(...avemakCodes) : 0;
+      
+      // Return the next code in AVEMAK-XXX format
+      const nextCode = maxCode + 1;
+      return `AVEMAK-${nextCode.toString().padStart(3, '0')}`;
+    } catch (error) {
+      console.error('Error generating next AVEMAK project code:', error);
+      // Fallback to AVEMAK-001 if there's an error
+      return 'AVEMAK-001';
+    }
+  }
 }
 
 export default new ProjectService();

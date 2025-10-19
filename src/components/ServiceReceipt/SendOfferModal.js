@@ -22,11 +22,11 @@ const SendOfferModal = ({ service, onClose }) => {
     phone: '',
     email: '',
     deliveryTerms: 'Makineler garanti dışıdır. Yükleme maliyetleri, nakliye maliyetleri ve makine kurulum maliyetleri satıcının sorumluluğundadır.',
-    paymentTerms: 'yükleme öncesi nihai ödeme',
+    paymentTerms: 'Yükleme öncesi nihai ödeme',
     deliveryDate: 'Önceden anlaşma sonrası'
   });
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field, value) => { 
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -131,9 +131,16 @@ const SendOfferModal = ({ service, onClose }) => {
       <div className="send-offer-modal">
         <div className="modal-header">
           <h2>Teklif Gönder</h2>
-          <button className="close-button" onClick={onClose}>
-            <FaTimes />
-          </button>
+          <div className="header-right">
+            <img 
+              src="/assets/avitech_logo.png" 
+              alt="Avitech Logo" 
+              className="avitech-logo"
+            />
+            <button className="close-button" onClick={onClose}>
+              <FaTimes />
+            </button>
+          </div>
         </div>
 
         <div className="email-form-container">
@@ -422,11 +429,11 @@ const SendOfferModal = ({ service, onClose }) => {
                   </div>
                 </div>
 
-                <div className="receiver-info">
-                  <div className="company-name">
+                <div className="info-row">
+                  <div className="info-row">
                     <strong>Avitech Metal Teknolojileri Anonim Şirketi</strong>
                   </div>
-                  <div className="info-row">
+                  <div className="info-row"> 
                     <strong>Adres:</strong> Rüzgarlıbahçe, K Plaza 34805 Beykoz/Istanbul, Turkey
                   </div>
                   <div className="info-row">

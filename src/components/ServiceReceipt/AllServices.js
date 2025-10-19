@@ -261,7 +261,7 @@ const AllServices = ({ onEditService }) => {
           <table className="services-table">
             <thead>
               <tr>
-                <th>FORM NO</th>
+                <th>PROJE KODU</th>
                 <th>MAKİNE ADI</th>
                 <th>MAKİNE MODELİ</th>
                 <th>MAKİNE YILI</th>
@@ -271,7 +271,7 @@ const AllServices = ({ onEditService }) => {
             <tbody>
               {projects.map((project, index) => (
                 <tr key={project.id} className="service-row">
-                  <td className="form-number">{project.id}</td>
+                  <td className="form-number">{project.projectCode}</td>
                   <td className="company-name">{project.title || 'Belirtilmemiş'}</td>
                   <td className="device-name">{project.model}</td>
                   <td className="start-date">{project.year}</td>

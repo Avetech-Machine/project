@@ -5,7 +5,6 @@ import {
   AiOutlineHome, 
   AiOutlinePlus, 
   AiOutlineFolder,
-  AiOutlineUserAdd, // İkon güncellendi
   AiOutlineUser,
   AiOutlineTeam,
   AiOutlineFile,
@@ -13,7 +12,8 @@ import {
   AiOutlineWarning,
   AiOutlineSend,
   AiOutlineCheckCircle,
-  AiOutlineLogout
+  AiOutlineLogout,
+  AiOutlineBank
 } from 'react-icons/ai';
 import './Sidebar.css';
 
@@ -33,9 +33,9 @@ const Sidebar = () => {
       { id: 'quotes-sent', label: 'Teklif Gönderilen Projeler', icon: AiOutlineSend, path: '/quotesSent' },
       { id: 'closed-projects', label: 'Kapatılan Projeler', icon: AiOutlineCheckCircle, path: '/closedProjects' }
     ],
-    users: [
-      { id: 'all-users', label: 'Tüm Kullanıcılar', icon: AiOutlineTeam, path: '/allUsers' },
-      { id: 'new-user', label: 'Yeni Kullanıcı', icon: AiOutlineUserAdd, path: '/newUser' }, // İkon güncellendi
+    userActions: [
+      { id: 'user-management', label: 'Kullanıcı İşlemleri', icon: AiOutlineTeam, path: '/userManagement' },
+      { id: 'registered-companies', label: 'Kayıtlı Firmalar', icon: AiOutlineBank, path: '/registeredCompanies' },
       { id: 'profile', label: 'Profilim', icon: AiOutlineUser, path: '/profile' }
     ],
     other: [
@@ -82,9 +82,9 @@ const Sidebar = () => {
         {/* Kullanıcı İşlemleri */}
         <div className="menu-section">
           <div className="section-header">
-            <span className="section-title">AYARLAR</span>
+            <span className="section-title">KULLANICI İŞLEMLERİ</span>
           </div>
-          {renderMenuItems(menuItems.users)}
+          {renderMenuItems(menuItems.userActions)}
         </div>
 
         {/* Diğer İçerikler */}

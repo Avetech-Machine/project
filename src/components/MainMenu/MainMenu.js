@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   FaFileInvoice, 
   FaPaperPlane, 
@@ -18,6 +18,8 @@ import {
 } from 'react-icons/ai';
 import ServiceDetailsModal from '../ServiceReceipt/ServiceDetailsModal';
 import SendOfferModal from '../ServiceReceipt/SendOfferModal';
+import SearchBar from '../ServiceReceipt/SearchBar';
+import FilterPanel from '../ServiceReceipt/FilterPanel';
 import projectService from '../../services/projectService';
 import './MainMenu.css';
 
@@ -32,6 +34,10 @@ const MainMenu = () => {
   const [projectCounts, setProjectCounts] = useState(null);
   const [countsLoading, setCountsLoading] = useState(true);
   const [countsError, setCountsError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeFilters, setActiveFilters] = useState({});
+  const [isSearching, setIsSearching] = useState(false);
+  const [isFiltering, setIsFiltering] = useState(false);
   const projectsPerPage = 6;
 
   // Fetch projects data on component mount
@@ -71,6 +77,79 @@ const MainMenu = () => {
 
     fetchProjectCounts();
   }, []);
+
+  // Search functionality
+  const handleSearch = useCallback(async (query) => {
+    setSearchTerm(query);
+    setIsSearching(true);
+    setError(null);
+    
+    try {
+      if (query.trim()) {
+        const searchResults = await projectService.searchProjects(query);
+        setProjects(searchResults);
+      } else {
+        // If search is cleared, reload all projects or apply active filters
+        if (Object.keys(activeFilters).length > 0 && Object.values(activeFilters).some(v => v !== '')) {
+          await handleFilter(activeFilters);
+        } else {
+          const data = await projectService.getProjects();
+          setProjects(data || []);
+        }
+      }
+    } catch (err) {
+      setError(err.message || 'Arama sırasında bir hata oluştu');
+      console.error('Search error:', err);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [activeFilters]);
+
+  // Filter functionality
+  const handleFilter = useCallback(async (filters) => {
+    setActiveFilters(filters);
+    setIsFiltering(true);
+    setError(null);
+    
+    try {
+      // Check if any filter has a value
+      const hasActiveFilters = Object.values(filters).some(value => value !== '');
+      
+      if (hasActiveFilters) {
+        const filterResults = await projectService.filterProjects(filters);
+        setProjects(filterResults);
+      } else {
+        // If no filters, load all projects
+        const data = await projectService.getProjects();
+        setProjects(data || []);
+      }
+    } catch (err) {
+      setError(err.message || 'Filtreleme sırasında bir hata oluştu');
+      console.error('Filter error:', err);
+    } finally {
+      setIsFiltering(false);
+    }
+  }, []);
+
+  // Clear filters functionality
+  const handleClearFilters = () => {
+    setActiveFilters({});
+    setSearchTerm('');
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await projectService.getProjects();
+        setProjects(data || []);
+      } catch (err) {
+        console.error('Error fetching projects:', err);
+        setError(err.message || 'Projeler yüklenirken bir hata oluştu');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProjects();
+  };
 
   // Calculate dashboard stats from API data
   const completedProjects = projectCounts?.statusCounts?.SOLD || 0;
@@ -250,9 +329,23 @@ const MainMenu = () => {
           <h2>Son Projeler</h2>
         </div>
 
-        {loading && (
+        <SearchBar 
+          onSearch={handleSearch}
+          placeholder="Projelerde ara... (proje kodu, makine adı, model, marka, yıl, seri numarası)"
+        />
+
+        <FilterPanel 
+          onFilter={handleFilter}
+          onClear={handleClearFilters}
+        />
+
+        {(loading || isSearching || isFiltering) && (
           <div className="loading-state">
-            <p>Projeler yükleniyor...</p>
+            <p>
+              {isSearching ? 'Aranıyor...' : 
+               isFiltering ? 'Filtreleniyor...' : 
+               'Projeler yükleniyor...'}
+            </p>
           </div>
         )}
 
@@ -262,13 +355,17 @@ const MainMenu = () => {
           </div>
         )}
 
-        {!loading && !error && serviceData.length === 0 && (
+        {!loading && !isSearching && !isFiltering && !error && serviceData.length === 0 && (
           <div className="empty-state">
-            <p>Henüz proje bulunmuyor.</p>
+            <p>
+              {searchTerm || Object.values(activeFilters).some(v => v !== '') 
+                ? 'Arama kriterlerinize uygun proje bulunamadı.' 
+                : 'Henüz proje bulunmuyor.'}
+            </p>
           </div>
         )}
 
-        {!loading && !error && serviceData.length > 0 && (
+        {!loading && !isSearching && !isFiltering && !error && serviceData.length > 0 && (
           <>
             <div className="services-grid">
               {serviceData.map((service) => (
