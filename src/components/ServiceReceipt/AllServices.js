@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ServiceDetailsModal from './ServiceDetailsModal';
 import ProfitAnalysisModal from './ProfitAnalysisModal';
 import ViewProposalsModal from './ViewProposalsModal';
 import SendOfferModal from './SendOfferModal';
 import EditProjectModal from './EditProjectModal';
+import SearchBar from './SearchBar';
+import FilterPanel from './FilterPanel';
 import projectService from '../../services/projectService';
 import { 
   AiOutlineInfoCircle, 
@@ -29,21 +31,14 @@ const AllServices = ({ onEditService }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editingProjectId, setEditingProjectId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeFilters, setActiveFilters] = useState({});
+  const [isSearching, setIsSearching] = useState(false);
+  const [isFiltering, setIsFiltering] = useState(false);
 
   // Load projects from API
   useEffect(() => {
     loadProjects();
-    
-    // Refresh projects when window gains focus (e.g., when navigating back)
-    const handleFocus = () => {
-      loadProjects();
-    };
-    
-    window.addEventListener('focus', handleFocus);
-    
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
   }, []);
 
   const loadProjects = async () => {
@@ -61,6 +56,61 @@ const AllServices = ({ onEditService }) => {
   };
 
   const handleRefresh = () => {
+    loadProjects();
+  };
+
+  const handleSearch = useCallback(async (query) => {
+    setSearchTerm(query);
+    setIsSearching(true);
+    setError('');
+    
+    try {
+      if (query.trim()) {
+        const searchResults = await projectService.searchProjects(query);
+        setProjects(searchResults);
+      } else {
+        // If search is cleared, reload all projects or apply active filters
+        if (Object.keys(activeFilters).length > 0 && Object.values(activeFilters).some(v => v !== '')) {
+          await handleFilter(activeFilters);
+        } else {
+          loadProjects();
+        }
+      }
+    } catch (err) {
+      setError(err.message || 'Arama sırasında bir hata oluştu');
+      console.error('Search error:', err);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [activeFilters]);
+
+  const handleFilter = useCallback(async (filters) => {
+    setActiveFilters(filters);
+    setIsFiltering(true);
+    setError('');
+    
+    try {
+      // Check if any filter has a value
+      const hasActiveFilters = Object.values(filters).some(value => value !== '');
+      
+      if (hasActiveFilters) {
+        const filterResults = await projectService.filterProjects(filters);
+        setProjects(filterResults);
+      } else {
+        // If no filters, load all projects
+        loadProjects();
+      }
+    } catch (err) {
+      setError(err.message || 'Filtreleme sırasında bir hata oluştu');
+      console.error('Filter error:', err);
+    } finally {
+      setIsFiltering(false);
+    }
+  }, []);
+
+  const handleClearFilters = () => {
+    setActiveFilters({});
+    setSearchTerm('');
     loadProjects();
   };
 
@@ -170,6 +220,16 @@ const AllServices = ({ onEditService }) => {
         </div>
       </div>
 
+      <SearchBar 
+        onSearch={handleSearch}
+        placeholder="Projelerde ara... (proje kodu, makine adı, model, marka, yıl, seri numarası)"
+      />
+
+      <FilterPanel 
+        onFilter={handleFilter}
+        onClear={handleClearFilters}
+      />
+
       {error && (
         <div className="error-message">
           <p>{error}</p>
@@ -180,23 +240,31 @@ const AllServices = ({ onEditService }) => {
       )}
 
       <div className="services-table-container">
-        {loading ? (
+        {loading || isSearching || isFiltering ? (
           <div className="loading-container">
             <div className="loading-spinner"></div>
-            <p>Projeler yükleniyor...</p>
+            <p>
+              {isSearching ? 'Aranıyor...' : 
+               isFiltering ? 'Filtreleniyor...' : 
+               'Projeler yükleniyor...'}
+            </p>
           </div>
         ) : projects.length === 0 ? (
           <div className="empty-state">
-            <p>Henüz proje bulunmuyor.</p>
+            <p>
+              {searchTerm || Object.values(activeFilters).some(v => v !== '') 
+                ? 'Arama kriterlerinize uygun proje bulunamadı.' 
+                : 'Henüz proje bulunmuyor.'}
+            </p>
           </div>
         ) : (
           <table className="services-table">
             <thead>
               <tr>
                 <th>FORM NO</th>
-                <th>FİRMA ADI</th>
-                <th>CİHAZ</th>
-                <th>BAŞLANGIÇ TARİHİ</th>
+                <th>MAKİNE ADI</th>
+                <th>MAKİNE MODELİ</th>
+                <th>MAKİNE YILI</th>
                 <th>İŞLEMLER</th>
               </tr>
             </thead>
@@ -204,9 +272,9 @@ const AllServices = ({ onEditService }) => {
               {projects.map((project, index) => (
                 <tr key={project.id} className="service-row">
                   <td className="form-number">{project.id}</td>
-                  <td className="company-name">{project.make || 'Belirtilmemiş'}</td>
-                  <td className="device-name">{project.title}</td>
-                  <td className="start-date">{formatDate(project.createdAt)}</td>
+                  <td className="company-name">{project.title || 'Belirtilmemiş'}</td>
+                  <td className="device-name">{project.model}</td>
+                  <td className="start-date">{project.year}</td>
                   <td className="operations">
                     <div className="operation-buttons">
                       <button 
@@ -215,6 +283,13 @@ const AllServices = ({ onEditService }) => {
                         title="Bilgi"
                       >
                         <AiOutlineInfoCircle />
+                      </button>
+                      <button 
+                        className="operation-btn cost-btn" 
+                        onClick={() => handleCostDetailClick(project)}
+                        title="Maliyet"
+                      >
+                        <AiOutlineEuro />
                       </button>
                       <button 
                         className="operation-btn submit-btn" 

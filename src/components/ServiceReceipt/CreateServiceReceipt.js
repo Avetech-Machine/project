@@ -34,6 +34,24 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     conveyor: 'Yok',
     paperFilter: 'Yok',
     
+    // Movement Fields
+    xMovement: '',
+    yMovement: '',
+    zMovement: '',
+    bMovement: '',
+    cMovement: '',
+    
+    // Gripper Type
+    holderType: '',
+    
+    // Machine Dimensions
+    machineWidth: '',
+    machineLength: '',
+    machineHeight: '',
+    
+    // Max Material Weight
+    maxMaterialWeight: '',
+    
     // Accessory Data
     accessoryData: '',
     
@@ -102,6 +120,16 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
         insideWaterGiving: editingService.insideWaterGiving || 'Yok',
         conveyor: editingService.conveyor || 'Yok',
         paperFilter: editingService.paperFilter || 'Yok',
+        xMovement: editingService.xMovement || '',
+        yMovement: editingService.yMovement || '',
+        zMovement: editingService.zMovement || '',
+        bMovement: editingService.bMovement || '',
+        cMovement: editingService.cMovement || '',
+        holderType: editingService.holderType || '',
+        machineWidth: editingService.machineWidth || '',
+        machineLength: editingService.machineLength || '',
+        machineHeight: editingService.machineHeight || '',
+        maxMaterialWeight: editingService.maxMaterialWeight || '',
         accessoryData: editingService.accessoryData || '',
         photos: editingService.photos || []
       });
@@ -328,11 +356,16 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       ictenSuVerme: formData.insideWaterGiving === 'Var',
       konveyor: formData.conveyor === 'Var',
       kagitFiltre: formData.paperFilter === 'Var',
-      xMovement: true, // Default values as shown in example
-      yMovement: true,
-      zMovement: true,
-      bMovement: false,
-      cMovement: false,
+      xMovement: formData.xMovement || '',
+      yMovement: formData.yMovement || '',
+      zMovement: formData.zMovement || '',
+      bMovement: formData.bMovement || '',
+      cMovement: formData.cMovement || '',
+      holderType: formData.holderType || '',
+      machineWidth: (formData.machineWidth && !isNaN(parseFloat(formData.machineWidth))) ? parseFloat(formData.machineWidth) : null,
+      machineLength: (formData.machineLength && !isNaN(parseFloat(formData.machineLength))) ? parseFloat(formData.machineLength) : null,
+      machineHeight: (formData.machineHeight && !isNaN(parseFloat(formData.machineHeight))) ? parseFloat(formData.machineHeight) : null,
+      maxMaterialWeight: (formData.maxMaterialWeight && !isNaN(parseFloat(formData.maxMaterialWeight))) ? parseFloat(formData.maxMaterialWeight) : null,
       additionalEquipment: formData.accessoryData || '',
       costDetails: costDetails.map(cost => `${cost.description}: ${cost.currency} ${cost.amount}`).join(', '),
       priceDetails: `Base price: ${salesPrice}, Total cost: ${totalCost}, Net profit: ${netProfit}`,
@@ -416,6 +449,16 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
           insideWaterGiving: 'Yok',
           conveyor: 'Yok',
           paperFilter: 'Yok',
+          xMovement: '',
+          yMovement: '',
+          zMovement: '',
+          bMovement: '',
+          cMovement: '',
+          holderType: '',
+          machineWidth: '',
+          machineLength: '',
+          machineHeight: '',
+          maxMaterialWeight: '',
           accessoryData: '',
           photos: []
         });
@@ -594,6 +637,113 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               value={formData.additionalWeight}
               onChange={(e) => handleInputChange('additionalWeight', e.target.value)}
               placeholder="kg"
+            />
+          </div>
+        </div>
+
+        {/* Movement Fields Section */}
+        <div className="form-row">
+          <div className="form-group">
+            <label>X Hareketi</label>
+            <input
+              type="text"
+              value={formData.xMovement}
+              onChange={(e) => handleInputChange('xMovement', e.target.value)}
+              placeholder="1000mm"
+            />
+          </div>
+          <div className="form-group">
+            <label>Y Hareketi</label>
+            <input
+              type="text"
+              value={formData.yMovement}
+              onChange={(e) => handleInputChange('yMovement', e.target.value)}
+              placeholder="500mm"
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Z Hareketi</label>
+            <input
+              type="text"
+              value={formData.zMovement}
+              onChange={(e) => handleInputChange('zMovement', e.target.value)}
+              placeholder="300mm"
+            />
+          </div>
+          <div className="form-group">
+            <label>B Hareketi</label>
+            <input
+              type="text"
+              value={formData.bMovement}
+              onChange={(e) => handleInputChange('bMovement', e.target.value)}
+              placeholder="360°"
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>C Hareketi</label>
+            <input
+              type="text"
+              value={formData.cMovement}
+              onChange={(e) => handleInputChange('cMovement', e.target.value)}
+              placeholder="360°"
+            />
+          </div>
+          <div className="form-group">
+            <label>Gripper Tipi</label>
+            <input
+              type="text"
+              value={formData.holderType}
+              onChange={(e) => handleInputChange('holderType', e.target.value)}
+              placeholder="HSK-63A"
+            />
+          </div>
+        </div>
+
+        {/* Machine Dimensions Section */}
+        <div className="form-row">
+          <div className="form-group">
+            <label>Makine Genişliği</label>
+            <input
+              type="text"
+              value={formData.machineWidth}
+              onChange={(e) => handleInputChange('machineWidth', e.target.value)}
+              placeholder="2000"
+            />
+          </div>
+          <div className="form-group">
+            <label>Makine Uzunluğu</label>
+            <input
+              type="text"
+              value={formData.machineLength}
+              onChange={(e) => handleInputChange('machineLength', e.target.value)}
+              placeholder="3000"
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Makine Yüksekliği</label>
+            <input
+              type="text"
+              value={formData.machineHeight}
+              onChange={(e) => handleInputChange('machineHeight', e.target.value)}
+              placeholder="2500"
+            />
+          </div>
+          <div className="form-group">
+            <label>Maksimum Malzeme Ağırlığı</label>
+            <input
+              type="text"
+              value={formData.maxMaterialWeight}
+              onChange={(e) => handleInputChange('maxMaterialWeight', e.target.value)}
+              placeholder="5000"
             />
           </div>
         </div>

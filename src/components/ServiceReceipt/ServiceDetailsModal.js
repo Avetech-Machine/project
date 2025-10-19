@@ -195,24 +195,61 @@ const ServiceDetailsModal = ({ service, onClose }) => {
                 </div>
                 
                 <div className="spec-row">
+                  <span className="spec-label">X Hareketi:</span>
+                  <span className="spec-value">{projectDetails.xMovement || '-'}</span>
+                </div>
+                
+                <div className="spec-row">
+                  <span className="spec-label">Y Hareketi:</span>
+                  <span className="spec-value">{projectDetails.yMovement || '-'}</span>
+                </div>
+                
+                <div className="spec-row">
+                  <span className="spec-label">Z Hareketi:</span>
+                  <span className="spec-value">{projectDetails.zMovement || '-'}</span>
+                </div>
+                
+                <div className="spec-row">
+                  <span className="spec-label">B Hareketi:</span>
+                  <span className="spec-value">{projectDetails.bMovement || '-'}</span>
+                </div>
+                
+                <div className="spec-row">
+                  <span className="spec-label">C Hareketi:</span>
+                  <span className="spec-value">{projectDetails.cMovement || '-'}</span>
+                </div>
+                
+                <div className="spec-row">
+                  <span className="spec-label">Gripper Tipi:</span>
+                  <span className="spec-value">{projectDetails.holderType || '-'}</span>
+                </div>
+                
+                <div className="spec-row">
+                  <span className="spec-label">Makine Genişliği:</span>
+                  <span className="spec-value">{projectDetails.machineWidth || '-'}</span>
+                </div>
+                
+                <div className="spec-row">
+                  <span className="spec-label">Makine Uzunluğu:</span>
+                  <span className="spec-value">{projectDetails.machineLength || '-'}</span>
+                </div>
+                
+                <div className="spec-row">
+                  <span className="spec-label">Makine Yüksekliği:</span>
+                  <span className="spec-value">{projectDetails.machineHeight || '-'}</span>
+                </div>
+                
+                <div className="spec-row">
+                  <span className="spec-label">Maksimum Malzeme Ağırlığı:</span>
+                  <span className="spec-value">{projectDetails.maxMaterialWeight || '-'}</span>
+                </div>
+                
+                <div className="spec-row">
                   <span className="spec-label">Ek Ekipman:</span>
                   <span className="spec-value">{projectDetails.additionalEquipment || '-'}</span>
                 </div>
                 
-                <div className="spec-row">
-                  <span className="spec-label">Maliyet Detayları:</span>
-                  <span className="spec-value">{projectDetails.costDetails || '-'}</span>
-                </div>
                 
-                <div className="spec-row">
-                  <span className="spec-label">Fiyat Detayları:</span>
-                  <span className="spec-value">{projectDetails.priceDetails || '-'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Durum:</span>
-                  <span className="spec-value">{projectDetails.status || '-'}</span>
-                </div>
               </div>
             </div>
 

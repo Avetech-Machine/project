@@ -260,6 +260,55 @@ class ProjectService {
       throw error;
     }
   }
+
+  async searchProjects(query) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/projects/search?q=${encodeURIComponent(query)}`, {
+        method: 'GET',
+        headers: authService.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Proje arama sırasında bir hata oluştu');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Search projects error:', error);
+      throw error;
+    }
+  }
+
+  async filterProjects(filters) {
+    try {
+      // Build query string from filters object
+      const queryParams = new URLSearchParams();
+      
+      Object.keys(filters).forEach(key => {
+        if (filters[key] !== '' && filters[key] !== null && filters[key] !== undefined) {
+          queryParams.append(key, filters[key]);
+        }
+      });
+
+      const response = await fetch(`${API_BASE_URL}/api/projects/filter?${queryParams.toString()}`, {
+        method: 'GET',
+        headers: authService.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Proje filtreleme sırasında bir hata oluştu');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Filter projects error:', error);
+      throw error;
+    }
+  }
 }
 
 export default new ProjectService();

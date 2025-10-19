@@ -31,6 +31,24 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
     conveyor: 'Yok',
     paperFilter: 'Yok',
     
+    // Movement Fields
+    xMovement: '',
+    yMovement: '',
+    zMovement: '',
+    bMovement: '',
+    cMovement: '',
+    
+    // Gripper Type
+    holderType: '',
+    
+    // Machine Dimensions
+    machineWidth: '',
+    machineLength: '',
+    machineHeight: '',
+    
+    // Max Material Weight
+    maxMaterialWeight: '',
+    
     // Accessory Data
     accessoryData: '',
     
@@ -127,6 +145,16 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
         insideWaterGiving: (project.internalWater || project.ictenSuVerme) ? 'Var' : (project.insideWaterGiving || 'Yok'),
         conveyor: project.conveyor ? 'Var' : (project.conveyor || 'Yok'),
         paperFilter: (project.paperFilter || project.kagitFiltre) ? 'Var' : (project.paperFilter || 'Yok'),
+        xMovement: project.xMovement || '',
+        yMovement: project.yMovement || '',
+        zMovement: project.zMovement || '',
+        bMovement: project.bMovement || '',
+        cMovement: project.cMovement || '',
+        holderType: project.holderType || '',
+        machineWidth: project.machineWidth ? project.machineWidth.toString() : '',
+        machineLength: project.machineLength ? project.machineLength.toString() : '',
+        machineHeight: project.machineHeight ? project.machineHeight.toString() : '',
+        maxMaterialWeight: project.maxMaterialWeight ? project.maxMaterialWeight.toString() : '',
         accessoryData: project.additionalEquipment || project.accessoryData || '',
         photos: project.photos || []
       });
@@ -411,16 +439,26 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       hoursOperated: extractNumericValue(formData.workingHours),
       rpm: extractNumericValue(formData.repairHours),
       serialNumber: formData.serialNumber || '',
-      teamSayisi: parseInt(formData.teamCount) || 0, // Fixed field name
-      netWeight: (formData.machineNetWeight && !isNaN(parseFloat(formData.machineNetWeight))) ? parseFloat(formData.machineNetWeight) : 0,
-      additionalWeight: (formData.additionalWeight && !isNaN(parseFloat(formData.additionalWeight))) ? parseFloat(formData.additionalWeight) : 0,
+      takimSayisi: parseInt(formData.teamCount) || 0,
+      netWeight: (formData.machineNetWeight && !isNaN(parseFloat(formData.machineNetWeight))) ? parseFloat(formData.machineNetWeight) : null,
+      additionalWeight: (formData.additionalWeight && !isNaN(parseFloat(formData.additionalWeight))) ? parseFloat(formData.additionalWeight) : null,
       operatingSystem: formData.operatingSystem || 'Heidenhain',
-      keyInformation: keyInformation.toString(), // Fixed field name
-      teamMeasurementProbe: formData.teamMeasurementProbe === 'Var', // Fixed field name
-      partMeasurementProbe: formData.partMeasurementProbe === 'Var', // Fixed field name
-      internalSuverme: formData.insideWaterGiving === 'Var', // Fixed field name
-      conveyor: formData.conveyor === 'Var', // Fixed field name
-      paperFilter: formData.paperFilter === 'Var', // Fixed field name
+      anahtarBilgisi: keyInformation.toString(),
+      takimOlcmeProbu: formData.teamMeasurementProbe === 'Var',
+      parcaOlcmeProbu: formData.partMeasurementProbe === 'Var',
+      ictenSuVerme: formData.insideWaterGiving === 'Var',
+      konveyor: formData.conveyor === 'Var',
+      kagitFiltre: formData.paperFilter === 'Var',
+      xMovement: formData.xMovement || '',
+      yMovement: formData.yMovement || '',
+      zMovement: formData.zMovement || '',
+      bMovement: formData.bMovement || '',
+      cMovement: formData.cMovement || '',
+      holderType: formData.holderType || '',
+      machineWidth: (formData.machineWidth && !isNaN(parseFloat(formData.machineWidth))) ? parseFloat(formData.machineWidth) : null,
+      machineLength: (formData.machineLength && !isNaN(parseFloat(formData.machineLength))) ? parseFloat(formData.machineLength) : null,
+      machineHeight: (formData.machineHeight && !isNaN(parseFloat(formData.machineHeight))) ? parseFloat(formData.machineHeight) : null,
+      maxMaterialWeight: (formData.maxMaterialWeight && !isNaN(parseFloat(formData.maxMaterialWeight))) ? parseFloat(formData.maxMaterialWeight) : null,
       additionalEquipment: formData.accessoryData || '',
       costDetails: costDetails.map(cost => `${cost.description}: ${cost.currency} ${cost.amount}`).join(', '),
       priceDetails: `Base price: ${salesPrice}, Total cost: ${totalCost}, Net profit: ${netProfit}`,
@@ -654,6 +692,113 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
                     value={formData.additionalWeight}
                     onChange={(e) => handleInputChange('additionalWeight', e.target.value)}
                     placeholder="kg"
+                  />
+                </div>
+              </div>
+
+              {/* Movement Fields Section */}
+              <div className="form-row">
+                <div className="form-group">
+                  <label>X Hareketi</label>
+                  <input
+                    type="text"
+                    value={formData.xMovement}
+                    onChange={(e) => handleInputChange('xMovement', e.target.value)}
+                    placeholder="1000mm"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Y Hareketi</label>
+                  <input
+                    type="text"
+                    value={formData.yMovement}
+                    onChange={(e) => handleInputChange('yMovement', e.target.value)}
+                    placeholder="500mm"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Z Hareketi</label>
+                  <input
+                    type="text"
+                    value={formData.zMovement}
+                    onChange={(e) => handleInputChange('zMovement', e.target.value)}
+                    placeholder="300mm"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>B Hareketi</label>
+                  <input
+                    type="text"
+                    value={formData.bMovement}
+                    onChange={(e) => handleInputChange('bMovement', e.target.value)}
+                    placeholder="360°"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>C Hareketi</label>
+                  <input
+                    type="text"
+                    value={formData.cMovement}
+                    onChange={(e) => handleInputChange('cMovement', e.target.value)}
+                    placeholder="360°"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Gripper Tipi</label>
+                  <input
+                    type="text"
+                    value={formData.holderType}
+                    onChange={(e) => handleInputChange('holderType', e.target.value)}
+                    placeholder="HSK-63A"
+                  />
+                </div>
+              </div>
+
+              {/* Machine Dimensions Section */}
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Makine Genişliği</label>
+                  <input
+                    type="text"
+                    value={formData.machineWidth}
+                    onChange={(e) => handleInputChange('machineWidth', e.target.value)}
+                    placeholder="2000"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Makine Uzunluğu</label>
+                  <input
+                    type="text"
+                    value={formData.machineLength}
+                    onChange={(e) => handleInputChange('machineLength', e.target.value)}
+                    placeholder="3000"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Makine Yüksekliği</label>
+                  <input
+                    type="text"
+                    value={formData.machineHeight}
+                    onChange={(e) => handleInputChange('machineHeight', e.target.value)}
+                    placeholder="2500"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Maksimum Malzeme Ağırlığı</label>
+                  <input
+                    type="text"
+                    value={formData.maxMaterialWeight}
+                    onChange={(e) => handleInputChange('maxMaterialWeight', e.target.value)}
+                    placeholder="5000"
                   />
                 </div>
               </div>

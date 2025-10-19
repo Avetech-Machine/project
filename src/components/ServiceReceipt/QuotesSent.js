@@ -36,7 +36,7 @@ const QuotesSent = ({ onEditService }) => {
           id: project.id,
           machineName: project.title,
           year: project.year,
-          operatingSystem: project.operatingSystem,
+          operatingSystem: project.title,
           serialNumber: project.serialNumber,
           createdDate: project.createdAt ? new Date(project.createdAt).toLocaleDateString('tr-TR') : '-',
           status: 'Gönderildi', // All projects from this endpoint will show as "Gönderildi"
