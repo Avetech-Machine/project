@@ -255,6 +255,13 @@
   border-radius: 6px;
 }
 
+/* Created date column styles */
+.user-table td:nth-child(5) {
+  font-size: 13px;
+  color: #6b7280;
+  min-width: 140px;
+}
+
 /* Operations column styles */
 .operations {
   text-align: center;

@@ -192,6 +192,7 @@ const UserManagement = () => {
                 <th>Soyad</th>
                 <th>E-posta</th>
                 <th>Rol</th>
+                <th>Oluşturma Tarihi</th>
                 <th>İşlemler</th>
               </tr>
             </thead>
@@ -201,7 +202,14 @@ const UserManagement = () => {
                   <td>{u.firstName}</td>
                   <td>{u.lastName}</td>
                   <td>{u.email}</td>
-                  <td>{u.role}</td> 
+                  <td>{u.role}</td>
+                  <td>{u.createdAt ? new Date(u.createdAt).toLocaleDateString('tr-TR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }) : 'N/A'}</td>
                   <td className="operations">
                     <div className="operation-buttons">
                       <button 
