@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaTimes, FaPaperPlane, FaPlus, FaTrash, FaPencilAlt } from 'react-icons/fa';
 import projectService from '../../services/projectService';
+import clientService from '../../services/clientService';
 import './SendOfferModal.css';
 
 const SendOfferModal = ({ service, onClose }) => {
@@ -9,12 +10,14 @@ const SendOfferModal = ({ service, onClose }) => {
     documentDate: new Date().toLocaleDateString('tr-TR'),
     salesPrice: service?.salesPrice || 20000
   });
-  const [additionalEmails, setAdditionalEmails] = useState([]);
-  const [newEmail, setNewEmail] = useState('');
+  const [selectedClients, setSelectedClients] = useState([]);
+  const [availableClients, setAvailableClients] = useState([]);
+  const [selectedClientId, setSelectedClientId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState(null);
   const [editingField, setEditingField] = useState(null);
+  const [loadingClients, setLoadingClients] = useState(false);
   const [editableTexts, setEditableTexts] = useState({
     companyName: '',
     address: '',
@@ -26,6 +29,24 @@ const SendOfferModal = ({ service, onClose }) => {
     deliveryDate: 'Önceden anlaşma sonrası'
   });
 
+  // Fetch clients on component mount
+  useEffect(() => {
+    const fetchClients = async () => {
+      setLoadingClients(true);
+      try {
+        const clients = await clientService.getClients();
+        setAvailableClients(clients);
+      } catch (error) {
+        console.error('Error fetching clients:', error);
+        setError('Müşteriler yüklenirken bir hata oluştu');
+      } finally {
+        setLoadingClients(false);
+      }
+    };
+
+    fetchClients();
+  }, []);
+
   const handleInputChange = (field, value) => { 
     setFormData(prev => ({
       ...prev,
@@ -33,21 +54,24 @@ const SendOfferModal = ({ service, onClose }) => {
     }));
   };
 
-  const handleAddEmail = () => {
-    if (newEmail.trim() && newEmail.includes('@')) {
-      setAdditionalEmails(prev => [...prev, newEmail.trim()]);
-      setNewEmail('');
+  const handleAddClient = () => {
+    if (selectedClientId) {
+      const client = availableClients.find(c => c.id === parseInt(selectedClientId));
+      if (client && !selectedClients.find(c => c.id === client.id)) {
+        setSelectedClients(prev => [...prev, client]);
+        setSelectedClientId('');
+      }
     }
   };
 
-  const handleRemoveEmail = (index) => {
-    setAdditionalEmails(prev => prev.filter((_, i) => i !== index));
+  const handleRemoveClient = (clientId) => {
+    setSelectedClients(prev => prev.filter(client => client.id !== clientId));
   };
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleAddEmail();
+      handleAddClient();
     }
   };
 
@@ -83,27 +107,18 @@ const SendOfferModal = ({ service, onClose }) => {
     setError(null);
     
     try {
-      // Prepare offer data for API
-      const offerData = {
-        salesPrice: formData.salesPrice,
-        documentDate: formData.documentDate,
-        ccList: additionalEmails.filter(Boolean),
-        companyInfo: {
-          companyName: editableTexts.companyName,
-          address: editableTexts.address,
-          contactPerson: editableTexts.contactPerson,
-          phone: editableTexts.phone,
-          email: editableTexts.email
-        },
-        terms: {
-          deliveryTerms: editableTexts.deliveryTerms,
-          paymentTerms: editableTexts.paymentTerms,
-          deliveryDate: editableTexts.deliveryDate
-        }
-      };
+      // Check if at least one client is selected
+      if (selectedClients.length === 0) {
+        setError('Lütfen en az bir müşteri seçin');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Extract client IDs from selected clients
+      const clientIds = selectedClients.map(client => client.id);
       
-      // Send offer via API
-      await projectService.sendOffer(service.id, offerData);
+      // Send offer to selected clients using new endpoint
+      await projectService.sendOfferToClients(service.id, clientIds);
       
       setIsSubmitting(false);
       setShowSuccess(true);
@@ -158,38 +173,47 @@ const SendOfferModal = ({ service, onClose }) => {
                 />
               </div>
               
-              {/* Additional Emails Section */}
+              {/* Client Selection Section */}
               <div className="input-group">
-                <label>Mail Listesine Ekle (CC):</label>
-                <div className="additional-emails-container">
-                  <div className="email-input-row">
-                    <input
-                      type="email"
-                      value={newEmail}
-                      onChange={(e) => setNewEmail(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="ek@firma.com"
-                      className="email-input"
-                    />
+                <label>Müşteri Seçimi:</label>
+                <div className="client-selection-container">
+                  <div className="client-input-row">
+                    <select
+                      value={selectedClientId}
+                      onChange={(e) => setSelectedClientId(e.target.value)}
+                      className="client-select"
+                      disabled={loadingClients}
+                    >
+                      <option value="">
+                        {loadingClients ? 'Müşteriler yükleniyor...' : 'Müşteri seçin'}
+                      </option>
+                      {availableClients.map((client) => (
+                        <option key={client.id} value={client.id}>
+                          {client.companyName} - {client.contactName} ({client.email})
+                        </option>
+                      ))}
+                    </select>
                     <button
                       type="button"
-                      onClick={handleAddEmail}
-                      className="btn-add-email"
-                      disabled={!newEmail.trim() || !newEmail.includes('@')}
+                      onClick={handleAddClient}
+                      className="btn-add-client"
+                      disabled={!selectedClientId || selectedClients.find(c => c.id === parseInt(selectedClientId))}
                     >
                       <FaPlus />
                     </button>
                   </div>
                   
-                  {additionalEmails.length > 0 && (
-                    <div className="email-list">
-                      {additionalEmails.map((email, index) => (
-                        <div key={index} className="email-item">
-                          <span className="email-text">{email}</span>
+                  {selectedClients.length > 0 && (
+                    <div className="client-list">
+                      {selectedClients.map((client) => (
+                        <div key={client.id} className="client-item">
+                          <span className="client-text">
+                            {client.companyName} - {client.contactName} ({client.email})
+                          </span>
                           <button
                             type="button"
-                            onClick={() => handleRemoveEmail(index)}
-                            className="btn-remove-email"
+                            onClick={() => handleRemoveClient(client.id)}
+                            className="btn-remove-client"
                           >
                             <FaTrash />
                           </button>
@@ -632,8 +656,8 @@ const SendOfferModal = ({ service, onClose }) => {
             <div className="success-content">
               <h3>Teklif Başarıyla Gönderildi!</h3>
               <p>Fiyat: {formatCurrency(formData.salesPrice, 'EUR')}</p>
-              {additionalEmails.length > 0 && (
-                <p>Ek E-posta Adresleri: {additionalEmails.join(', ')}</p>
+              {selectedClients.length > 0 && (
+                <p>Gönderilen Müşteriler: {selectedClients.map(c => c.companyName).join(', ')}</p>
               )}
             </div>
           </div>

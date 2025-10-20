@@ -38,6 +38,8 @@ const MainMenu = () => {
   const [activeFilters, setActiveFilters] = useState({});
   const [isSearching, setIsSearching] = useState(false);
   const [isFiltering, setIsFiltering] = useState(false);
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
   const projectsPerPage = 6;
 
   // Fetch projects data on component mount
@@ -246,6 +248,58 @@ const MainMenu = () => {
     setIsSendOfferModalOpen(true);
   };
 
+  // Select mode handlers
+  const toggleSelectMode = () => {
+    setIsSelectMode((prev) => {
+      const next = !prev;
+      if (!next) {
+        setSelectedIds(new Set());
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectItem = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.size === 0) return;
+    const confirmDelete = window.confirm(
+      `${selectedIds.size} proje silinecek. Devam etmek istiyor musunuz?`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      // delete sequentially to keep it simple and reliable
+      for (const id of selectedIds) {
+        await projectService.deleteProject(id);
+      }
+      // refresh list
+      const data = await projectService.getProjects();
+      setProjects(data || []);
+      clearSelection();
+      setIsSelectMode(false);
+    } catch (err) {
+      console.error('Batch delete error:', err);
+      setError(err.message || 'Projeler silinirken bir hata oluştu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getStatusClass = (status) => {
     switch (status) {
       case 'TAMAMLANMIŞ':
@@ -327,6 +381,24 @@ const MainMenu = () => {
       <div className="services-section">
         <div className="section-header">
           <h2>Son Projeler</h2>
+          <div className="section-actions">
+            {isSelectMode && (
+              <button
+                className="btn-danger"
+                onClick={handleDeleteSelected}
+                disabled={selectedIds.size === 0 || loading}
+              >
+                Seçileni Sil ({selectedIds.size})
+              </button>
+            )}
+            <button
+              className={`btn-select-toggle ${isSelectMode ? 'active' : ''}`}
+              onClick={toggleSelectMode}
+              disabled={loading || isSearching || isFiltering}
+            >
+              {isSelectMode ? 'İptal' : 'Seç'}
+            </button>
+          </div>
         </div>
 
         <SearchBar 
@@ -369,7 +441,13 @@ const MainMenu = () => {
           <>
             <div className="services-grid">
               {serviceData.map((service) => (
-            <div key={service.id} className="service-card">
+            <div
+              key={service.id}
+              className={`service-card ${isSelectMode && selectedIds.has(service.id) ? 'selected' : ''}`}
+              onClick={() => {
+                if (isSelectMode) toggleSelectItem(service.id);
+              }}
+            >
               <div className="card-header">
                 <h3 className="machine-name">{service.machineName}</h3>
                 <div className={`status-badge ${getStatusClass(service.status)}`}>
@@ -378,6 +456,17 @@ const MainMenu = () => {
               </div>
 
               <div className="card-details">
+                {isSelectMode && (
+                  <div className="select-indicator">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(service.id)}
+                      onChange={() => toggleSelectItem(service.id)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <span>Seç</span>
+                  </div>
+                )}
                 <div className="detail-row">
                   <AiOutlineCalendar className="detail-icon" />
                   <span className="detail-label">{service.year}</span>
@@ -396,22 +485,24 @@ const MainMenu = () => {
                 </div>
               </div>
 
-              <div className="card-actions">
-                <button 
-                  className="btn-offer"
-                  onClick={() => handleEditClick(service)}
-                >
-                  <FaPaperPlane className="btn-icon" />
-                  Teklif Gönder
-                </button>
-                <button 
-                  className="btn-info"
-                  onClick={() => handleInfoClick(service)}
-                >
-                  <AiOutlineInfoCircle className="btn-icon" />
-                  Bilgi
-                </button>
-              </div>
+              {!isSelectMode && (
+                <div className="card-actions">
+                  <button 
+                    className="btn-offer"
+                    onClick={() => handleEditClick(service)}
+                  >
+                    <FaPaperPlane className="btn-icon" />
+                    Teklif Gönder
+                  </button>
+                  <button 
+                    className="btn-info"
+                    onClick={() => handleInfoClick(service)}
+                  >
+                    <AiOutlineInfoCircle className="btn-icon" />
+                    Bilgi
+                  </button>
+                </div>
+              )}
             </div>
           ))}
             </div>

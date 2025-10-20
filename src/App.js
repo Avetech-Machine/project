@@ -6,10 +6,13 @@ import CreateServiceReceipt from './components/ServiceReceipt/CreateServiceRecei
 import AllServices from './components/ServiceReceipt/AllServices';
 import QuotesSent from './components/ServiceReceipt/QuotesSent';
 import ClosedProjects from './components/ServiceReceipt/ClosedProjects';
+import ErrorReceipts from './components/ServiceReceipt/ErrorReceipts';
 import MainMenu from './components/MainMenu/MainMenu';
 import Login from './components/Login/Login';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import './App.css';
+import UserManagement from './components/UserManagement/UserManagement';
+import RegisteredCompanies from './components/RegisteredCompanies/RegisteredCompanies';
 
 function AppContent() {
   const navigate = useNavigate();
@@ -53,6 +56,14 @@ function AppContent() {
                     />
                   } 
                 />
+            <Route 
+              path="/userManagement" 
+              element={<UserManagement />} 
+            />
+            <Route 
+              path="/registeredCompanies" 
+              element={<RegisteredCompanies />} 
+            />
                 <Route 
                   path="/allServices" 
                   element={
@@ -115,12 +126,7 @@ function AppContent() {
                 />
                 <Route 
                   path="/errorReceipts" 
-                  element={
-                    <div className="placeholder-content">
-                      <h1>Hatalı Proje Formları</h1>
-                      <p>Bu sayfa henüz hazır değil.</p>
-                    </div>
-                  } 
+                  element={<ErrorReceipts />} 
                 />
                 <Route 
                   path="*" 

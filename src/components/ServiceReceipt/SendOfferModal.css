@@ -690,3 +690,122 @@
     font-size: 20px;
   }
 }
+
+/* Client Selection Styles */
+.client-selection-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.client-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.client-select {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.client-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.client-select:disabled {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+.btn-add-client {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+}
+
+.btn-add-client:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.btn-add-client:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.client-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.client-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.client-item:hover {
+  background-color: #e9ecef;
+}
+
+.client-text {
+  font-size: 14px;
+  color: #2c3e50;
+  flex: 1;
+  margin-right: 8px;
+}
+
+.btn-remove-client {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+}
+
+.btn-remove-client:hover {
+  background-color: #c82333;
+}
+
+/* Responsive adjustments for client selection */
+@media (max-width: 768px) {
+  .client-input-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .btn-add-client {
+    width: 100%;
+    margin-top: 8px;
+  }
+}

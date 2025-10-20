@@ -191,6 +191,26 @@ class ProjectService {
     }
   }
 
+  async getDeletedProjects() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/projects/deleted`, {
+        method: 'GET',
+        headers: authService.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Silinmiş projeler yüklenirken bir hata oluştu');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Get deleted projects error:', error);
+      throw error;
+    }
+  }
+
   async getProjectCostDetails(id) {
     try {
       const response = await fetch(`${API_BASE_URL}/api/projects/${id}/cost-details`, {
@@ -231,6 +251,39 @@ class ProjectService {
       return data;
     } catch (error) {
       console.error('Send offer error:', error);
+      throw error;
+    }
+  }
+
+  async sendOfferToClients(projectId, clientIds) {
+    try {
+      // Send individual requests for each client
+      const promises = clientIds.map(async (clientId) => {
+        const response = await fetch(`${API_BASE_URL}/api/offers`, {
+          method: 'POST',
+          headers: {
+            ...authService.getAuthHeaders(),
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            projectId: projectId,
+            clientId: clientId
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Teklif gönderilirken bir hata oluştu (Müşteri ID: ${clientId})`);
+        }
+
+        return await response.json();
+      });
+
+      // Wait for all requests to complete
+      const results = await Promise.all(promises);
+      return results;
+    } catch (error) {
+      console.error('Send offer to clients error:', error);
       throw error;
     }
   }

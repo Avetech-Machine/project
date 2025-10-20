@@ -31,3 +31,9 @@ button {
 input:focus, select:focus, textarea:focus {
   outline: none;
 }
+
+/* Global sidebar fade effect when modal is open */
+body.modal-open .sidebar {
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}

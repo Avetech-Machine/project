@@ -72,16 +72,25 @@
     transition: color 0.2s ease;
   }
 
-  /* --- YENİ EKLENEN KOD BAŞLANGICI --- */
-
-  /* Ana Menü ikonuna özel stil */
-  .sidebar .menu-section:first-child .menu-item .menu-icon {
-    color: #007bff; /* Mavi renk */
+  /* Logo için özel stil */
+  .sidebar .menu-logo {
+    width: 36px;
+    height: 36px;
+    margin-right: 14px;
+    object-fit: contain;
+    transition: opacity 0.2s ease;
   }
 
-  /* Aktif Ana Menü ikonuna özel stil */
-  .sidebar .menu-section:first-child .menu-item.active .menu-icon {
-    color: #0056b3; /* Aktif durum için daha koyu mavi */
+  /* --- YENİ EKLENEN KOD BAŞLANGICI --- */
+
+  /* Ana Menü logosuna özel stil */
+  .sidebar .menu-section:first-child .menu-item .menu-logo {
+    opacity: 1;
+  }
+
+  /* Aktif Ana Menü logosuna özel stil */
+  .sidebar .menu-section:first-child .menu-item.active .menu-logo {
+    opacity: 0.8;
   }
 
   /* --- YENİ EKLENEN KOD SONU --- */

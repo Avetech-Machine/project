@@ -272,7 +272,7 @@ const AllServices = ({ onEditService }) => {
               {projects.map((project, index) => (
                 <tr key={project.id} className="service-row">
                   <td className="form-number">{project.projectCode}</td>
-                  <td className="company-name">{project.title || 'Belirtilmemiş'}</td>
+                  <td className="device-name">{project.title || 'Belirtilmemiş'}</td>
                   <td className="device-name">{project.model}</td>
                   <td className="start-date">{project.year}</td>
                   <td className="operations">

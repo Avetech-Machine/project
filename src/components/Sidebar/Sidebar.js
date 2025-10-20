@@ -25,7 +25,7 @@ const Sidebar = () => {
   // Menü öğeleri, daha kolay yönetim için bir nesne içinde gruplandırıldı.
   const menuItems = {
     main: [
-      { id: 'main-menu', label: user?.username || 'AVITECH', icon: AiOutlineHome, path: '/mainMenu' }
+      { id: 'main-menu', label: user?.username || 'AVITECH', icon: null, path: '/mainMenu', isLogo: true }
     ],
     services: [
       { id: 'create-service', label: 'Yeni Proje Oluştur', icon: AiOutlinePlus, path: '/createService' },
@@ -35,8 +35,7 @@ const Sidebar = () => {
     ],
     userActions: [
       { id: 'user-management', label: 'Kullanıcı İşlemleri', icon: AiOutlineTeam, path: '/userManagement' },
-      { id: 'registered-companies', label: 'Kayıtlı Firmalar', icon: AiOutlineBank, path: '/registeredCompanies' },
-      { id: 'profile', label: 'Profilim', icon: AiOutlineUser, path: '/profile' }
+      { id: 'registered-companies', label: 'Kayıtlı Firmalar', icon: AiOutlineBank, path: '/registeredCompanies' }
     ],
     other: [
       { id: 'manual', label: 'Kullanım Kılavuzu', icon: AiOutlineFile, path: '/manual' },
@@ -52,7 +51,15 @@ const Sidebar = () => {
         className={`menu-item ${location.pathname === item.path ? 'active' : ''}`}
         onClick={() => navigate(item.path)}
       >
-        <item.icon className="menu-icon" />
+        {item.isLogo ? (
+          <img 
+            src="/assets/avitech_logo.png" 
+            alt="Avitech Logo" 
+            className="menu-logo"
+          />
+        ) : (
+          <item.icon className="menu-icon" />
+        )}
         <span className="menu-label">{item.label}</span>
       </div>
     ));
