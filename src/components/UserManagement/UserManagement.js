@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { AiOutlineUser } from 'react-icons/ai';
+import { AiOutlineUser, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import userService from '../../services/userService';
 import './UserManagement.css';
 
@@ -11,13 +11,22 @@ const UserManagement = () => {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [form, setForm] = useState({
     email: '',
     password: '',
     firstName: '',
     lastName: ''
   });
+  const [editForm, setEditForm] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: ''
+  });
   const [submitting, setSubmitting] = useState(false);
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -64,9 +73,33 @@ const UserManagement = () => {
     document.body.classList.remove('modal-open');
   };
 
+  const openEditModal = (user) => {
+    setSelectedUser(user);
+    setEditForm({
+      email: user.email || '',
+      password: '', // Don't pre-fill password for security
+      firstName: user.firstName || '',
+      lastName: user.lastName || ''
+    });
+    setIsEditModalOpen(true);
+    document.body.classList.add('modal-open');
+  };
+  
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedUser(null);
+    setEditForm({ email: '', password: '', firstName: '', lastName: '' });
+    document.body.classList.remove('modal-open');
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -87,6 +120,47 @@ const UserManagement = () => {
       setError(err.message || 'Kullanıcı oluşturulurken bir hata oluştu');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!editForm.email || !editForm.firstName || !editForm.lastName) return;
+    try {
+      setEditSubmitting(true);
+      setError(null);
+      
+      // Prepare the data for API - include original username and role
+      const userData = {
+        ...editForm,
+        username: selectedUser.username || `${editForm.firstName} ${editForm.lastName}`.trim(),
+        role: selectedUser.role || 'VIEWER'
+      };
+      
+      const updated = await userService.updateUser(selectedUser.id, userData);
+      
+      // Update the user in the local state
+      setUsers(prev => prev.map(u => u.id === selectedUser.id ? updated : u));
+      closeEditModal();
+      alert('Kullanıcı başarıyla güncellendi!');
+    } catch (err) {
+      setError(err.message || 'Kullanıcı güncellenirken bir hata oluştu');
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (window.confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) {
+      try {
+        await userService.deleteUser(userId);
+        // Remove the user from the local state
+        setUsers(prev => prev.filter(u => u.id !== userId));
+        alert('Kullanıcı başarıyla silindi!');
+      } catch (error) {
+        console.error('Delete user error:', error);
+        alert(`Kullanıcı silinirken bir hata oluştu: ${error.message}`);
+      }
     }
   };
 
@@ -118,6 +192,7 @@ const UserManagement = () => {
                 <th>Soyad</th>
                 <th>E-posta</th>
                 <th>Rol</th>
+                <th>İşlemler</th>
               </tr>
             </thead>
             <tbody>
@@ -126,7 +201,25 @@ const UserManagement = () => {
                   <td>{u.firstName}</td>
                   <td>{u.lastName}</td>
                   <td>{u.email}</td>
-                  <td>{u.role}</td>
+                  <td>{u.role}</td> 
+                  <td className="operations">
+                    <div className="operation-buttons">
+                      <button 
+                        className="operation-btn edit-btn" 
+                        onClick={() => openEditModal(u)}
+                        title="Düzenle"
+                      >
+                        <AiOutlineEdit />
+                      </button>
+                      <button 
+                        className="operation-btn delete-btn" 
+                        onClick={() => handleDeleteUser(u.id)}
+                        title="Sil"
+                      >
+                        <AiOutlineDelete />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -201,6 +294,42 @@ const UserManagement = () => {
                 <button type="button" className="primary-btn" onClick={closeProfileModal}>Kapat</button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {isEditModalOpen && selectedUser && (
+        <div className="modal-backdrop" onClick={closeEditModal}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Kullanıcı Düzenle</h2>
+              <button className="close-btn" onClick={closeEditModal}>×</button>
+            </div>
+            <form className="modal-body" onSubmit={handleEditSubmit}>
+              <div className="form-row">
+                <label>Ad Soyad *</label>
+                <input name="firstName" value={editForm.firstName} onChange={handleEditChange} placeholder="Ad" />
+              </div>
+              <div className="form-row">
+                <label></label>
+                <input name="lastName" value={editForm.lastName} onChange={handleEditChange} placeholder="Soyad" />
+              </div>
+              <div className="form-row">
+                <label>Email *</label>
+                <input type="email" name="email" value={editForm.email} onChange={handleEditChange} />
+              </div>
+              <div className="form-row">
+                <label>Şifre (Boş bırakılırsa değiştirilmez)</label>
+                <input type="password" name="password" value={editForm.password} onChange={handleEditChange} placeholder="Yeni şifre" />
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="secondary-btn" onClick={closeEditModal}>İptal</button>
+                <button type="submit" className="primary-btn" disabled={editSubmitting}>
+                  <span className="btn-icon">✓</span>
+                  {editSubmitting ? 'Güncelleniyor...' : 'Güncelle'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

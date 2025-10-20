@@ -255,4 +255,57 @@
   border-radius: 6px;
 }
 
+/* Operations column styles */
+.operations {
+  text-align: center;
+  width: 120px;
+  padding: 8px 12px !important;
+}
+
+.operation-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.operation-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background-color: transparent;
+}
+
+.operation-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.edit-btn {
+  color: #ffc107;
+  border: 1px solid #ffc107;
+}
+
+.edit-btn:hover {
+  background-color: #ffc107;
+  color: white;
+}
+
+.delete-btn {
+  color: #dc3545;
+  border: 1px solid #dc3545;
+}
+
+.delete-btn:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
 

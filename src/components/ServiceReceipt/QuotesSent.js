@@ -23,35 +23,78 @@ const QuotesSent = ({ onEditService }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch projects with OFFER_SENT status from API
+  // Fetch offers from the new API endpoint
   useEffect(() => {
     const fetchQuotesSentProjects = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await projectService.getProjectsByStatus('OFFER_SENT');
+        const offersData = await projectService.getOffers();
         
-        // Transform API data to match the expected format
-        const transformedServices = data.map(project => ({
-          id: project.id,
-          machineName: project.title,
-          year: project.year,
-          operatingSystem: project.title,
-          serialNumber: project.serialNumber,
-          createdDate: project.createdAt ? new Date(project.createdAt).toLocaleDateString('tr-TR') : '-',
-          status: 'Gönderildi', // All projects from this endpoint will show as "Gönderildi"
-          totalCost: project.totalCost || 0,
-          salesPrice: project.salesPrice || 0,
-          netProfit: project.netProfit || 0,
-          profitMargin: project.profitMargin || 0,
-          costDetails: project.costDetails || [],
-          workingHours: project.hoursOperated || '-',
-          repairHours: project.repairHours || '-',
-          teamCount: project.teamCount || '-',
-          teamMeasurementProbe: project.takimOlcmeProbu ? 'Var' : 'Yok',
-          partMeasurementProbe: project.parcaOlcmeProbu ? 'Var' : 'Yok',
-          insideWaterGiving: project.ictenSuVerme ? 'Var' : 'Yok',
-          accessoryData: project.additionalEquipment || '-'
+        // Transform offers data to match the expected format
+        const transformedServices = await Promise.all(offersData.map(async (offer) => {
+          try {
+            // Fetch project details for each offer
+            const projectDetails = await projectService.getProjectById(offer.projectId);
+            
+            return {
+              id: offer.projectId, // Use projectId as the main ID for modals
+              offerId: offer.id, // Keep offer ID for reference
+              projectId: offer.projectId,
+              projectCode: offer.projectCode,
+              clientId: offer.clientId,
+              clientCompanyName: offer.clientCompanyName,
+              sentAt: offer.sentAt,
+              machineName: projectDetails.title || offer.projectCode,
+              year: projectDetails.year || '-',
+              operatingSystem: projectDetails.title || offer.projectCode,
+              serialNumber: projectDetails.serialNumber || '-',
+              createdDate: offer.sentAt ? new Date(offer.sentAt).toLocaleDateString('tr-TR') : '-',
+              status: 'Gönderildi', // All offers will show as "Gönderildi"
+              totalCost: projectDetails.totalCost || 0,
+              salesPrice: projectDetails.salesPrice || 0,
+              netProfit: projectDetails.netProfit || 0,
+              profitMargin: projectDetails.profitMargin || 0,
+              costDetails: projectDetails.costDetails || [],
+              workingHours: projectDetails.hoursOperated || '-',
+              repairHours: projectDetails.repairHours || '-',
+              teamCount: projectDetails.teamCount || '-',
+              teamMeasurementProbe: projectDetails.takimOlcmeProbu ? 'Var' : 'Yok',
+              partMeasurementProbe: projectDetails.parcaOlcmeProbu ? 'Var' : 'Yok',
+              insideWaterGiving: projectDetails.ictenSuVerme ? 'Var' : 'Yok',
+              accessoryData: projectDetails.additionalEquipment || '-'
+            };
+          } catch (projectError) {
+            console.error(`Error fetching project details for offer ${offer.id}:`, projectError);
+            // Return basic offer data if project details can't be fetched
+            return {
+              id: offer.projectId, // Use projectId as the main ID for modals
+              offerId: offer.id, // Keep offer ID for reference
+              projectId: offer.projectId,
+              projectCode: offer.projectCode,
+              clientId: offer.clientId,
+              clientCompanyName: offer.clientCompanyName,
+              sentAt: offer.sentAt,
+              machineName: offer.projectCode,
+              year: '-',
+              operatingSystem: offer.projectCode,
+              serialNumber: '-',
+              createdDate: offer.sentAt ? new Date(offer.sentAt).toLocaleDateString('tr-TR') : '-',
+              status: 'Gönderildi',
+              totalCost: 0,
+              salesPrice: 0,
+              netProfit: 0,
+              profitMargin: 0,
+              costDetails: [],
+              workingHours: '-',
+              repairHours: '-',
+              teamCount: '-',
+              teamMeasurementProbe: 'Yok',
+              partMeasurementProbe: 'Yok',
+              insideWaterGiving: 'Yok',
+              accessoryData: '-'
+            };
+          }
         }));
         
         setServices(transformedServices);

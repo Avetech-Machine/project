@@ -191,6 +191,26 @@ class ProjectService {
     }
   }
 
+  async getOffers() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/offers`, {
+        method: 'GET',
+        headers: authService.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Teklifler yüklenirken bir hata oluştu');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Get offers error:', error);
+      throw error;
+    }
+  }
+
   async getDeletedProjects() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/projects/deleted`, {

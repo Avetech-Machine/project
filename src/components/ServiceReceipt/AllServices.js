@@ -278,25 +278,25 @@ const AllServices = ({ onEditService }) => {
                   <td className="operations">
                     <div className="operation-buttons">
                       <button 
-                        className="operation-btn info-btn" 
+                        className="operation-btn info-btn-enhanced" 
                         onClick={() => handleInfoClick(project)}
                         title="Bilgi"
                       >
                         <AiOutlineInfoCircle />
                       </button>
                       <button 
-                        className="operation-btn cost-btn" 
+                        className="operation-btn cost-btn-enhanced" 
                         onClick={() => handleCostDetailClick(project)}
                         title="Maliyet"
                       >
                         <AiOutlineEuro />
                       </button>
                       <button 
-                        className="operation-btn submit-btn" 
+                        className="operation-btn submit-btn-enhanced" 
                         onClick={() => handleSubmitOffer(project)}
                         title="Teklif Gönder"
                       >
-                        <FaPaperPlane />
+                        <FaPaperPlane /> 
                       </button>
                       <button 
                         className="operation-btn edit-btn" 
