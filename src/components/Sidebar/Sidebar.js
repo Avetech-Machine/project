@@ -25,13 +25,13 @@ const Sidebar = () => {
   // Menü öğeleri, daha kolay yönetim için bir nesne içinde gruplandırıldı.
   const menuItems = {
     main: [
-      { id: 'main-menu', label: user?.username || 'AVITECH', icon: null, path: '/mainMenu', isLogo: true }
+      { id: 'main-menu', label: '', icon: null, path: '/mainMenu', isLogo: true }
     ],
     services: [
       { id: 'create-service', label: 'Yeni Proje Oluştur', icon: AiOutlinePlus, path: '/createService' },
-      { id: 'all-services', label: 'Bütün Projeler', icon: AiOutlineFolder, path: '/allServices' },
-      { id: 'quotes-sent', label: 'Teklif Gönderilen Projeler', icon: AiOutlineSend, path: '/quotesSent' },
-      { id: 'closed-projects', label: 'Kapatılan Projeler', icon: AiOutlineCheckCircle, path: '/closedProjects' }
+      { id: 'all-services', label: 'Aktif Projeler', icon: AiOutlineFolder, path: '/allServices' },
+      { id: 'quotes-sent', label: 'Teklifler', icon: AiOutlineSend, path: '/quotesSent' },
+      { id: 'closed-projects', label: 'Tamamlanan Projeler', icon: AiOutlineCheckCircle, path: '/closedProjects' }
     ],
     userActions: [
       { id: 'user-management', label: 'Kullanıcı İşlemleri', icon: AiOutlineTeam, path: '/userManagement' },
@@ -60,7 +60,7 @@ const Sidebar = () => {
         ) : (
           <item.icon className="menu-icon" />
         )}
-        <span className="menu-label">{item.label}</span>
+        {!item.isLogo && <span className="menu-label">{item.label}</span>}
       </div>
     ));
   };

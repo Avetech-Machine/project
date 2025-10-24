@@ -40,6 +40,12 @@
     gap: 15px; /* Reduced from 20px */
     margin-bottom: 20px;
   }
+
+  /* Machine info row with three columns - brand and model same width, year smaller */
+  .form-row.machine-info-row {
+    grid-template-columns: 2fr 2fr 1fr;
+    gap: 15px;
+  }
   
   /* YENİ SINIF: Grid elemanlarını dikeyde en alta hizalar */
   .form-row.align-end {
@@ -315,6 +321,11 @@
     .form-row {
       grid-template-columns: 1fr;
       gap: 15px;
+    }
+
+    /* Mobile: Machine info row stacks vertically */
+    .form-row.machine-info-row {
+      grid-template-columns: 1fr;
     }
   
     .time-inputs {

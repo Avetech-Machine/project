@@ -4,7 +4,7 @@ import projectService from '../../services/projectService';
 import EditProjectModal from './EditProjectModal';
 import './ServiceDetailsModal.css';
 
-const ServiceDetailsModal = ({ service, onClose }) => {
+const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) => {
   const [projectDetails, setProjectDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -76,11 +76,13 @@ const ServiceDetailsModal = ({ service, onClose }) => {
           </button>
         </div>
         
-        <div class="edit-button-container">
-        <button class="edit-button" onClick={handleEditClick}>
-            Düzenle
-        </button>
-    </div>
+        {!isCompletedProject && (
+          <div class="edit-button-container">
+            <button class="edit-button" onClick={handleEditClick}>
+                Düzenle
+            </button>
+          </div>
+        )}
 
     <div class="modal-body">
         </div>

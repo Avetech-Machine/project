@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ServiceDetailsModal from './ServiceDetailsModal';
 import ProfitAnalysisModal from './ProfitAnalysisModal';
+import ProposalInformationModal from './ProposalInformationModal';
 import projectService from '../../services/projectService';
 import { 
   AiOutlineInfoCircle, 
@@ -19,6 +20,7 @@ const ClosedProjects = ({ onEditService }) => {
   const [selectedService, setSelectedService] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfitModalOpen, setIsProfitModalOpen] = useState(false);
+  const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -33,12 +35,12 @@ const ClosedProjects = ({ onEditService }) => {
         // Transform API data to match the expected format
         const transformedServices = data.map(project => ({
           id: project.id,
-          machineName: project.title,
+          machineName: project.projectCode,
           year: project.year,
           operatingSystem: project.operatingSystem,
           serialNumber: project.serialNumber,
           createdDate: project.createdAt ? new Date(project.createdAt).toLocaleDateString('tr-TR') : '-',
-          status: 'Satıldı', // All projects from this endpoint will show as "Satıldı"
+          status: 'Tamamlandı', // All projects from this endpoint will show as "Satıldı"
           totalCost: project.totalCost || 0,
           salesPrice: project.salesPrice || 0,
           netProfit: project.netProfit || 0,
@@ -76,9 +78,9 @@ const ClosedProjects = ({ onEditService }) => {
     }
   };
 
-  const handleCostDetailClick = (service) => {
+  const handleProposalInfoClick = (service) => {
     setSelectedService(service);
-    setIsProfitModalOpen(true);
+    setIsProposalModalOpen(true);
   };
 
   const handleSeeCostAll = () => {
@@ -116,7 +118,7 @@ const ClosedProjects = ({ onEditService }) => {
   return (
     <div className="all-services">
       <div className="services-header">
-        <h1>Kapatılan Projeler</h1>
+        <h1>Tamamlanan Projeler</h1>
         <p>Satılmış ve tamamlanmış projelerinizi buradan görüntüleyebilirsiniz.</p>
       </div>
 
@@ -155,7 +157,7 @@ const ClosedProjects = ({ onEditService }) => {
                 <AiOutlineCalendar className="detail-icon" />
                 <span className="detail-label">{service.year}</span>
                 <AiOutlineSetting className="detail-icon" />
-                <span className="detail-label">{service.operatingSystem}</span>
+                <span className="detail-label">{service.machineName}</span>
               </div>
 
               <div className="detail-row">
@@ -171,11 +173,11 @@ const ClosedProjects = ({ onEditService }) => {
 
             <div className="card-actions sold-item">
               <button 
-                className="btn-cost-detail"
-                onClick={() => handleCostDetailClick(service)}
+                className="btn-proposal-info"
+                onClick={() => handleProposalInfoClick(service)}
               >
-                <AiOutlineEuro className="btn-icon" />
-                Maliyet
+                <FaPaperPlane className="btn-icon" />
+                Teklif Bilgisi
               </button>
               <button 
                 className="btn-info"
@@ -195,13 +197,14 @@ const ClosedProjects = ({ onEditService }) => {
         <ServiceDetailsModal
           service={selectedService}
           onClose={() => setIsModalOpen(false)}
+          isCompletedProject={true}
         />
       )}
 
-      {isProfitModalOpen && selectedService && (
-        <ProfitAnalysisModal
+      {isProposalModalOpen && selectedService && (
+        <ProposalInformationModal
           service={selectedService}
-          onClose={() => setIsProfitModalOpen(false)}
+          onClose={() => setIsProposalModalOpen(false)}
         />
       )}
     </div>

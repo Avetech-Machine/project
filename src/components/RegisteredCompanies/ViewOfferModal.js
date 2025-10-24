@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AiOutlineClose, AiOutlineFileText, AiOutlineCalendar, AiOutlineUser, AiOutlineProject } from 'react-icons/ai';
 import offerService from '../../services/offerService';
 import projectService from '../../services/projectService';
-import './ViewOfferModal.css';
+import '../ServiceReceipt/ViewOfferModal.css';
 
 const ViewOfferModal = ({ isOpen, onClose, clientId, clientName }) => {
   const [offers, setOffers] = useState([]);
@@ -135,7 +135,7 @@ const ViewOfferModal = ({ isOpen, onClose, clientId, clientName }) => {
                         <div className="project-info-grid">
                           <div className="info-item">
                             <span className="info-label">Proje Adı:</span>
-                            <span className="info-value">{project.projectName || 'Belirtilmemiş'}</span>
+                            <span className="info-value">{project.projectCode || 'Belirtilmemiş'}</span>
                           </div>
                           <div className="info-item">
                             <span className="info-label">Durum:</span>

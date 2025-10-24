@@ -53,7 +53,7 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
         id: Math.random(),
         description: description.trim(),
         currency: currency.trim(),
-        amount: parseFloat(amount) || 0
+        amount: isNaN(parseFloat(amount)) ? 0 : parseFloat(amount)
       };
     });
     
@@ -145,7 +145,7 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
                 </div>
                 <div className="sales-info">
                   <div className="sales-item">
-                    <span>Satış Fiyatı:</span>
+                    <span>Hedef Satış Fiyatı:</span>
                     <span className="sales-price">{formatCurrency(salesPrice)}</span>
                   </div>
                   <div className="sales-item">
@@ -162,23 +162,18 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
                 </div>
                 <div className="profit-info">
                   <div className="profit-item">
-                    <span>Net Kâr:</span>
+                    <span>Hedef Net Kâr:</span>
                     <span className={`profit-amount ${netProfit >= 0 ? 'positive' : 'negative'}`}>
                       {formatCurrency(netProfit)}
                     </span>
                   </div>
                   <div className="profit-item">
-                    <span>Kâr Marjı:</span>
+                    <span>Hedef Kâr Marjı:</span>
                     <span className={`profit-margin ${profitMargin >= 0 ? 'positive' : 'negative'}`}>
                       {profitMargin.toFixed(1)}%
                     </span>
                   </div>
-                  <div className="profit-item">
-                    <span>ROI:</span>
-                    <span className={`roi-amount ${netProfit >= 0 ? 'positive' : 'negative'}`}>
-                      {totalCost > 0 ? ((netProfit / totalCost) * 100).toFixed(1) : 0}%
-                    </span>
-                  </div>
+                 
                 </div>
               </div>
             </div>

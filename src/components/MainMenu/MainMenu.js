@@ -176,6 +176,12 @@ const MainMenu = () => {
     }
   ];
 
+  // Helper function to remove parentheses and their contents from title
+  const cleanTitle = (title) => {
+    if (!title || title === 'N/A') return title;
+    return title.replace(/\s*\([^)]*\)\s*/g, '').trim();
+  };
+
   // Pagination logic
   const totalPages = Math.ceil(projects.length / projectsPerPage);
   const startIndex = (currentPage - 1) * projectsPerPage;
@@ -185,7 +191,8 @@ const MainMenu = () => {
   // Transform API data to match the expected format for the cards
   const serviceData = currentProjects.map(project => ({
     id: project.id || project._id,
-    machineName: project.title || project.machineName || 'N/A',
+    projectCode: project.projectCode || 'N/A',
+    machineTitle: cleanTitle(project.title || project.machineName || 'N/A'),
     year: project.year || new Date(project.createdAt).getFullYear().toString(),
     operatingSystem: project.model || project.operatingSystem || project.controlUnit || 'N/A',
     serialNumber: project.serialNumber || 'N/A',
@@ -329,11 +336,11 @@ const MainMenu = () => {
       case 'EXCHANGE CIHAZ TEKLİFİ':
         return 'EXCHANGE CIHAZ TEKLİFİ';
       case 'SOLD':
-        return 'SATILDI';
+        return 'TAMAMLANDI';
       case 'OFFER_SENT':
         return 'TEKLİF GÖNDERİLDİ';
       case 'TEMPLATE':
-        return 'TASLAK';
+        return 'AKTİF';
       case 'BOUGHT':
         return 'SATIN ALINDI';
       case 'CANCELLED':
@@ -449,7 +456,7 @@ const MainMenu = () => {
               }}
             >
               <div className="card-header">
-                <h3 className="machine-name">{service.machineName}</h3>
+                <h3 className="machine-name">{service.projectCode}</h3>
                 <div className={`status-badge ${getStatusClass(service.status)}`}>
                   {getDisplayStatus(service.status)}
                 </div>
@@ -467,11 +474,12 @@ const MainMenu = () => {
                     <span>Seç</span>
                   </div>
                 )}
-                <div className="detail-row">
+                <div className="detail-row single-line">
                   <AiOutlineCalendar className="detail-icon" />
-                  <span className="detail-label">{service.year}</span>
+                  <span className="detail-value">{service.year}</span>
+                  <span className="detail-value">{service.machineTitle}</span>
                   <AiOutlineSetting className="detail-icon" />
-                  <span className="detail-label">{service.operatingSystem}</span>
+                  <span className="detail-value">{service.operatingSystem}</span>
                 </div>
 
                 <div className="detail-row">

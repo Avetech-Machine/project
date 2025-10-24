@@ -70,7 +70,13 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
               <input
                 type="number"
                 value={item.amount}
-                onChange={(e) => onUpdateCost(item.id, 'amount', parseFloat(e.target.value) || 0)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Only update if the value is a valid number or empty string
+                  if (value === '' || !isNaN(parseFloat(value))) {
+                    onUpdateCost(item.id, 'amount', value === '' ? '' : parseFloat(value));
+                  }
+                }}
                 placeholder="0"
               />
             </div>

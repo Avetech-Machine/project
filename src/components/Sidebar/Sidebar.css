@@ -22,7 +22,7 @@
   
   /* Menü Bölümleri (Servis İşlemleri, Kullanıcı İşlemleri vb.) */
   .menu-section {
-    margin-bottom: 15px;
+    margin-bottom: 0px;
   }
   
   /* Bölüm Başlıkları - Daha spesifik selector kullanarak çakışmaları önlüyoruz */
@@ -74,26 +74,13 @@
 
   /* Logo için özel stil */
   .sidebar .menu-logo {
-    width: 36px;
-    height: 36px;
+    width: 60px;
+    height: 60px;
     margin-right: 14px;
     object-fit: contain;
     transition: opacity 0.2s ease;
   }
 
-  /* --- YENİ EKLENEN KOD BAŞLANGICI --- */
-
-  /* Ana Menü logosuna özel stil */
-  .sidebar .menu-section:first-child .menu-item .menu-logo {
-    opacity: 1;
-  }
-
-  /* Aktif Ana Menü logosuna özel stil */
-  .sidebar .menu-section:first-child .menu-item.active .menu-logo {
-    opacity: 0.8;
-  }
-
-  /* --- YENİ EKLENEN KOD SONU --- */
   
   /* Aktif menü öğesinin ikonu */
   .sidebar .menu-item.active .menu-icon {
@@ -112,7 +99,6 @@
   .user-section {
     margin-top: auto;
     padding-top: 20px;
-    border-top: 1px solid #e8e8e8;
   }
 
   .user-info {

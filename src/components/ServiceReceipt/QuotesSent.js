@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ServiceDetailsModal from './ServiceDetailsModal';
 import ProfitAnalysisModal from './ProfitAnalysisModal';
 import SendOfferModal from './SendOfferModal';
+import ViewOfferModal from './ViewOfferModal';
 import projectService from '../../services/projectService';
 import { 
   AiOutlineInfoCircle, 
@@ -20,6 +21,7 @@ const QuotesSent = ({ onEditService }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfitModalOpen, setIsProfitModalOpen] = useState(false);
   const [isSendOfferModalOpen, setIsSendOfferModalOpen] = useState(false);
+  const [isViewOfferModalOpen, setIsViewOfferModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -44,6 +46,7 @@ const QuotesSent = ({ onEditService }) => {
               projectCode: offer.projectCode,
               clientId: offer.clientId,
               clientCompanyName: offer.clientCompanyName,
+              senderUserName: offer.senderUserName,
               sentAt: offer.sentAt,
               machineName: projectDetails.title || offer.projectCode,
               year: projectDetails.year || '-',
@@ -74,6 +77,7 @@ const QuotesSent = ({ onEditService }) => {
               projectCode: offer.projectCode,
               clientId: offer.clientId,
               clientCompanyName: offer.clientCompanyName,
+              senderUserName: offer.senderUserName,
               sentAt: offer.sentAt,
               machineName: offer.projectCode,
               year: '-',
@@ -119,6 +123,11 @@ const QuotesSent = ({ onEditService }) => {
     setIsSendOfferModalOpen(true);
   };
 
+  const handleViewOfferClick = (service) => {
+    setSelectedService(service);
+    setIsViewOfferModalOpen(true);
+  };
+
   const handleCostDetailClick = (service) => {
     setSelectedService(service);
     setIsProfitModalOpen(true);
@@ -149,7 +158,7 @@ const QuotesSent = ({ onEditService }) => {
   return (
     <div className="all-services">
       <div className="services-header">
-        <h1>Teklif Gönderilen Projeler</h1>
+        <h1>Teklifler</h1>
         <p>Teklif gönderilmiş projelerinizi buradan görüntüleyebilir ve yönetebilirsiniz.</p>
       </div>
 
@@ -176,6 +185,11 @@ const QuotesSent = ({ onEditService }) => {
               </div>
             </div>
 
+            <div className="sender-info">
+              <span className="sender-label">Gönderen:</span>
+              <span className="sender-name">{service.senderUserName || 'Bilinmiyor'}</span>
+            </div>
+
             <div className="card-details">
               <div className="detail-row">
                 <AiOutlineCalendar className="detail-icon" />
@@ -196,12 +210,12 @@ const QuotesSent = ({ onEditService }) => {
             </div>
 
             <div className="card-actions">
-              <button 
-                className="btn-offer"
-                onClick={() => handleEditClick(service)}
+            <button 
+                className="btn-info"
+                onClick={() => handleInfoClick(service)}
               >
-                <FaPaperPlane className="btn-icon" />
-                Teklif Gönder
+                <AiOutlineInfoCircle className="btn-icon" />
+                Bilgi
               </button>
               <button 
                 className="btn-cost-detail"
@@ -210,13 +224,7 @@ const QuotesSent = ({ onEditService }) => {
                 <AiOutlineEuro className="btn-icon" />
                 Maliyet
               </button>
-              <button 
-                className="btn-info"
-                onClick={() => handleInfoClick(service)}
-              >
-                <AiOutlineInfoCircle className="btn-icon" />
-                Bilgi
-              </button>
+              
             </div>
           </div>
         ))}
@@ -241,6 +249,15 @@ const QuotesSent = ({ onEditService }) => {
         <SendOfferModal
           service={selectedService}
           onClose={() => setIsSendOfferModalOpen(false)}
+        />
+      )}
+
+      {isViewOfferModalOpen && selectedService && (
+        <ViewOfferModal
+          isOpen={isViewOfferModalOpen}
+          onClose={() => setIsViewOfferModalOpen(false)}
+          projectId={selectedService.projectId}
+          projectCode={selectedService.projectCode}
         />
       )}
     </div>

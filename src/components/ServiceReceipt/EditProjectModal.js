@@ -11,6 +11,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
   const [formData, setFormData] = useState({
     // Machine Information
     machineName: '',
+    model: '', // New machine model field
     year: '2024',
     workingHours: '',
     repairHours: '', // This now represents "Devri/dakika"
@@ -21,6 +22,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
     
     // Operating System
     operatingSystem: 'Heidenhain',
+    customOperatingSystem: '', // Custom OS input when "Other" is selected
     
     // Measurement Probes
     teamMeasurementProbe: 'Var',
@@ -132,6 +134,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       
       setFormData({
         machineName: project.machineName || project.title || '',
+        model: project.model || '',
         year: project.year ? project.year.toString() : '2024',
         workingHours: project.hoursOperated ? project.hoursOperated.toString() : (project.workingHours || ''),
         repairHours: project.rpm ? project.rpm.toString() : (project.repairHours || ''),
@@ -139,7 +142,24 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
         teamCount: (project.teamNumber || project.takimSayisi) ? (project.teamNumber || project.takimSayisi).toString() : (project.teamCount || '2'),
         machineNetWeight: project.netWeight ? project.netWeight.toString() : (project.machineNetWeight || ''),
         additionalWeight: project.additionalWeight ? project.additionalWeight.toString() : '',
-        operatingSystem: project.operatingSystem || 'Heidenhain',
+        operatingSystem: (() => {
+          const os = project.operatingSystem || 'Heidenhain';
+          const predefinedOS = ['Heidenhain', 'Siemens', 'Fanuc'];
+          if (predefinedOS.includes(os)) {
+            return os;
+          } else {
+            return 'Other';
+          }
+        })(),
+        customOperatingSystem: (() => {
+          const os = project.operatingSystem || 'Heidenhain';
+          const predefinedOS = ['Heidenhain', 'Siemens', 'Fanuc'];
+          if (predefinedOS.includes(os)) {
+            return '';
+          } else {
+            return os;
+          }
+        })(),
         teamMeasurementProbe: (project.toolMeasureProbe || project.takimOlcmeProbu) ? 'Var' : (project.teamMeasurementProbe || 'Var'),
         partMeasurementProbe: (project.partMeasureProbe || project.parcaOlcmeProbu) ? 'Var' : (project.partMeasurementProbe || 'Var'),
         insideWaterGiving: (project.internalWater || project.ictenSuVerme) ? 'Var' : (project.insideWaterGiving || 'Yok'),
@@ -263,6 +283,32 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  const handleMovementBlur = (field, value) => {
+    let processedValue = value;
+    
+    // Auto-add units for movement fields on blur
+    if (['xMovement', 'yMovement', 'zMovement'].includes(field)) {
+      // Remove existing 'mm' if present to avoid duplication
+      processedValue = value.replace(/mm$/, '').trim();
+      // Add 'mm' if there's a value and it doesn't already end with 'mm'
+      if (processedValue && !processedValue.endsWith('mm')) {
+        processedValue = processedValue + 'mm';
+      }
+    } else if (['bMovement', 'cMovement'].includes(field)) {
+      // Remove existing '°' if present to avoid duplication
+      processedValue = value.replace(/°$/, '').trim();
+      // Add '°' if there's a value and it doesn't already end with '°'
+      if (processedValue && !processedValue.endsWith('°')) {
+        processedValue = processedValue + '°';
+      }
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      [field]: processedValue
     }));
   };
 
@@ -410,7 +456,10 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
     setCostDetails(prev => prev.filter(item => item.id !== id));
   };
 
-  const totalCost = costDetails.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+  const totalCost = costDetails.reduce((sum, item) => {
+    const amount = parseFloat(item.amount);
+    return sum + (isNaN(amount) ? 0 : amount);
+  }, 0);
   const netProfit = salesPrice - totalCost;
   const profitMargin = totalCost > 0 ? ((netProfit / salesPrice) * 100).toFixed(1) : 0;
 
@@ -440,7 +489,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       id: project.id, // Include the project ID for update
       projectCode: projectCode, // Use AVEMAK project code directly
       machineName: formData.machineName || '',
-      model: formData.machineName || '', // Use machine name as model for now
+      model: formData.model || '', // Using separate model field
       make: formData.machineName || '', // Use machine name as make for now
       year: parseInt(formData.year) || 2024,
       hoursOperated: extractNumericValue(formData.workingHours),
@@ -449,7 +498,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       takimSayisi: parseInt(formData.teamCount) || 0,
       netWeight: (formData.machineNetWeight && !isNaN(parseFloat(formData.machineNetWeight))) ? parseFloat(formData.machineNetWeight) : null,
       additionalWeight: (formData.additionalWeight && !isNaN(parseFloat(formData.additionalWeight))) ? parseFloat(formData.additionalWeight) : null,
-      operatingSystem: formData.operatingSystem || 'Heidenhain',
+      operatingSystem: formData.operatingSystem === 'Other' ? formData.customOperatingSystem : formData.operatingSystem || 'Heidenhain',
       anahtarBilgisi: keyInformation.toString(),
       takimOlcmeProbu: formData.teamMeasurementProbe === 'Var',
       parcaOlcmeProbu: formData.partMeasurementProbe === 'Var',
@@ -630,6 +679,18 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
                   />
                 </div>
                 <div className="form-group">
+                  <label>Makine Modeli</label>
+                  <input
+                    type="text"
+                    value={formData.model}
+                    onChange={(e) => handleInputChange('model', e.target.value)}
+                    placeholder="Model adı"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
                   <label>Yılı</label>
                   <input
                     type="text"
@@ -711,6 +772,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
                     type="text"
                     value={formData.xMovement}
                     onChange={(e) => handleInputChange('xMovement', e.target.value)}
+                    onBlur={(e) => handleMovementBlur('xMovement', e.target.value)}
                     placeholder="1000mm"
                   />
                 </div>
@@ -720,6 +782,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
                     type="text"
                     value={formData.yMovement}
                     onChange={(e) => handleInputChange('yMovement', e.target.value)}
+                    onBlur={(e) => handleMovementBlur('yMovement', e.target.value)}
                     placeholder="500mm"
                   />
                 </div>
@@ -732,6 +795,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
                     type="text"
                     value={formData.zMovement}
                     onChange={(e) => handleInputChange('zMovement', e.target.value)}
+                    onBlur={(e) => handleMovementBlur('zMovement', e.target.value)}
                     placeholder="300mm"
                   />
                 </div>
@@ -741,6 +805,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
                     type="text"
                     value={formData.bMovement}
                     onChange={(e) => handleInputChange('bMovement', e.target.value)}
+                    onBlur={(e) => handleMovementBlur('bMovement', e.target.value)}
                     placeholder="360°"
                   />
                 </div>
@@ -753,6 +818,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
                     type="text"
                     value={formData.cMovement}
                     onChange={(e) => handleInputChange('cMovement', e.target.value)}
+                    onBlur={(e) => handleMovementBlur('cMovement', e.target.value)}
                     placeholder="360°"
                   />
                 </div>
@@ -811,19 +877,29 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
               </div>
 
               <div className="form-row">
-                <div className="form-group">
-                  <label>İşletim Sistemi</label>
-                  <select
-                    value={formData.operatingSystem}
-                    onChange={(e) => handleInputChange('operatingSystem', e.target.value)}
-                    className="form-select"
-                  >
-                    <option value="Heidenhain">Heidenhain</option>
-                    <option value="Siemens">Siemens</option>
-                    <option value="Fanuc">Fanuc</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
+              <div className="form-group">
+                <label>İşletim Sistemi</label>
+                <select
+                  value={formData.operatingSystem}
+                  onChange={(e) => handleInputChange('operatingSystem', e.target.value)}
+                  className="form-select"
+                >
+                  <option value="Heidenhain">Heidenhain</option>
+                  <option value="Siemens">Siemens</option>
+                  <option value="Fanuc">Fanuc</option>
+                  <option value="Other">Other</option>
+                </select>
+                {formData.operatingSystem === 'Other' && (
+                  <input
+                    type="text"
+                    placeholder="İşletim sistemi adını giriniz"
+                    value={formData.customOperatingSystem}
+                    onChange={(e) => handleInputChange('customOperatingSystem', e.target.value)}
+                    className="form-input"
+                    style={{ marginTop: '8px' }}
+                  />
+                )}
+              </div>
                 <div className="form-group justify-end">
                   <label>Anahtar Bilgisi</label>
                   <div className="tab-indicators">

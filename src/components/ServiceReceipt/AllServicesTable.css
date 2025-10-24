@@ -334,6 +334,19 @@
   box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
 }
 
+.view-btn-enhanced {
+  color: #6f42c1;
+  border: 2px solid #6f42c1;
+  background-color: rgba(111, 66, 193, 0.1);
+  box-shadow: 0 0 0 1px rgba(111, 66, 193, 0.3);
+}
+
+.view-btn-enhanced:hover {
+  background-color: #6f42c1;
+  color: white;
+  box-shadow: 0 2px 8px rgba(111, 66, 193, 0.4);
+}
+
 .submit-btn-enhanced {
   color: #28a745;
   border: 2px solid #28a745;

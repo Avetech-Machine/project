@@ -22,6 +22,26 @@ class OfferService {
       throw error;
     }
   }
+
+  async getOffersByProject(projectId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/offers/by-project/${projectId}`, {
+        method: 'GET',
+        headers: authService.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Proje teklifleri yüklenirken bir hata oluştu');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Get offers by project error:', error);
+      throw error;
+    }
+  }
 }
 
 export default new OfferService();

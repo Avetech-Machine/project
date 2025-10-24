@@ -4,6 +4,8 @@ import ProfitAnalysisModal from './ProfitAnalysisModal';
 import ViewProposalsModal from './ViewProposalsModal';
 import SendOfferModal from './SendOfferModal';
 import EditProjectModal from './EditProjectModal';
+import ViewOfferModal from './ViewOfferModal';
+import CreateSaleModal from './CreateSaleModal';
 import SearchBar from './SearchBar';
 import FilterPanel from './FilterPanel';
 import projectService from '../../services/projectService';
@@ -28,6 +30,8 @@ const AllServices = ({ onEditService }) => {
   const [isProposalsModalOpen, setIsProposalsModalOpen] = useState(false);
   const [isSendOfferModalOpen, setIsSendOfferModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewOfferModalOpen, setIsViewOfferModalOpen] = useState(false);
+  const [isCreateSaleModalOpen, setIsCreateSaleModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editingProjectId, setEditingProjectId] = useState(null);
@@ -176,6 +180,22 @@ const AllServices = ({ onEditService }) => {
     loadProjects();
   };
 
+  const handleViewOffersClick = (service) => {
+    setSelectedService(service);
+    setIsViewOfferModalOpen(true);
+  };
+
+  const handleCreateSaleClick = (offer) => {
+    setSelectedService(offer);
+    setIsCreateSaleModalOpen(true);
+  };
+
+  const handleSaleComplete = () => {
+    // Refresh the projects list after successful sale
+    loadProjects();
+    setIsCreateSaleModalOpen(false);
+  };
+
   const getStatusClass = (status) => {
     switch (status) {
       case 'Gönderildi':
@@ -208,12 +228,18 @@ const AllServices = ({ onEditService }) => {
     });
   };
 
+  // Helper function to remove parentheses and their contents from title
+  const cleanTitle = (title) => {
+    if (!title || title === 'N/A') return title;
+    return title.replace(/\s*\([^)]*\)\s*/g, '').trim();
+  };
+
   return (
     <div className="all-services">
       <div className="services-header">
         <div className="header-content">
           <div className="header-text">
-            <h1>Bütün Projeler</h1>
+            <h1>Aktif Projeler</h1>
             <p>Tüm makine servis projelerinizi buradan görüntüleyebilir ve yönetebilirsiniz.</p>
           </div>
          
@@ -262,7 +288,7 @@ const AllServices = ({ onEditService }) => {
             <thead>
               <tr>
                 <th>PROJE KODU</th>
-                <th>MAKİNE ADI</th>
+                <th>MAKİNE MARKASI</th>
                 <th>MAKİNE MODELİ</th>
                 <th>MAKİNE YILI</th>
                 <th>İŞLEMLER</th>
@@ -272,7 +298,7 @@ const AllServices = ({ onEditService }) => {
               {projects.map((project, index) => (
                 <tr key={project.id} className="service-row">
                   <td className="form-number">{project.projectCode}</td>
-                  <td className="device-name">{project.title || 'Belirtilmemiş'}</td>
+                  <td className="device-name">{cleanTitle(project.title) || 'Belirtilmemiş'}</td>
                   <td className="device-name">{project.model}</td>
                   <td className="start-date">{project.year}</td>
                   <td className="operations">
@@ -283,6 +309,13 @@ const AllServices = ({ onEditService }) => {
                         title="Bilgi"
                       >
                         <AiOutlineInfoCircle />
+                      </button>
+                      <button 
+                        className="operation-btn view-btn-enhanced" 
+                        onClick={() => handleViewOffersClick(project)}
+                        title="Teklifleri Görüntüle"
+                      >
+                        <AiOutlineEye />
                       </button>
                       <button 
                         className="operation-btn cost-btn-enhanced" 
@@ -360,6 +393,24 @@ const AllServices = ({ onEditService }) => {
           project={selectedService}
           onClose={() => setIsEditModalOpen(false)}
           onSaveComplete={handleEditSaveComplete}
+        />
+      )}
+
+      {isViewOfferModalOpen && selectedService && (
+        <ViewOfferModal
+          isOpen={isViewOfferModalOpen}
+          onClose={() => setIsViewOfferModalOpen(false)}
+          projectId={selectedService.id}
+          projectCode={selectedService.projectCode}
+          onCreateSale={handleCreateSaleClick}
+        />
+      )}
+
+      {isCreateSaleModalOpen && selectedService && (
+        <CreateSaleModal
+          offer={selectedService}
+          onClose={() => setIsCreateSaleModalOpen(false)}
+          onSaleComplete={handleSaleComplete}
         />
       )}
     </div>
