@@ -17,6 +17,14 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
     }
   }, [isOpen, projectId]);
 
+  // Expose loadOffers function for parent components to trigger refresh
+  useEffect(() => {
+    if (isOpen) {
+      // Refresh offers when modal opens
+      loadOffers();
+    }
+  }, [isOpen]);
+
   const loadOffers = async () => {
     try {
       setLoading(true);

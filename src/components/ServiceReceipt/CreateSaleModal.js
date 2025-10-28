@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AiOutlineClose, AiOutlineDollar, AiOutlineFileText, AiOutlineCalendar, AiOutlineUser } from 'react-icons/ai';
 import { FaHandshake } from 'react-icons/fa';
 import saleService from '../../services/saleService';
+import projectService from '../../services/projectService';
 import './CreateSaleModal.css';
 
 const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
@@ -9,6 +10,40 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
   const [saleNotes, setSaleNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [basePrice, setBasePrice] = useState(null);
+  const [loadingPrice, setLoadingPrice] = useState(false);
+
+  // Fetch cost details and extract base price
+  useEffect(() => {
+    const fetchBasePrice = async () => {
+      if (!offer?.projectId) return;
+      
+      setLoadingPrice(true);
+      try {
+        const costData = await projectService.getProjectCostDetails(offer.projectId);
+        
+        // Extract base price from priceDetails string
+        // Format: "Base price: 12332, Total cost: 10200, Net profit: 2132"
+        if (costData.priceDetails) {
+          const basePriceMatch = costData.priceDetails.match(/Base price:\s*([\d,]+(?:\.\d+)?)/i);
+          if (basePriceMatch) {
+            // Remove commas and parse as float
+            const extractedBasePrice = parseFloat(basePriceMatch[1].replace(/,/g, ''));
+            console.log('Extracted base price from API for sale modal:', extractedBasePrice);
+            setBasePrice(extractedBasePrice);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching cost details for sale modal:', error);
+        // Don't show error to user, just continue without placeholder
+      } finally {
+        setLoadingPrice(false);
+      }
+    };
+
+    fetchBasePrice();
+  }, [offer?.projectId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,8 +67,12 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
 
       await saleService.createSale(saleData);
       
-      alert('Satış başarıyla oluşturuldu!');
-      onSaleComplete();
+      setShowSuccess(true);
+      
+      // Close modal and refresh after showing success message
+      setTimeout(() => {
+        onSaleComplete();
+      }, 2000);
     } catch (err) {
       console.error('Create sale error:', err);
       setError(err.message || 'Satış oluşturulurken bir hata oluştu');
@@ -116,7 +155,7 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
                 id="salePrice"
                 value={salePrice}
                 onChange={(e) => setSalePrice(e.target.value)}
-                placeholder="Satış fiyatını giriniz"
+                placeholder={loadingPrice ? "Fiyat yükleniyor..." : (basePrice ? `${basePrice} €` : "Satış fiyatını giriniz")}
                 min="0"
                 step="0.01"
                 required
@@ -173,6 +212,19 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
           </form>
         </div>
       </div>
+
+      {showSuccess && (
+        <div className="success-overlay">
+          <div className="success-message-box">
+            <div className="success-icon">
+              <FaHandshake />
+            </div>
+            <h3>Satış Başarıyla Oluşturuldu!</h3>
+            <p>Satış kaydı başarıyla oluşturuldu.</p>
+            <p className="success-detail">Satış Fiyatı: {salePrice} TL</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

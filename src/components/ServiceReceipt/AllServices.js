@@ -45,12 +45,18 @@ const AllServices = ({ onEditService }) => {
     loadProjects();
   }, []);
 
+  // Helper function to filter out SOLD projects
+  const filterOutSoldProjects = (projectsData) => {
+    return projectsData.filter(project => project.status !== 'SOLD');
+  };
+
   const loadProjects = async () => {
     try {
       setLoading(true);
       setError('');
       const projectsData = await projectService.getProjects();
-      setProjects(projectsData);
+      const filteredProjects = filterOutSoldProjects(projectsData);
+      setProjects(filteredProjects);
     } catch (err) {
       setError(err.message || 'Projeler yüklenirken bir hata oluştu');
       console.error('Error loading projects:', err);
@@ -71,7 +77,8 @@ const AllServices = ({ onEditService }) => {
     try {
       if (query.trim()) {
         const searchResults = await projectService.searchProjects(query);
-        setProjects(searchResults);
+        const filteredResults = filterOutSoldProjects(searchResults);
+        setProjects(filteredResults);
       } else {
         // If search is cleared, reload all projects or apply active filters
         if (Object.keys(activeFilters).length > 0 && Object.values(activeFilters).some(v => v !== '')) {
@@ -99,7 +106,8 @@ const AllServices = ({ onEditService }) => {
       
       if (hasActiveFilters) {
         const filterResults = await projectService.filterProjects(filters);
-        setProjects(filterResults);
+        const filteredResults = filterOutSoldProjects(filterResults);
+        setProjects(filteredResults);
       } else {
         // If no filters, load all projects
         loadProjects();
@@ -191,9 +199,11 @@ const AllServices = ({ onEditService }) => {
   };
 
   const handleSaleComplete = () => {
+    // Close both CreateSaleModal and ViewOfferModal
+    setIsCreateSaleModalOpen(false);
+    setIsViewOfferModalOpen(false);
     // Refresh the projects list after successful sale
     loadProjects();
-    setIsCreateSaleModalOpen(false);
   };
 
   const getStatusClass = (status) => {

@@ -18,11 +18,13 @@
   /* Sidebar içeriği için ek bir sarmalayıcı */
   .sidebar-content {
     width: 100%;
+    overflow: visible;
   }
   
   /* Menü Bölümleri (Servis İşlemleri, Kullanıcı İşlemleri vb.) */
   .menu-section {
     margin-bottom: 0px;
+    overflow: visible;
   }
   
   /* Bölüm Başlıkları - Daha spesifik selector kullanarak çakışmaları önlüyoruz */
@@ -50,6 +52,8 @@
     font-size: 14px;
     font-weight: 500;
     color: #333333;
+    position: relative;
+    overflow: visible;
   }
   
   /* Menü öğesinin üzerine gelindiğindeki stil */
@@ -74,11 +78,15 @@
 
   /* Logo için özel stil */
   .sidebar .menu-logo {
-    width: 60px;
-    height: 60px;
-    margin-right: 14px;
+    width: 50px;
+    height: 50px;
+    margin-left: 15px;
+    margin-right: 20px;
     object-fit: contain;
     transition: opacity 0.2s ease;
+    position: relative; 
+    z-index: 30;
+    transform: scale(2.0);
   }
 
   

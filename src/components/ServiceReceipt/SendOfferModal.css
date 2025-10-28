@@ -806,6 +806,103 @@
   background-color: #c82333;
 }
 
+/* Inline Edit Input Styles */
+.inline-edit-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Times New Roman', serif;
+  color: #000;
+  background-color: #fffbf0;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.inline-edit-input:focus {
+  outline: none;
+  border-color: #0056b3;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  background-color: #fff;
+}
+
+.inline-edit-input::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+.inline-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e9ecef;
+}
+
+.btn-cancel-inline-edit {
+  padding: 8px 16px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: Arial, sans-serif;
+}
+
+.btn-cancel-inline-edit:hover {
+  background-color: #5a6268;
+}
+
+.btn-save-inline-edit {
+  padding: 8px 16px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: Arial, sans-serif;
+}
+
+.btn-save-inline-edit:hover {
+  background-color: #218838;
+}
+
+.saved-client-badge {
+  margin-top: 12px;
+  padding: 10px 16px;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  color: #155724;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: Arial, sans-serif;
+}
+
+.saved-client-badge span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Highlight left column when editing */
+.left-column:has(.inline-edit-input) {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  border: 2px dashed #007bff;
+}
+
 /* Responsive adjustments for client selection */
 @media (max-width: 768px) {
   .client-input-row {
@@ -826,5 +923,27 @@
   .btn-add-cc {
     width: 100%;
     margin-top: 8px;
+  }
+
+  .inline-edit-input {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+
+  .inline-edit-actions {
+    margin-top: 8px;
+    padding-top: 8px;
+    flex-direction: column;
+  }
+
+  .btn-cancel-inline-edit,
+  .btn-save-inline-edit {
+    width: 100%;
+  }
+
+  .saved-client-badge {
+    margin-top: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
   }
 }

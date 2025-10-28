@@ -8,7 +8,7 @@ const SendOfferModal = ({ service, onClose }) => {
   const [formData, setFormData] = useState({
     ccList: '',
     documentDate: new Date().toLocaleDateString('tr-TR'),
-    salesPrice: service?.salesPrice || service?.totalCost || 20000
+    salesPrice: service?.salesPrice || service?.totalCost || 0
   });
   const [selectedClient, setSelectedClient] = useState(null);
   const [availableClients, setAvailableClients] = useState([]);
@@ -21,6 +21,16 @@ const SendOfferModal = ({ service, onClose }) => {
   const [isAutoFilled, setIsAutoFilled] = useState(false);
   const [ccEmails, setCcEmails] = useState([]);
   const [newCcEmail, setNewCcEmail] = useState('');
+  const [loadingCostDetails, setLoadingCostDetails] = useState(false);
+  const [isAddingNewClient, setIsAddingNewClient] = useState(false);
+  const [newClientDataReady, setNewClientDataReady] = useState(false);
+  const [newClientData, setNewClientData] = useState({
+    companyName: '',
+    contactName: '',
+    email: '',
+    phone: '',
+    address: ''
+  });
   const [editableTexts, setEditableTexts] = useState({
     companyName: '',
     address: '',
@@ -32,15 +42,50 @@ const SendOfferModal = ({ service, onClose }) => {
     deliveryDate: 'Önceden anlaşma sonrası'
   });
 
-  // Update form data when service prop changes
+  // Fetch cost details and extract base price
   useEffect(() => {
-    if (service) {
+    const fetchCostDetails = async () => {
+      if (!service?.id) return;
+      
+      setLoadingCostDetails(true);
+      try {
+        const costData = await projectService.getProjectCostDetails(service.id);
+        
+        // Extract base price from priceDetails string
+        // Format: "Base price: 12332, Total cost: 10200, Net profit: 2132"
+        if (costData.priceDetails) {
+          const basePriceMatch = costData.priceDetails.match(/Base price:\s*([\d,]+(?:\.\d+)?)/i);
+          if (basePriceMatch) {
+            // Remove commas and parse as float
+            const basePrice = parseFloat(basePriceMatch[1].replace(/,/g, ''));
+            console.log('Extracted base price from API:', basePrice);
+            
+            setFormData(prev => ({
+              ...prev,
+              salesPrice: basePrice
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching cost details:', error);
+        // Don't show error to user, just use fallback values
+      } finally {
+        setLoadingCostDetails(false);
+      }
+    };
+
+    fetchCostDetails();
+  }, [service?.id]);
+
+  // Update form data when service prop changes (fallback if API fails)
+  useEffect(() => {
+    if (service && !loadingCostDetails) {
       setFormData(prev => ({
         ...prev,
-        salesPrice: service.salesPrice || service.totalCost || 20000
+        salesPrice: prev.salesPrice || service.salesPrice || service.totalCost || 0
       }));
     }
-  }, [service]);
+  }, [service, loadingCostDetails]);
 
   // Fetch clients on component mount
   useEffect(() => {
@@ -103,8 +148,17 @@ const SendOfferModal = ({ service, onClose }) => {
   }, [selectedClientId, availableClients, selectedClient]);
 
   const handleAddClient = () => {
-    // Only clear form and open company name field for manual entry when no client is selected
+    // Only allow adding new client when no client is selected
     if (!selectedClientId && !selectedClient) {
+      setIsAddingNewClient(true);
+      setNewClientData({
+        companyName: '',
+        contactName: '',
+        email: '',
+        phone: '',
+        address: ''
+      });
+      // Clear the editable texts to allow manual entry
       setEditableTexts(prev => ({
         ...prev,
         companyName: '',
@@ -113,16 +167,100 @@ const SendOfferModal = ({ service, onClose }) => {
         phone: '',
         email: ''
       }));
-      setSelectedClient(null);
-      setIsAutoFilled(false);
-      setEditingField('companyName');
+      // Scroll to company name section in the document
+      setTimeout(() => {
+        const companySection = document.querySelector('.left-column');
+        if (companySection) {
+          companySection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
     }
+  };
+
+  const handleCompanyFieldChange = (field, value) => {
+    // Update editable texts
+    setEditableTexts(prev => ({
+      ...prev,
+      [field]: value
+    }));
+
+    // Update new client data based on field mapping
+    if (field === 'companyName') {
+      setNewClientData(prev => ({ ...prev, companyName: value }));
+    } else if (field === 'contactPerson') {
+      setNewClientData(prev => ({ ...prev, contactName: value }));
+    } else if (field === 'email') {
+      setNewClientData(prev => ({ ...prev, email: value }));
+    } else if (field === 'phone') {
+      setNewClientData(prev => ({ ...prev, phone: value }));
+    } else if (field === 'address') {
+      setNewClientData(prev => ({ ...prev, address: value }));
+    }
+  };
+
+  const handleSaveNewClient = () => {
+    // Validate all required fields
+    if (!newClientData.companyName.trim()) {
+      setError('Lütfen şirket adını girin');
+      return;
+    }
+    if (!newClientData.contactName.trim()) {
+      setError('Lütfen iletişim kişisini girin');
+      return;
+    }
+    if (!newClientData.email.trim()) {
+      setError('Lütfen e-posta adresini girin');
+      return;
+    }
+    if (!newClientData.phone.trim()) {
+      setError('Lütfen telefon numarasını girin');
+      return;
+    }
+    if (!newClientData.address.trim()) {
+      setError('Lütfen adresi girin');
+      return;
+    }
+
+    // Mark new client data as ready
+    setNewClientDataReady(true);
+    setIsAddingNewClient(false);
+    setError(null);
+  };
+
+  const handleCancelNewClient = () => {
+    setIsAddingNewClient(false);
+    setNewClientDataReady(false);
+    setNewClientData({
+      companyName: '',
+      contactName: '',
+      email: '',
+      phone: '',
+      address: ''
+    });
+    // Clear the preview as well
+    setEditableTexts(prev => ({
+      ...prev,
+      companyName: '',
+      address: '',
+      contactPerson: '',
+      phone: '',
+      email: ''
+    }));
   };
 
   const handleRemoveClient = () => {
     setSelectedClient(null);
     setSelectedClientId('');
     setIsAutoFilled(false);
+    setIsAddingNewClient(false);
+    setNewClientDataReady(false);
+    setNewClientData({
+      companyName: '',
+      contactName: '',
+      email: '',
+      phone: '',
+      address: ''
+    });
     setEditableTexts(prev => ({
       ...prev,
       companyName: '',
@@ -183,15 +321,38 @@ const SendOfferModal = ({ service, onClose }) => {
     setError(null);
     
     try {
-      // Check if a client is selected
-      if (!selectedClient) {
-        setError('Lütfen bir müşteri seçin');
+      let clientToUse = selectedClient;
+
+      // If we have new client data ready, create the client first
+      if (newClientDataReady && !selectedClient) {
+        try {
+          const createdClient = await clientService.createClient(newClientData);
+          clientToUse = createdClient;
+          
+          // Reset new client state
+          setNewClientDataReady(false);
+          setNewClientData({
+            companyName: '',
+            contactName: '',
+            email: '',
+            phone: '',
+            address: ''
+          });
+        } catch (createError) {
+          console.error('Error creating client:', createError);
+          setError(createError.message || 'Müşteri oluşturulurken bir hata oluştu');
+          setIsSubmitting(false);
+          return;
+        }
+      } else if (!selectedClient) {
+        // Check if a client is selected or new client data is ready
+        setError('Lütfen bir müşteri seçin veya yeni müşteri bilgilerini kaydedin');
         setIsSubmitting(false);
         return;
       }
 
-      // Send offer to selected client using new endpoint
-      await projectService.sendOfferToClients(service.id, [selectedClient.id], ccEmails);
+      // Send offer to the client using new endpoint
+      await projectService.sendOfferToClients(service.id, [clientToUse.id], ccEmails);
       
       setIsSubmitting(false);
       setShowSuccess(true);
@@ -240,9 +401,10 @@ const SendOfferModal = ({ service, onClose }) => {
                   type="number"
                   value={formData.salesPrice}
                   onChange={(e) => handleInputChange('salesPrice', parseFloat(e.target.value) || 0)}
-                  placeholder="20000"
+                  placeholder={loadingCostDetails ? "Fiyat yükleniyor..." : "Proje maliyetini girin"}
                   min="0"
                   step="0.01"
+                  disabled={loadingCostDetails}
                 />
               </div>
               
@@ -270,7 +432,8 @@ const SendOfferModal = ({ service, onClose }) => {
                       type="button"
                       onClick={handleAddClient}
                       className="btn-add-client"
-                      disabled={selectedClient || selectedClientId}
+                      disabled={selectedClient || selectedClientId || isAddingNewClient}
+                      title={isAddingNewClient ? 'Yeni müşteri formu zaten açık' : 'Yeni müşteri ekle'}
                     >
                       <FaPlus />
                     </button>
@@ -348,28 +511,100 @@ const SendOfferModal = ({ service, onClose }) => {
                 <div className="left-column">
                   <div className="info-row">
                     <strong>Şirket Adı:</strong> 
-                    <span className="info-value">{editableTexts.companyName || 'Şirket Adı'}</span>
+                    {isAddingNewClient ? (
+                      <input
+                        type="text"
+                        value={editableTexts.companyName}
+                        onChange={(e) => handleCompanyFieldChange('companyName', e.target.value)}
+                        placeholder="Şirket adını girin"
+                        className="inline-edit-input"
+                        autoFocus
+                      />
+                    ) : (
+                      <span className="info-value">{editableTexts.companyName || 'Şirket Adı'}</span>
+                    )}
                   </div>
                   <div className="info-row">
                     <strong>Adres:</strong> 
-                    <span className="info-value">{editableTexts.address || 'Adres'}</span>
+                    {isAddingNewClient ? (
+                      <input
+                        type="text"
+                        value={editableTexts.address}
+                        onChange={(e) => handleCompanyFieldChange('address', e.target.value)}
+                        placeholder="Adresi girin"
+                        className="inline-edit-input"
+                      />
+                    ) : (
+                      <span className="info-value">{editableTexts.address || 'Adres'}</span>
+                    )}
                   </div>
                   <div className="info-row">
                     <strong>İletişim Kişisi:</strong> 
-                    <span className="info-value">{editableTexts.contactPerson || 'İletişim Kişisi'}</span>
+                    {isAddingNewClient ? (
+                      <input
+                        type="text"
+                        value={editableTexts.contactPerson}
+                        onChange={(e) => handleCompanyFieldChange('contactPerson', e.target.value)}
+                        placeholder="İletişim kişisini girin"
+                        className="inline-edit-input"
+                      />
+                    ) : (
+                      <span className="info-value">{editableTexts.contactPerson || 'İletişim Kişisi'}</span>
+                    )}
                   </div>
                   <div className="info-row">
                     <strong>Telefon:</strong> 
-                    <span className="info-value">{editableTexts.phone || 'Telefon'}</span>
+                    {isAddingNewClient ? (
+                      <input
+                        type="tel"
+                        value={editableTexts.phone}
+                        onChange={(e) => handleCompanyFieldChange('phone', e.target.value)}
+                        placeholder="+905551234567"
+                        className="inline-edit-input"
+                      />
+                    ) : (
+                      <span className="info-value">{editableTexts.phone || 'Telefon'}</span>
+                    )}
                   </div>
                   <div className="info-row">
                     <strong>E-Mail:</strong> 
-                    <span className="info-value">{editableTexts.email || 'E-Mail'}</span>
+                    {isAddingNewClient ? (
+                      <input
+                        type="email"
+                        value={editableTexts.email}
+                        onChange={(e) => handleCompanyFieldChange('email', e.target.value)}
+                        placeholder="email@example.com"
+                        className="inline-edit-input"
+                      />
+                    ) : (
+                      <span className="info-value">{editableTexts.email || 'E-Mail'}</span>
+                    )}
                   </div>
                   <div className="info-row">
                     <strong>Belge Tarihi:</strong> 
                     <span className="info-value">{formData.documentDate}</span>
                   </div>
+                  
+                  {isAddingNewClient && (
+                    <div className="inline-edit-actions">
+                      <button
+                        type="button"
+                        onClick={handleCancelNewClient}
+                        className="btn-cancel-inline-edit"
+                      >
+                        İptal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSaveNewClient}
+                        className="btn-save-inline-edit"
+                      >
+                        Kaydet
+                      </button>
+                    </div>
+                  )}
+                  
+                  
                 </div>
 
                 <div className="right-column">

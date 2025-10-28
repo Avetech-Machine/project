@@ -42,6 +42,30 @@ class ClientService {
       throw error;
     }
   }
+
+  async createClient(clientData) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/clients`, {
+        method: 'POST',
+        headers: {
+          ...authService.getAuthHeaders(),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(clientData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Müşteri oluşturulurken bir hata oluştu');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Create client error:', error);
+      throw error;
+    }
+  }
 }
 
 export default new ClientService();
