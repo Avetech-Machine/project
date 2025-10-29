@@ -6,9 +6,11 @@ import {
   AiOutlineUser,
   AiOutlineMail,
   AiOutlinePhone,
-  AiOutlineFileText
+  AiOutlineFileText,
+  AiOutlineEdit
 } from 'react-icons/ai';
 import ViewOfferModal from './ViewOfferModal';
+import EditCompanyModal from './EditCompanyModal';
 import './RegisteredCompanies.css';
 
 const RegisteredCompanies = () => {
@@ -17,6 +19,8 @@ const RegisteredCompanies = () => {
   const [error, setError] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
   const [isViewOfferModalOpen, setIsViewOfferModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
 
   useEffect(() => {
     loadClients();
@@ -48,6 +52,20 @@ const RegisteredCompanies = () => {
   const handleCloseViewOfferModal = () => {
     setIsViewOfferModalOpen(false);
     setSelectedClient(null);
+  };
+
+  const handleEditCompany = (client) => {
+    setEditingClient(client);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingClient(null);
+  };
+
+  const handleEditSuccess = () => {
+    loadClients();
   };
 
   if (loading) {
@@ -132,6 +150,13 @@ const RegisteredCompanies = () => {
                 
                 <div className="company-actions">
                   <button 
+                    className="edit-button"
+                    onClick={() => handleEditCompany(client)}
+                  >
+                    <AiOutlineEdit className="button-icon" />
+                    Düzenle
+                  </button>
+                  <button 
                     className="view-offer-button"
                     onClick={() => handleViewOffers(client)}
                   >
@@ -150,6 +175,13 @@ const RegisteredCompanies = () => {
         onClose={handleCloseViewOfferModal}
         clientId={selectedClient?.id}
         clientName={selectedClient?.companyName}
+      />
+      
+      <EditCompanyModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        client={editingClient}
+        onSuccess={handleEditSuccess}
       />
     </div>
   );

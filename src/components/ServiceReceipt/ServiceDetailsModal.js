@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AiOutlineClose, AiOutlineEdit } from 'react-icons/ai';
+import { AiOutlineClose, AiOutlineEdit, AiOutlineDownload } from 'react-icons/ai';
 import projectService from '../../services/projectService';
 import EditProjectModal from './EditProjectModal';
 import './ServiceDetailsModal.css';
@@ -66,6 +66,13 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
     setShowEditModal(false);
   };
 
+  const handleDownload = () => {
+    // TODO: Implement PDF download functionality
+    // For now, just log or show a message
+    console.log('Download functionality to be implemented');
+    alert('İndirme özelliği yakında eklenecek');
+  };
+
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal-content">
@@ -77,15 +84,17 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
         </div>
         
         {!isCompletedProject && (
-          <div class="edit-button-container">
-            <button class="edit-button" onClick={handleEditClick}>
+          <div className="edit-button-container">
+            <button className="edit-button" onClick={handleEditClick}>
+                <AiOutlineEdit className="button-icon" />
                 Düzenle
+            </button>
+            <button className="download-button" onClick={handleDownload}>
+                <AiOutlineDownload className="button-icon" />
+                İndir
             </button>
           </div>
         )}
-
-    <div class="modal-body">
-        </div>
 
         <div className="modal-body">
           {loading && (
@@ -147,7 +156,7 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                 </div>
                 
                 <div className="spec-row">
-                  <span className="spec-label">RPM:</span>
+                  <span className="spec-label">Devir:</span>
                   <span className="spec-value">{projectDetails.rpm || '-'}</span>
                 </div>
                 
@@ -222,7 +231,7 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                 </div>
                 
                 <div className="spec-row">
-                  <span className="spec-label">Gripper Tipi:</span>
+                  <span className="spec-label">Tutucu Türü:</span>
                   <span className="spec-value">{projectDetails.holderType || '-'}</span>
                 </div>
                 

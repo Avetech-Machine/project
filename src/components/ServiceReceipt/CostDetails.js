@@ -61,6 +61,7 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
                 onChange={(e) => onUpdateCost(item.id, 'currency', e.target.value)}
                 className="currency-dropdown"
               >
+                <option value="">Para Birimi Seçin</option>
                 <option value="EUR">EUR</option>
                 <option value="TRY">TRY</option>
                 <option value="USD">USD</option>

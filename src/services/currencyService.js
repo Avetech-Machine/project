@@ -48,8 +48,18 @@ export const getExchangeRates = async () => {
  * @returns {number} Converted amount
  */
 export const convertCurrency = (amount, fromCurrency, toCurrency, rates) => {
+  // Handle empty currency or amount
+  if (!fromCurrency || amount === '' || amount === null || amount === undefined) {
+    return 0;
+  }
+  
   if (fromCurrency === toCurrency) {
     return amount;
+  }
+  
+  // Check if exchange rate exists for the currency
+  if (!rates || !rates[fromCurrency]) {
+    return 0;
   }
   
   // Convert to EUR first, then to target currency

@@ -16,6 +16,23 @@ const ViewOfferModal = ({ isOpen, onClose, clientId, clientName }) => {
     }
   }, [isOpen, clientId]);
 
+  // Helper function to extract base price from priceDetails string
+  const extractBasePrice = (priceDetails) => {
+    if (!priceDetails || typeof priceDetails !== 'string') {
+      return null;
+    }
+    
+    // Parse format: "Base price: 20000, Total cost: 10200, Net profit: 9800"
+    const match = priceDetails.match(/Base price:\s*([\d,]+\.?\d*)/);
+    if (match && match[1]) {
+      // Remove commas and convert to number
+      const priceValue = parseFloat(match[1].replace(/,/g, ''));
+      return isNaN(priceValue) ? null : priceValue;
+    }
+    
+    return null;
+  };
+
   const loadOffers = async () => {
     try {
       setLoading(true);
@@ -138,8 +155,15 @@ const ViewOfferModal = ({ isOpen, onClose, clientId, clientName }) => {
                             <span className="info-value">{project.projectCode || 'Belirtilmemiş'}</span>
                           </div>
                           <div className="info-item">
-                            <span className="info-label">Durum:</span>
-                            <span className="info-value status">{project.status || 'Belirtilmemiş'}</span>
+                            <span className="info-label">Fiyat:</span>
+                            <span className="info-value price">
+                              {(() => {
+                                const basePrice = extractBasePrice(project.priceDetails);
+                                return basePrice !== null 
+                                  ? `${basePrice.toLocaleString('tr-TR')} TL` 
+                                  : 'Belirtilmemiş';
+                              })()}
+                            </span>
                           </div>
                           <div className="info-item">
                             <span className="info-label">Müşteri:</span>

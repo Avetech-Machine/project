@@ -27,6 +27,8 @@ const UserManagement = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [editSubmitting, setEditSubmitting] = useState(false);
+  const [currentUserProfile, setCurrentUserProfile] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -63,13 +65,32 @@ const UserManagement = () => {
     setForm({ email: '', password: '', firstName: '', lastName: '' });
   };
 
-  const openProfileModal = () => {
+  const openProfileModal = async () => {
     setIsProfileModalOpen(true);
     document.body.classList.add('modal-open');
+    
+    // Fetch all users to get current user's role and createdAt
+    try {
+      setLoadingProfile(true);
+      const allUsers = await userService.getUsers();
+      const usersArray = Array.isArray(allUsers) ? allUsers : [];
+      
+      // Find the current user by ID
+      const currentUser = usersArray.find(u => u.id === user?.id);
+      if (currentUser) {
+        setCurrentUserProfile(currentUser);
+      }
+    } catch (err) {
+      console.error('Error fetching user profile:', err);
+      setCurrentUserProfile(null);
+    } finally {
+      setLoadingProfile(false);
+    }
   };
   
   const closeProfileModal = () => {
     setIsProfileModalOpen(false);
+    setCurrentUserProfile(null);
     document.body.classList.remove('modal-open');
   };
 
@@ -280,24 +301,38 @@ const UserManagement = () => {
               <button className="close-btn" onClick={closeProfileModal}>×</button>
             </div>
             <div className="modal-body">
-              <div className="profile-info">
-                <div className="profile-field">
-                  <label>Kullanıcı Adı:</label>
-                  <span>{user?.username || 'N/A'}</span>
+              {loadingProfile ? (
+                <div className="info">Profil bilgileri yükleniyor...</div>
+              ) : (
+                <div className="profile-info">
+                  <div className="profile-field">
+                    <label>Kullanıcı Adı:</label>
+                    <span>{user?.username || currentUserProfile?.username || 'N/A'}</span>
+                  </div>
+                  <div className="profile-field">
+                    <label>E-posta:</label>
+                    <span>{user?.email || currentUserProfile?.email || 'N/A'}</span>
+                  </div>
+                  <div className="profile-field">
+                    <label>Rol:</label>
+                    <span>{currentUserProfile?.role || 'N/A'}</span>
+                  </div>
+                  <div className="profile-field">
+                    <label>Kayıt Tarihi:</label>
+                    <span>
+                      {currentUserProfile?.createdAt 
+                        ? new Date(currentUserProfile.createdAt).toLocaleDateString('tr-TR', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : 'N/A'}
+                    </span>
+                  </div>
                 </div>
-                <div className="profile-field">
-                  <label>E-posta:</label>
-                  <span>{user?.email || 'N/A'}</span>
-                </div>
-                <div className="profile-field">
-                  <label>Rol:</label>
-                  <span>{user?.role || 'N/A'}</span>
-                </div>
-                <div className="profile-field">
-                  <label>Kayıt Tarihi:</label>
-                  <span>{user?.createdAt ? new Date(user.createdAt).toLocaleDateString('tr-TR') : 'N/A'}</span>
-                </div>
-              </div>
+              )}
               <div className="modal-footer">
                 <button type="button" className="primary-btn" onClick={closeProfileModal}>Kapat</button>
               </div>

@@ -125,6 +125,14 @@
   cursor: pointer;
 }
 
+.service-card.select-mode {
+  cursor: pointer;
+}
+
+.service-card.select-mode * {
+  pointer-events: auto;
+}
+
 .service-card.selected {
   outline: 3px solid #1976d2;
   background-color: #f0f7ff;
@@ -135,6 +143,11 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 10px;
+}
+
+.select-indicator input[type="checkbox"] {
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .section-header h2 {

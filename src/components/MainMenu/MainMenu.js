@@ -34,6 +34,9 @@ const MainMenu = () => {
   const [projectCounts, setProjectCounts] = useState(null);
   const [countsLoading, setCountsLoading] = useState(true);
   const [countsError, setCountsError] = useState(null);
+  const [offersCount, setOffersCount] = useState(0);
+  const [offersCountLoading, setOffersCountLoading] = useState(true);
+  const [offersCountError, setOffersCountError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState({});
   const [isSearching, setIsSearching] = useState(false);
@@ -78,6 +81,27 @@ const MainMenu = () => {
     };
 
     fetchProjectCounts();
+  }, []);
+
+  // Fetch offers count (bids submitted)
+  useEffect(() => {
+    const fetchOffersCount = async () => {
+      try {
+        setOffersCountLoading(true);
+        setOffersCountError(null);
+        const offersData = await projectService.getOffers();
+        // Count unique projects with offers (in case there are multiple offers per project)
+        const uniqueProjectIds = new Set(offersData.map(offer => offer.projectId));
+        setOffersCount(uniqueProjectIds.size);
+      } catch (err) {
+        console.error('Error fetching offers count:', err);
+        setOffersCountError(err.message || 'Teklif sayısı yüklenirken bir hata oluştu');
+      } finally {
+        setOffersCountLoading(false);
+      }
+    };
+
+    fetchOffersCount();
   }, []);
 
   // Search functionality
@@ -155,7 +179,7 @@ const MainMenu = () => {
 
   // Calculate dashboard stats from API data
   const completedProjects = projectCounts?.statusCounts?.SOLD || 0;
-  const submittedOffers = projectCounts?.statusCounts?.OFFER_SENT || 0;
+  const submittedOffers = offersCount;
 
   const dashboardStats = [
     {
@@ -171,8 +195,8 @@ const MainMenu = () => {
       count: submittedOffers,
       icon: FaPaperPlane,
       color: 'blue',
-      loading: countsLoading,
-      error: countsError
+      loading: offersCountLoading,
+      error: offersCountError
     }
   ];
 
@@ -261,12 +285,30 @@ const MainMenu = () => {
       const next = !prev;
       if (!next) {
         setSelectedIds(new Set());
+      } else {
+        // When entering select mode, remove any SOLD items from selection
+        setSelectedIds((prevIds) => {
+          const filtered = new Set();
+          prevIds.forEach((id) => {
+            const service = serviceData.find((s) => s.id === id);
+            if (service && isSelectable(service.status)) {
+              filtered.add(id);
+            }
+          });
+          return filtered;
+        });
       }
       return next;
     });
   };
 
   const toggleSelectItem = (id) => {
+    // Prevent selecting SOLD items
+    const service = serviceData.find((s) => s.id === id);
+    if (service && !isSelectable(service.status)) {
+      return;
+    }
+
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
@@ -357,7 +399,10 @@ const MainMenu = () => {
     return `€${amount.toLocaleString('de-DE')}`;
   };
 
-
+  // Helper function to check if a service can be selected
+  const isSelectable = (status) => {
+    return status !== 'SOLD';
+  };
 
   return (
     <div className="main-menu">
@@ -450,10 +495,17 @@ const MainMenu = () => {
               {serviceData.map((service) => (
             <div
               key={service.id}
-              className={`service-card ${isSelectMode && selectedIds.has(service.id) ? 'selected' : ''}`}
-              onClick={() => {
-                if (isSelectMode) toggleSelectItem(service.id);
+              className={`service-card ${isSelectMode && isSelectable(service.status) ? 'select-mode' : ''} ${isSelectMode && selectedIds.has(service.id) ? 'selected' : ''} ${isSelectMode && !isSelectable(service.status) ? 'non-selectable' : ''}`}
+              onClick={(e) => {
+                if (isSelectMode && isSelectable(service.status)) {
+                  // Allow clicks on checkbox to handle selection via onChange
+                  if (e.target.type === 'checkbox') {
+                    return;
+                  }
+                  toggleSelectItem(service.id);
+                }
               }}
+              style={isSelectMode && isSelectable(service.status) ? { cursor: 'pointer' } : isSelectMode && !isSelectable(service.status) ? { cursor: 'not-allowed', opacity: 0.6 } : {}}
             >
               <div className="card-header">
                 <h3 className="machine-name">{service.projectCode}</h3>
@@ -463,7 +515,7 @@ const MainMenu = () => {
               </div>
 
               <div className="card-details">
-                {isSelectMode && (
+                {isSelectMode && isSelectable(service.status) && (
                   <div className="select-indicator">
                     <input
                       type="checkbox"
@@ -523,7 +575,7 @@ const MainMenu = () => {
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
-                  Önceki
+                  Önceki 
                 </button>
                 <span className="pagination-info">
                   Sayfa {currentPage} / {totalPages}

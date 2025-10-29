@@ -7,13 +7,13 @@ const SalesAnalysis = ({ totalCost, salesPrice, setSalesPrice, netProfit, profit
   return (
     <div className="sales-analysis-section">
       <div className="section-header">
-        <h2 className="section-title"><FaChartLine /> Satış ve Kar Analizi</h2>
+        <h2 className="section-title"><FaChartLine /> Hedef Satış ve Kar Analizi</h2>
       </div>
 
       <div className="analysis-content">
         <div className="analysis-row">
           <div className="analysis-group">
-            <label>Satış Fiyatı</label>
+            <label>Hedef Satış Fiyatı</label>
             <div className="input-with-currency">
               <input
                 type="number"
@@ -47,12 +47,12 @@ const SalesAnalysis = ({ totalCost, salesPrice, setSalesPrice, netProfit, profit
           </div>
           
           <div className="summary-card">
-            <div className="card-title">Satış Fiyatı</div>
+            <div className="card-title">Hedef Satış Fiyatı</div>
             <div className="card-value sales">€{salesPrice.toFixed(2)}</div>
           </div>
           
           <div className="summary-card">
-            <div className="card-title">Net Kar</div>
+            <div className="card-title">Hedeflenen Kar</div>
             <div className={`card-value ${netProfit >= 0 ? 'profit' : 'loss'}`}>
               €{netProfit.toFixed(2)}
             </div>

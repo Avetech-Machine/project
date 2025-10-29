@@ -1,0 +1,190 @@
+import React, { useState, useEffect } from 'react';
+import { AiOutlineClose } from 'react-icons/ai';
+import clientService from '../../services/clientService';
+import './EditCompanyModal.css';
+
+const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
+  const [formData, setFormData] = useState({
+    companyName: '',
+    contactName: '',
+    email: '',
+    phone: '',
+    address: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (isOpen && client) {
+      setFormData({
+        companyName: client.companyName || '',
+        contactName: client.contactName || '',
+        email: client.email || '',
+        phone: client.phone || '',
+        address: client.address || ''
+      });
+      setError('');
+    }
+  }, [isOpen, client]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.companyName.trim() || !formData.contactName.trim() || !formData.email.trim()) {
+      setError('Firma adı, iletişim kişisi ve e-posta alanları zorunludur');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+      await clientService.updateClient(client.id, formData);
+      if (onSuccess) {
+        onSuccess();
+      }
+      onClose();
+    } catch (err) {
+      console.error('Error updating client:', err);
+      setError(err.message || 'Müşteri güncellenirken bir hata oluştu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setFormData({
+      companyName: '',
+      contactName: '',
+      email: '',
+      phone: '',
+      address: ''
+    });
+    setError('');
+    onClose();
+  };
+
+  if (!isOpen || !client) return null;
+
+  return (
+    <div className="edit-company-modal-overlay" onClick={handleClose}>
+      <div className="edit-company-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Firma Düzenle</h2>
+          <button className="close-button" onClick={handleClose}>
+            <AiOutlineClose />
+          </button>
+        </div>
+
+        <form className="modal-body" onSubmit={handleSubmit}>
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
+
+          <div className="form-group">
+            <label htmlFor="companyName">
+              Firma Adı <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="companyName"
+              name="companyName"
+              value={formData.companyName}
+              onChange={handleChange}
+              placeholder="Firma adını girin"
+              required
+              disabled={loading}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="contactName">
+              İletişim Kişisi <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="contactName"
+              name="contactName"
+              value={formData.contactName}
+              onChange={handleChange}
+              placeholder="İletişim kişisini girin"
+              required
+              disabled={loading}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email">
+              E-posta <span className="required">*</span>
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="E-posta adresini girin"
+              required
+              disabled={loading}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="phone">Telefon</label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="Telefon numarasını girin"
+              disabled={loading}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="address">Adres</label>
+            <input
+              type="text"
+              id="address"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              placeholder="Adresi girin"
+              disabled={loading}
+            />
+          </div>
+
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="cancel-button"
+              onClick={handleClose}
+              disabled={loading}
+            >
+              İptal
+            </button>
+            <button
+              type="submit"
+              className="submit-button"
+              disabled={loading}
+            >
+              {loading ? 'Güncelleniyor...' : 'Güncelle'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default EditCompanyModal;

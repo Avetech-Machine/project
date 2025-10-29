@@ -69,8 +69,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   const cameraInputRef = useRef(null);
 
   const [costDetails, setCostDetails] = useState([
-    { id: 1, description: 'Otel', currency: 'EUR', amount: 200 },
-    { id: 2, description: 'Lojistik', currency: 'EUR', amount: 10000 }
+    { id: 1, description: 'Makine Alım Bedeli', currency: '', amount: '' }
   ]);
 
   const [salesPrice, setSalesPrice] = useState(20000);
@@ -533,8 +532,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
           photos: []
         });
         setCostDetails([
-          { id: 1, description: 'Otel', currency: 'EUR', amount: 200 },
-          { id: 2, description: 'Lojistik', currency: 'EUR', amount: 10000 }
+          { id: 1, description: 'Makine Alım Bedeli', currency: '', amount: '' }
         ]);
         setSalesPrice(20000);
       }

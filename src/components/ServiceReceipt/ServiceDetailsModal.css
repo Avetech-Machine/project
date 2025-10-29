@@ -33,9 +33,10 @@
   border-radius: 8px 8px 0 0;
 }
 
-.edit-button-container {
+.modal-content .edit-button-container {
   display: flex;
-  justify-content: center; /* BU SATIR BUTONU YATAYDA ORTALAR */
+  justify-content: flex-start; /* Align to the left */
+  gap: 10px;
   padding: 16px 24px;
   background: #f8f9fa;
   border-bottom: 1px solid #e9ecef;
@@ -72,13 +73,13 @@
   color: #495057;
 }
 
-.edit-button {
+.modal-content .edit-button-container .edit-button {
   background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
   color: white;
   border: none;
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -86,21 +87,54 @@
   align-items: center;
   gap: 6px;
   box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+  width: auto;
 }
 
-.edit-button:hover {
+.modal-content .edit-button-container .edit-button:hover {
   background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
 }
 
-.edit-button:active {
+.modal-content .edit-button-container .edit-button:active {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
 }
 
+.modal-content .edit-button-container .download-button {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+  width: auto;
+}
+
+.modal-content .edit-button-container .download-button:hover {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.modal-content .edit-button-container .download-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+
 .edit-icon {
   font-size: 16px;
+}
+
+.button-icon {
+  font-size: 14px;
 }
 
 .modal-body {
@@ -244,11 +278,12 @@
     font-size: 18px;
   }
   
-  .edit-button-container {
+  .modal-content .edit-button-container {
     padding: 12px 20px;
   }
   
-  .edit-button {
+  .modal-content .edit-button-container .edit-button,
+  .modal-content .edit-button-container .download-button {
     padding: 6px 12px;
     font-size: 13px;
   }
@@ -304,7 +339,8 @@
     height: 200px;
   }
   
-  .edit-button {
+  .modal-content .edit-button-container .edit-button,
+  .modal-content .edit-button-container .download-button {
     padding: 5px 10px;
     font-size: 12px;
   }

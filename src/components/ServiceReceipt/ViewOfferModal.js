@@ -7,7 +7,7 @@ import './ViewOfferModal.css';
 
 const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale }) => {
   const [offers, setOffers] = useState([]);
-  const [projectDetails, setProjectDetails] = useState(null);
+  const [projectsDetails, setProjectsDetails] = useState({}); // Store project details by offer id
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,6 +25,23 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
     }
   }, [isOpen]);
 
+  // Helper function to extract base price from priceDetails string
+  const extractBasePrice = (priceDetails) => {
+    if (!priceDetails || typeof priceDetails !== 'string') {
+      return null;
+    }
+    
+    // Parse format: "Base price: 20000, Total cost: 10200, Net profit: 9800"
+    const match = priceDetails.match(/Base price:\s*([\d,]+\.?\d*)/);
+    if (match && match[1]) {
+      // Remove commas and convert to number
+      const priceValue = parseFloat(match[1].replace(/,/g, ''));
+      return isNaN(priceValue) ? null : priceValue;
+    }
+    
+    return null;
+  };
+
   const loadOffers = async () => {
     try {
       setLoading(true);
@@ -34,14 +51,21 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
       const offersData = await offerService.getOffersByProject(projectId);
       setOffers(offersData);
       
-      // Load project details
-      try {
-        const projectData = await projectService.getProjectById(projectId);
-        setProjectDetails(projectData);
-      } catch (projectError) {
-        console.error('Error loading project details:', projectError);
-        setProjectDetails(null);
-      }
+      // Load project details for each offer using offer.projectId
+      const projectDetailsMap = {};
+      const projectPromises = offersData.map(async (offer) => {
+        try {
+          const projectData = await projectService.getProjectById(offer.projectId);
+          projectDetailsMap[offer.id] = projectData;
+        } catch (projectError) {
+          console.error(`Error loading project details for offer ${offer.id}:`, projectError);
+          projectDetailsMap[offer.id] = null;
+        }
+      });
+      
+      // Wait for all project details to load
+      await Promise.all(projectPromises);
+      setProjectsDetails(projectDetailsMap);
     } catch (err) {
       console.error('Error loading offers:', err);
       setError(err.message || 'Teklifler yüklenirken bir hata oluştu');
@@ -67,7 +91,7 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
 
   const handleClose = () => {
     setOffers([]);
-    setProjectDetails(null);
+    setProjectsDetails({});
     setError('');
     onClose();
   };
@@ -131,38 +155,45 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
                     </div>
                   </div>
 
-                  {projectDetails ? (
+                  {projectsDetails[offer.id] ? (
                     <div className="project-details">
                       <h4>Proje Detayları</h4>
                       <div className="project-info-grid">
                         <div className="info-item">
                           <span className="info-label">Proje Kodu:</span>
-                          <span className="info-value">{projectDetails.projectCode || 'Belirtilmemiş'}</span>
+                          <span className="info-value">{projectsDetails[offer.id].projectCode || 'Belirtilmemiş'}</span>
                         </div>
                         <div className="info-item">
-                          <span className="info-label">Durum:</span>
-                          <span className="info-value status">{projectDetails.status || 'Belirtilmemiş'}</span>
+                          <span className="info-label">Fiyat:</span>
+                          <span className="info-value price">
+                            {(() => {
+                              const basePrice = extractBasePrice(projectsDetails[offer.id].priceDetails);
+                              return basePrice !== null 
+                                ? `${basePrice.toLocaleString('tr-TR')} TL` 
+                                : 'Belirtilmemiş';
+                            })()}
+                          </span>
                         </div>
                         <div className="info-item">
                           <span className="info-label">Müşteri:</span>
                           <span className="info-value">{offer.clientCompanyName}</span>
                         </div>
-                        {projectDetails.description && (
+                        {projectsDetails[offer.id].description && (
                           <div className="info-item full-width">
                             <span className="info-label">Açıklama:</span>
-                            <span className="info-value">{projectDetails.description}</span>
+                            <span className="info-value">{projectsDetails[offer.id].description}</span>
                           </div>
                         )}
-                        {projectDetails.totalCost && (
+                        {projectsDetails[offer.id].totalCost && (
                           <div className="info-item">
                             <span className="info-label">Toplam Maliyet:</span>
-                            <span className="info-value cost">{projectDetails.totalCost} TL</span>
+                            <span className="info-value cost">{projectsDetails[offer.id].totalCost} TL</span>
                           </div>
                         )}
-                        {projectDetails.salesPrice && (
+                        {projectsDetails[offer.id].salesPrice && (
                           <div className="info-item">
                             <span className="info-label">Satış Fiyatı:</span>
-                            <span className="info-value sales">{projectDetails.salesPrice} TL</span>
+                            <span className="info-value sales">{projectsDetails[offer.id].salesPrice} TL</span>
                           </div>
                         )}
                       </div>
