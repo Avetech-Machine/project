@@ -102,7 +102,6 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
           
           <div className="service-info">
             <h3>{service.machineName}</h3>
-            <p className="service-id">Proje ID: {service.id}</p>
           </div>
 
           {loading && (

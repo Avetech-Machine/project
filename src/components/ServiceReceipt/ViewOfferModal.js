@@ -147,7 +147,7 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
                           <AiOutlineCalendar className="date-icon" />
                           Gönderilme Tarihi: {formatDate(offer.sentAt)}
                         </span>
-                        <span className="client-info">
+                        <span className="offer-date">
                           <AiOutlineUser className="date-icon" />
                           Müşteri: {offer.clientCompanyName}
                         </span>

@@ -38,8 +38,8 @@ const SendOfferModal = ({ service, onClose }) => {
     phone: '',
     email: '',
     deliveryTerms: 'Makineler garanti dışıdır. Yükleme maliyetleri, nakliye maliyetleri ve makine kurulum maliyetleri satıcının sorumluluğundadır.',
-    paymentTerms: 'Yükleme öncesi nihai ödeme',
-    deliveryDate: 'Önceden anlaşma sonrası'
+    paymentTerms: 'Yükleme öncesi nihai ödeme.',
+    deliveryDate: 'Önceden anlaşma sonrası.'
   });
 
   // Fetch cost details and extract base price
@@ -410,7 +410,19 @@ const SendOfferModal = ({ service, onClose }) => {
               
               {/* Client Selection Section */}
               <div className="input-group">
-                <label>Müşteri Seçimi:</label>
+                <div className="input-label-row">
+                  <label>Müşteri Seçimi:</label>
+                  <button
+                    type="button"
+                    onClick={handleAddClient}
+                    className="btn-add-client"
+                    disabled={selectedClient || selectedClientId || isAddingNewClient}
+                    title={isAddingNewClient ? 'Yeni müşteri formu zaten açık' : 'Yeni müşteri ekle'}
+                  >
+                    <FaPlus />
+                    <span style={{ marginLeft: 8 }}>Müşteri Ekle</span>
+                  </button>
+                </div>
                 <div className="client-selection-container">
                   <div className="client-input-row">
                     <select
@@ -428,15 +440,6 @@ const SendOfferModal = ({ service, onClose }) => {
                         </option>
                       ))}
                     </select>
-                    <button
-                      type="button"
-                      onClick={handleAddClient}
-                      className="btn-add-client"
-                      disabled={selectedClient || selectedClientId || isAddingNewClient}
-                      title={isAddingNewClient ? 'Yeni müşteri formu zaten açık' : 'Yeni müşteri ekle'}
-                    >
-                      <FaPlus />
-                    </button>
                   </div>
                   
                   {selectedClient && (

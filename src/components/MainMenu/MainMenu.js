@@ -527,11 +527,13 @@ const MainMenu = () => {
                   </div>
                 )}
                 <div className="detail-row single-line">
-                  <AiOutlineCalendar className="detail-icon" />
-                  <span className="detail-value">{service.year}</span>
-                  <span className="detail-value">{service.machineTitle}</span>
                   <AiOutlineSetting className="detail-icon" />
                   <span className="detail-value">{service.operatingSystem}</span>
+
+                  <span className="detail-value">{service.machineTitle}</span>
+                  <AiOutlineCalendar className="detail-icon" />
+
+                  <span className="detail-value">{service.year}</span>
                 </div>
 
                 <div className="detail-row">

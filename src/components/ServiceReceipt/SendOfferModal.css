@@ -100,6 +100,14 @@
   font-size: 14px;
 }
 
+.input-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
 .input-group input {
   padding: 12px 16px;
   border: 1px solid #d1d5db;
@@ -640,13 +648,13 @@
   color: white;
   border: none;
   border-radius: 6px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   cursor: pointer;
   transition: background-color 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 48px;
+  min-width: auto;
 }
 
 .btn-add-client:hover:not(:disabled) {
@@ -763,6 +771,8 @@
   flex-direction: column;
   gap: 8px;
   margin-top: 8px;
+  max-height: 260px;
+  overflow-y: auto;
 }
 
 .cc-email-item {

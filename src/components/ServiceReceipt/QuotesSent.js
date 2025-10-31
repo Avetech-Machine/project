@@ -49,11 +49,13 @@ const QuotesSent = ({ onEditService }) => {
               senderUserName: offer.senderUserName,
               sentAt: offer.sentAt,
               machineName: projectDetails.title || offer.projectCode,
+              machineTitle: projectDetails.title || offer.projectCode,
+              model: projectDetails.model || '-',
               year: projectDetails.year || '-',
               operatingSystem: projectDetails.title || offer.projectCode,
               serialNumber: projectDetails.serialNumber || '-',
               createdDate: offer.sentAt ? new Date(offer.sentAt).toLocaleDateString('tr-TR') : '-',
-              status: 'Gönderildi', // All offers will show as "Gönderildi"
+              status: 'ONAY BEKLİYOR', // All offers will show as "Gönderildi"
               totalCost: projectDetails.totalCost || 0,
               salesPrice: projectDetails.salesPrice || 0,
               netProfit: projectDetails.netProfit || 0,
@@ -80,11 +82,13 @@ const QuotesSent = ({ onEditService }) => {
               senderUserName: offer.senderUserName,
               sentAt: offer.sentAt,
               machineName: offer.projectCode,
+              machineTitle: offer.projectCode,
+              model: '-',
               year: '-',
               operatingSystem: offer.projectCode,
               serialNumber: '-',
               createdDate: offer.sentAt ? new Date(offer.sentAt).toLocaleDateString('tr-TR') : '-',
-              status: 'Gönderildi',
+              status: 'ONAY BEKLİYOR',
               totalCost: 0,
               salesPrice: 0,
               netProfit: 0,
@@ -135,7 +139,7 @@ const QuotesSent = ({ onEditService }) => {
 
   const getStatusClass = (status) => {
     switch (status) {
-      case 'Gönderildi':
+      case 'ONAY BEKLİYOR':
         return 'status-sent';
       case 'Taslak':
         return 'status-draft';
@@ -192,10 +196,11 @@ const QuotesSent = ({ onEditService }) => {
 
             <div className="card-details">
               <div className="detail-row">
-                <AiOutlineCalendar className="detail-icon" />
-                <span className="detail-label">{service.year}</span>
                 <AiOutlineSetting className="detail-icon" />
-                <span className="detail-label">{service.operatingSystem}</span>
+                <span className="detail-value">{service.model}</span>
+                <span className="detail-value">{service.machineTitle}</span>
+                <AiOutlineCalendar className="detail-icon" />
+                <span className="detail-value">{service.year}</span>
               </div>
 
               <div className="detail-row">

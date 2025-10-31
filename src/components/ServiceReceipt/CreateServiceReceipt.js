@@ -217,6 +217,52 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     }));
   };
 
+  // Generic: whether letters are allowed for a given field
+  const isAlphabetAllowed = (field) => {
+    return [
+      'machineName',
+      'model',
+      'serialNumber',
+      'holderType',
+      // Speed field (rpm)
+      'repairHours'
+    ].includes(field);
+  };
+
+  // Sanitize input to remove letters (including Turkish letters) for numeric-only fields
+  const sanitizeNumeric = (value) => {
+    return value.replace(/[A-Za-zğüşöçıİĞÜŞÖÇ]/g, '');
+  };
+
+  // Unified handler that enforces numeric-only when letters are not allowed
+  const handleRestrictedInput = (field, value) => {
+    const nextValue = isAlphabetAllowed(field) ? value : sanitizeNumeric(value);
+    setFormData(prev => ({
+      ...prev,
+      [field]: nextValue
+    }));
+  };
+
+  // Round dimension fields to nearest cm and append unit on blur
+  const handleDimensionBlur = (field, value) => {
+    const numeric = parseFloat(String(value).replace(/[^\d.,-]/g, '').replace(',', '.'));
+    const processedValue = isNaN(numeric) ? '' : `${Math.round(numeric)}cm`;
+    setFormData(prev => ({
+      ...prev,
+      [field]: processedValue
+    }));
+  };
+
+  // Round weight to nearest kg and append unit on blur
+  const handleWeightBlur = (field, value) => {
+    const numeric = parseFloat(String(value).replace(/[^\d.,-]/g, '').replace(',', '.'));
+    const processedValue = isNaN(numeric) ? '' : `${Math.round(numeric)}kg`;
+    setFormData(prev => ({
+      ...prev,
+      [field]: processedValue
+    }));
+  };
+
   // Function to manually refresh project code (for testing)
   const refreshProjectCode = async () => {
     try {
@@ -262,7 +308,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   };
 
   const handleWorkingHoursInput = (e) => {
-    const value = e.target.value;
+    const value = sanitizeNumeric(e.target.value);
     setFormData(prev => ({
       ...prev,
       workingHours: value
@@ -650,7 +696,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             <input
               type="text"
               value={formData.year}
-              onChange={(e) => handleInputChange('year', e.target.value)}
+              onChange={(e) => handleRestrictedInput('year', e.target.value)}
             />
           </div>
         </div>
@@ -693,7 +739,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             <input
               type="text"
               value={formData.teamCount}
-              onChange={(e) => handleInputChange('teamCount', e.target.value)}
+              onChange={(e) => handleRestrictedInput('teamCount', e.target.value)}
             />
           </div>
         </div>
@@ -704,7 +750,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             <input
               type="text"
               value={formData.machineNetWeight}
-              onChange={(e) => handleInputChange('machineNetWeight', e.target.value)}
+              onChange={(e) => handleRestrictedInput('machineNetWeight', e.target.value)}
               placeholder="kg"
             />
           </div>
@@ -713,7 +759,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             <input
               type="text"
               value={formData.additionalWeight}
-              onChange={(e) => handleInputChange('additionalWeight', e.target.value)}
+              onChange={(e) => handleRestrictedInput('additionalWeight', e.target.value)}
               placeholder="kg"
             />
           </div>
@@ -726,7 +772,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             <input
               type="text"
               value={formData.xMovement}
-              onChange={(e) => handleInputChange('xMovement', e.target.value)}
+              onChange={(e) => handleRestrictedInput('xMovement', e.target.value)}
               onBlur={(e) => handleMovementBlur('xMovement', e.target.value)}
               placeholder="1000mm"
             />
@@ -736,7 +782,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             <input
               type="text"
               value={formData.yMovement}
-              onChange={(e) => handleInputChange('yMovement', e.target.value)}
+              onChange={(e) => handleRestrictedInput('yMovement', e.target.value)}
               onBlur={(e) => handleMovementBlur('yMovement', e.target.value)}
               placeholder="500mm"
             />
@@ -749,7 +795,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             <input
               type="text"
               value={formData.zMovement}
-              onChange={(e) => handleInputChange('zMovement', e.target.value)}
+              onChange={(e) => handleRestrictedInput('zMovement', e.target.value)}
               onBlur={(e) => handleMovementBlur('zMovement', e.target.value)}
               placeholder="300mm"
             />
@@ -759,7 +805,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             <input
               type="text"
               value={formData.bMovement}
-              onChange={(e) => handleInputChange('bMovement', e.target.value)}
+              onChange={(e) => handleRestrictedInput('bMovement', e.target.value)}
               onBlur={(e) => handleMovementBlur('bMovement', e.target.value)}
               placeholder="360°"
             />
@@ -772,7 +818,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             <input
               type="text"
               value={formData.cMovement}
-              onChange={(e) => handleInputChange('cMovement', e.target.value)}
+              onChange={(e) => handleRestrictedInput('cMovement', e.target.value)}
               onBlur={(e) => handleMovementBlur('cMovement', e.target.value)}
               placeholder="360°"
             />
@@ -795,8 +841,9 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             <input
               type="text"
               value={formData.machineWidth}
-              onChange={(e) => handleInputChange('machineWidth', e.target.value)}
-              placeholder="2000"
+              onChange={(e) => handleRestrictedInput('machineWidth', e.target.value)}
+              onBlur={(e) => handleDimensionBlur('machineWidth', e.target.value)}
+              placeholder="2000cm"
             />
           </div>
           <div className="form-group">
@@ -804,8 +851,9 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             <input
               type="text"
               value={formData.machineLength}
-              onChange={(e) => handleInputChange('machineLength', e.target.value)}
-              placeholder="3000"
+              onChange={(e) => handleRestrictedInput('machineLength', e.target.value)}
+              onBlur={(e) => handleDimensionBlur('machineLength', e.target.value)}
+              placeholder="3000cm"
             />
           </div>
         </div>
@@ -816,8 +864,9 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             <input
               type="text"
               value={formData.machineHeight}
-              onChange={(e) => handleInputChange('machineHeight', e.target.value)}
-              placeholder="2500"
+              onChange={(e) => handleRestrictedInput('machineHeight', e.target.value)}
+              onBlur={(e) => handleDimensionBlur('machineHeight', e.target.value)}
+              placeholder="2500cm"
             />
           </div>
           <div className="form-group">
@@ -825,8 +874,9 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             <input
               type="text"
               value={formData.maxMaterialWeight}
-              onChange={(e) => handleInputChange('maxMaterialWeight', e.target.value)}
-              placeholder="5000"
+              onChange={(e) => handleRestrictedInput('maxMaterialWeight', e.target.value)}
+              onBlur={(e) => handleWeightBlur('maxMaterialWeight', e.target.value)}
+              placeholder="5000kg"
             />
           </div>
         </div>
