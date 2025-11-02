@@ -29,7 +29,9 @@ const SendOfferModal = ({ service, onClose }) => {
     contactName: '',
     email: '',
     phone: '',
-    address: ''
+    address: '',
+    vergiDairesi: '',
+    vergiNo: ''
   });
   const [editableTexts, setEditableTexts] = useState({
     companyName: '',
@@ -37,6 +39,8 @@ const SendOfferModal = ({ service, onClose }) => {
     contactPerson: '',
     phone: '',
     email: '',
+    vergiDairesi: '',
+    vergiNo: '',
     deliveryTerms: 'Makineler garanti dışıdır. Yükleme maliyetleri, nakliye maliyetleri ve makine kurulum maliyetleri satıcının sorumluluğundadır.',
     paymentTerms: 'Yükleme öncesi nihai ödeme.',
     deliveryDate: 'Önceden anlaşma sonrası.'
@@ -129,7 +133,9 @@ const SendOfferModal = ({ service, onClose }) => {
               address: detailedClient.address || '',
               contactPerson: detailedClient.contactName || '',
               phone: detailedClient.phone || '',
-              email: detailedClient.email || ''
+              email: detailedClient.email || '',
+              vergiDairesi: detailedClient.vergiDairesi || '',
+              vergiNo: detailedClient.vergiNo || ''
             }));
             
             setSelectedClient(client);
@@ -156,7 +162,9 @@ const SendOfferModal = ({ service, onClose }) => {
         contactName: '',
         email: '',
         phone: '',
-        address: ''
+        address: '',
+        vergiDairesi: '',
+        vergiNo: ''
       });
       // Clear the editable texts to allow manual entry
       setEditableTexts(prev => ({
@@ -165,7 +173,9 @@ const SendOfferModal = ({ service, onClose }) => {
         address: '',
         contactPerson: '',
         phone: '',
-        email: ''
+        email: '',
+        vergiDairesi: '',
+        vergiNo: ''
       }));
       // Scroll to company name section in the document
       setTimeout(() => {
@@ -195,6 +205,10 @@ const SendOfferModal = ({ service, onClose }) => {
       setNewClientData(prev => ({ ...prev, phone: value }));
     } else if (field === 'address') {
       setNewClientData(prev => ({ ...prev, address: value }));
+    } else if (field === 'vergiDairesi') {
+      setNewClientData(prev => ({ ...prev, vergiDairesi: value }));
+    } else if (field === 'vergiNo') {
+      setNewClientData(prev => ({ ...prev, vergiNo: value }));
     }
   };
 
@@ -235,7 +249,9 @@ const SendOfferModal = ({ service, onClose }) => {
       contactName: '',
       email: '',
       phone: '',
-      address: ''
+      address: '',
+      vergiDairesi: '',
+      vergiNo: ''
     });
     // Clear the preview as well
     setEditableTexts(prev => ({
@@ -244,7 +260,9 @@ const SendOfferModal = ({ service, onClose }) => {
       address: '',
       contactPerson: '',
       phone: '',
-      email: ''
+      email: '',
+      vergiDairesi: '',
+      vergiNo: ''
     }));
   };
 
@@ -259,7 +277,9 @@ const SendOfferModal = ({ service, onClose }) => {
       contactName: '',
       email: '',
       phone: '',
-      address: ''
+      address: '',
+      vergiDairesi: '',
+      vergiNo: ''
     });
     setEditableTexts(prev => ({
       ...prev,
@@ -267,7 +287,9 @@ const SendOfferModal = ({ service, onClose }) => {
       address: '',
       contactPerson: '',
       phone: '',
-      email: ''
+      email: '',
+      vergiDairesi: '',
+      vergiNo: ''
     }));
   };
 
@@ -336,7 +358,9 @@ const SendOfferModal = ({ service, onClose }) => {
             contactName: '',
             email: '',
             phone: '',
-            address: ''
+            address: '',
+            vergiDairesi: '',
+            vergiNo: ''
           });
         } catch (createError) {
           console.error('Error creating client:', createError);
@@ -470,7 +494,7 @@ const SendOfferModal = ({ service, onClose }) => {
                       type="email"
                       value={newCcEmail}
                       onChange={(e) => setNewCcEmail(e.target.value)}
-                      placeholder="CC e-posta adresi girin"
+                      placeholder="CC e-posta adresi girin. (Eklemek istediğiniz mailleri + tuşuna basarak ekleyebilirsiniz)"
                       className="cc-email-input"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
@@ -584,6 +608,34 @@ const SendOfferModal = ({ service, onClose }) => {
                     )}
                   </div>
                   <div className="info-row">
+                    <strong>Vergi Dairesi:</strong> 
+                    {isAddingNewClient ? (
+                      <input
+                        type="text"
+                        value={editableTexts.vergiDairesi}
+                        onChange={(e) => handleCompanyFieldChange('vergiDairesi', e.target.value)}
+                        placeholder="Vergi dairesini girin"
+                        className="inline-edit-input"
+                      />
+                    ) : (
+                      <span className="info-value">{editableTexts.vergiDairesi || 'Vergi Dairesi'}</span>
+                    )}
+                  </div>
+                  <div className="info-row">
+                    <strong>Vergi No:</strong> 
+                    {isAddingNewClient ? (
+                      <input
+                        type="text"
+                        value={editableTexts.vergiNo}
+                        onChange={(e) => handleCompanyFieldChange('vergiNo', e.target.value)}
+                        placeholder="Vergi numarasını girin"
+                        className="inline-edit-input"
+                      />
+                    ) : (
+                      <span className="info-value">{editableTexts.vergiNo || 'Vergi No'}</span>
+                    )}
+                  </div>
+                  <div className="info-row">
                     <strong>Belge Tarihi:</strong> 
                     <span className="info-value">{formData.documentDate}</span>
                   </div>
@@ -694,8 +746,17 @@ const SendOfferModal = ({ service, onClose }) => {
                         </div>
                       </div>
                     ) : (
-                      <span className="editable-text" onClick={() => handleEditClick('deliveryTerms')}>
-                        {editableTexts.deliveryTerms}
+                      <span>
+                        <span className="editable-text" onClick={() => handleEditClick('deliveryTerms')}>
+                          {editableTexts.deliveryTerms}
+                        </span>
+                        <span
+                          onClick={() => handleEditClick('deliveryTerms')}
+                          title="Düzenle"
+                          style={{ marginLeft: 8, cursor: 'pointer', color: '#555', display: 'inline-flex', alignItems: 'center' }}
+                        >
+                          <FaPencilAlt />
+                        </span>
                       </span>
                     )}
                   </div>
@@ -730,8 +791,17 @@ const SendOfferModal = ({ service, onClose }) => {
                         </div>
                       </div>
                     ) : (
-                      <span className="editable-text" onClick={() => handleEditClick('paymentTerms')}>
-                        {editableTexts.paymentTerms}
+                      <span>
+                        <span className="editable-text" onClick={() => handleEditClick('paymentTerms')}>
+                          {editableTexts.paymentTerms}
+                        </span>
+                        <span
+                          onClick={() => handleEditClick('paymentTerms')}
+                          title="Düzenle"
+                          style={{ marginLeft: 8, cursor: 'pointer', color: '#555', display: 'inline-flex', alignItems: 'center' }}
+                        >
+                          <FaPencilAlt />
+                        </span>
                       </span>
                     )}
                   </div>
@@ -766,8 +836,17 @@ const SendOfferModal = ({ service, onClose }) => {
                         </div>
                       </div>
                     ) : (
-                      <span className="editable-text" onClick={() => handleEditClick('deliveryDate')}>
-                        {editableTexts.deliveryDate}
+                      <span>
+                        <span className="editable-text" onClick={() => handleEditClick('deliveryDate')}>
+                          {editableTexts.deliveryDate}
+                        </span>
+                        <span
+                          onClick={() => handleEditClick('deliveryDate')}
+                          title="Düzenle"
+                          style={{ marginLeft: 8, cursor: 'pointer', color: '#555', display: 'inline-flex', alignItems: 'center' }}
+                        >
+                          <FaPencilAlt />
+                        </span>
                       </span>
                     )}
                   </div>

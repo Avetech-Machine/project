@@ -7,7 +7,8 @@ import {
   AiOutlineMail,
   AiOutlinePhone,
   AiOutlineFileText,
-  AiOutlineEdit
+  AiOutlineEdit,
+  AiOutlineIdcard
 } from 'react-icons/ai';
 import ViewOfferModal from './ViewOfferModal';
 import EditCompanyModal from './EditCompanyModal';
@@ -146,6 +147,26 @@ const RegisteredCompanies = () => {
                       <span className="detail-value">{client.phone}</span>
                     </div>
                   </div>
+                  
+                  {client.vergiDairesi && (
+                    <div className="detail-item">
+                      <AiOutlineFileText className="detail-icon" />
+                      <div className="detail-content">
+                        <span className="detail-label">Vergi Dairesi</span>
+                        <span className="detail-value">{client.vergiDairesi}</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {client.vergiNo && (
+                    <div className="detail-item">
+                      <AiOutlineIdcard className="detail-icon" />
+                      <div className="detail-content">
+                        <span className="detail-label">Vergi No</span>
+                        <span className="detail-value">{client.vergiNo}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="company-actions">

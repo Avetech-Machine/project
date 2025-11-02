@@ -139,7 +139,7 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
                     <div className="offer-info">
                       <h3>
                         <AiOutlineProject className="offer-icon" />
-                        Teklif #{offer.id}
+                        Teklif
                       </h3>
                       <div className="offer-meta">
                         <span className="offer-id">Proje Kodu: {offer.projectCode}</span>

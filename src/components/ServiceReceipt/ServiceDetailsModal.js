@@ -207,27 +207,27 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                 
                 <div className="spec-row">
                   <span className="spec-label">X Hareketi:</span>
-                  <span className="spec-value">{projectDetails.xMovement || '-'}</span>
+                  <span className="spec-value">{projectDetails.xmovement || '-'}</span>
                 </div>
                 
                 <div className="spec-row">
                   <span className="spec-label">Y Hareketi:</span>
-                  <span className="spec-value">{projectDetails.yMovement || '-'}</span>
+                  <span className="spec-value">{projectDetails.ymovement || '-'}</span>
                 </div>
                 
                 <div className="spec-row">
                   <span className="spec-label">Z Hareketi:</span>
-                  <span className="spec-value">{projectDetails.zMovement || '-'}</span>
+                  <span className="spec-value">{projectDetails.zmovement || '-'}</span>
                 </div>
                 
                 <div className="spec-row">
                   <span className="spec-label">B Hareketi:</span>
-                  <span className="spec-value">{projectDetails.bMovement || '-'}</span>
+                  <span className="spec-value">{projectDetails.bmovement || '-'}</span>
                 </div>
                 
                 <div className="spec-row">
                   <span className="spec-label">C Hareketi:</span>
-                  <span className="spec-value">{projectDetails.cMovement || '-'}</span>
+                  <span className="spec-value">{projectDetails.cmovement || '-'}</span>
                 </div>
                 
                 <div className="spec-row">

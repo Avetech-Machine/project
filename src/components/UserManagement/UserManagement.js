@@ -16,19 +16,33 @@ const UserManagement = () => {
   const [form, setForm] = useState({
     email: '',
     password: '',
+    passwordConfirm: '',
     firstName: '',
-    lastName: ''
+    lastName: '',
+    role: 'VIEWER'
   });
   const [editForm, setEditForm] = useState({
     email: '',
     password: '',
     firstName: '',
-    lastName: ''
+    lastName: '',
+    role: 'VIEWER'
   });
   const [submitting, setSubmitting] = useState(false);
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [passwordMismatch, setPasswordMismatch] = useState(false);
+
+  // Helper function to translate role values to Turkish
+  const getRoleDisplayName = (role) => {
+    const roleMap = {
+      'VIEWER': 'İZLEYİCİ',
+      'SALES': 'SATIŞÇI',
+      'ADMIN': 'ADMIN'
+    };
+    return roleMap[role] || role;
+  };
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -62,7 +76,8 @@ const UserManagement = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     document.body.classList.remove('modal-open');
-    setForm({ email: '', password: '', firstName: '', lastName: '' });
+    setForm({ email: '', password: '', passwordConfirm: '', firstName: '', lastName: '', role: 'VIEWER' });
+    setPasswordMismatch(false);
   };
 
   const openProfileModal = async () => {
@@ -100,7 +115,8 @@ const UserManagement = () => {
       email: user.email || '',
       password: '', // Don't pre-fill password for security
       firstName: user.firstName || '',
-      lastName: user.lastName || ''
+      lastName: user.lastName || '',
+      role: user.role || 'VIEWER'
     });
     setIsEditModalOpen(true);
     document.body.classList.add('modal-open');
@@ -109,13 +125,24 @@ const UserManagement = () => {
   const closeEditModal = () => {
     setIsEditModalOpen(false);
     setSelectedUser(null);
-    setEditForm({ email: '', password: '', firstName: '', lastName: '' });
+    setEditForm({ email: '', password: '', firstName: '', lastName: '', role: 'VIEWER' });
     document.body.classList.remove('modal-open');
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm(prev => {
+      const updated = { ...prev, [name]: value };
+      // Check password match when either password field changes
+      if (name === 'password' || name === 'passwordConfirm') {
+        if (updated.password && updated.passwordConfirm) {
+          setPasswordMismatch(updated.password !== updated.passwordConfirm);
+        } else {
+          setPasswordMismatch(false);
+        }
+      }
+      return updated;
+    });
   };
 
   const handleEditChange = (e) => {
@@ -126,13 +153,25 @@ const UserManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.email || !form.password || !form.firstName || !form.lastName) return;
+    
+    // Validate password match
+    if (form.password !== form.passwordConfirm) {
+      setPasswordMismatch(true);
+      setError('Şifreler eşleşmiyor');
+      return;
+    }
+    
     try {
       setSubmitting(true);
       setError(null);
+      setPasswordMismatch(false);
       // Combine firstName and lastName as username for API
+      // Don't send passwordConfirm to API
+      const { passwordConfirm, ...userDataWithoutConfirm } = form;
       const userData = {
-        ...form,
-        username: `${form.firstName} ${form.lastName}`.trim()
+        ...userDataWithoutConfirm,
+        username: `${form.firstName} ${form.lastName}`.trim(),
+        role: form.role || 'VIEWER'
       };
       const created = await userService.createUser(userData);
       setUsers(prev => [created, ...prev]);
@@ -152,11 +191,19 @@ const UserManagement = () => {
       setError(null);
       
       // Prepare the data for API - include original username and role
+      // Only include password if it's not empty (PATCH allows partial updates)
       const userData = {
-        ...editForm,
         username: selectedUser.username || `${editForm.firstName} ${editForm.lastName}`.trim(),
-        role: selectedUser.role || 'VIEWER'
+        email: editForm.email,
+        firstName: editForm.firstName,
+        lastName: editForm.lastName,
+        role: editForm.role || 'VIEWER'
       };
+      
+      // Only include password if user provided a new one
+      if (editForm.password && editForm.password.trim() !== '') {
+        userData.password = editForm.password;
+      }
       
       const updated = await userService.updateUser(selectedUser.id, userData);
       
@@ -223,7 +270,7 @@ const UserManagement = () => {
                   <td>{u.firstName}</td>
                   <td>{u.lastName}</td>
                   <td>{u.email}</td>
-                  <td>{u.role}</td>
+                  <td>{getRoleDisplayName(u.role)}</td>
                   <td>{u.createdAt ? new Date(u.createdAt).toLocaleDateString('tr-TR', {
                     year: 'numeric',
                     month: '2-digit',
@@ -279,7 +326,37 @@ const UserManagement = () => {
               </div>
               <div className="form-row">
                 <label>Şifre *</label>
-                <input type="password" name="password" value={form.password} onChange={handleChange} />
+                <input 
+                  type="password" 
+                  name="password" 
+                  value={form.password} 
+                  onChange={handleChange}
+                  className={passwordMismatch ? 'error-input' : ''}
+                />
+              </div>
+              <div className="form-row">
+                <label>Şifre Tekrar *</label>
+                <input 
+                  type="password" 
+                  name="passwordConfirm" 
+                  value={form.passwordConfirm} 
+                  onChange={handleChange}
+                  placeholder="Şifreyi tekrar girin"
+                  className={passwordMismatch ? 'error-input' : ''}
+                />
+                {passwordMismatch && (
+                  <span className="error-message" style={{ fontSize: '12px', color: '#dc2626', marginTop: '4px' }}>
+                    Şifreler eşleşmiyor
+                  </span>
+                )}
+              </div>
+              <div className="form-row">
+                <label>Rol *</label>
+                <select name="role" value={form.role} onChange={handleChange}>
+                  <option value="VIEWER">İzleyici</option>
+                  <option value="SALES">Satışçı</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
               </div>
               <div className="modal-footer">
                 <button type="button" className="secondary-btn" onClick={closeModal}>İptal</button>
@@ -315,7 +392,7 @@ const UserManagement = () => {
                   </div>
                   <div className="profile-field">
                     <label>Rol:</label>
-                    <span>{currentUserProfile?.role || 'N/A'}</span>
+                    <span>{currentUserProfile?.role ? getRoleDisplayName(currentUserProfile.role) : 'N/A'}</span>
                   </div>
                   <div className="profile-field">
                     <label>Kayıt Tarihi:</label>
@@ -362,8 +439,16 @@ const UserManagement = () => {
                 <input type="email" name="email" value={editForm.email} onChange={handleEditChange} />
               </div>
               <div className="form-row">
-                <label>Şifre (Boş bırakılırsa değiştirilmez)</label>
+                <label>Şifre</label>
                 <input type="password" name="password" value={editForm.password} onChange={handleEditChange} placeholder="Yeni şifre" />
+              </div>
+              <div className="form-row">
+                <label>Rol *</label>
+                <select name="role" value={editForm.role} onChange={handleEditChange}>
+                  <option value="VIEWER">İzleyici</option>
+                  <option value="SALES">Satışçı</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
               </div>
               <div className="modal-footer">
                 <button type="button" className="secondary-btn" onClick={closeEditModal}>İptal</button>

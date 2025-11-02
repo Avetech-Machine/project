@@ -9,7 +9,9 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
     contactName: '',
     email: '',
     phone: '',
-    address: ''
+    address: '',
+    vergiDairesi: '',
+    vergiNo: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -21,7 +23,9 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
         contactName: client.contactName || '',
         email: client.email || '',
         phone: client.phone || '',
-        address: client.address || ''
+        address: client.address || '',
+        vergiDairesi: client.vergiDairesi || '',
+        vergiNo: client.vergiNo || ''
       });
       setError('');
     }
@@ -65,7 +69,9 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
       contactName: '',
       email: '',
       phone: '',
-      address: ''
+      address: '',
+      vergiDairesi: '',
+      vergiNo: ''
     });
     setError('');
     onClose();
@@ -160,6 +166,32 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
               value={formData.address}
               onChange={handleChange}
               placeholder="Adresi girin"
+              disabled={loading}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="vergiDairesi">Vergi Dairesi</label>
+            <input
+              type="text"
+              id="vergiDairesi"
+              name="vergiDairesi"
+              value={formData.vergiDairesi}
+              onChange={handleChange}
+              placeholder="Vergi dairesini girin"
+              disabled={loading}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="vergiNo">Vergi No</label>
+            <input
+              type="text"
+              id="vergiNo"
+              name="vergiNo"
+              value={formData.vergiNo}
+              onChange={handleChange}
+              placeholder="Vergi numarasını girin"
               disabled={loading}
             />
           </div>

@@ -27,7 +27,7 @@ class UserService {
     try {
       const payload = {
         ...userData,
-        role: 'VIEWER',
+        role: userData.role || 'VIEWER',
       };
 
       const response = await fetch(`${API_BASE_URL}/api/users`, {
@@ -52,7 +52,7 @@ class UserService {
   async updateUser(userId, userData) {
     try {
       const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: authService.getAuthHeaders(),
         body: JSON.stringify(userData),
       });

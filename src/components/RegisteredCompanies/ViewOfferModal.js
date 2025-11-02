@@ -137,7 +137,6 @@ const ViewOfferModal = ({ isOpen, onClose, clientId, clientName }) => {
                           {offer.projectCode}
                         </h3>
                         <div className="offer-meta">
-                          <span className="offer-id">Teklif ID: {offer.id}</span>
                           <span className="offer-date">
                             <AiOutlineCalendar className="date-icon" />
                             {formatDate(offer.sentAt)}

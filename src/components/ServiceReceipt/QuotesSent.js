@@ -38,6 +38,14 @@ const QuotesSent = ({ onEditService }) => {
           try {
             // Fetch project details for each offer
             const projectDetails = await projectService.getProjectById(offer.projectId);
+            // Align field derivation with MainMenu center card values
+            const cleanTitle = (title) => {
+              if (!title || title === 'N/A') return title;
+              return title.replace(/\s*\([^)]*\)\s*/g, '').trim();
+            };
+            const derivedMachineTitle = cleanTitle(projectDetails.title || projectDetails.machineName || offer.projectCode);
+            const derivedOperatingSystem = projectDetails.model || projectDetails.operatingSystem || projectDetails.controlUnit || '-';
+            const derivedYear = projectDetails.year || (projectDetails.createdAt ? new Date(projectDetails.createdAt).getFullYear().toString() : '-');
             
             return {
               id: offer.projectId, // Use projectId as the main ID for modals
@@ -48,11 +56,10 @@ const QuotesSent = ({ onEditService }) => {
               clientCompanyName: offer.clientCompanyName,
               senderUserName: offer.senderUserName,
               sentAt: offer.sentAt,
-              machineName: projectDetails.title || offer.projectCode,
-              machineTitle: projectDetails.title || offer.projectCode,
-              model: projectDetails.model || '-',
-              year: projectDetails.year || '-',
-              operatingSystem: projectDetails.title || offer.projectCode,
+              machineName: derivedMachineTitle,
+              machineTitle: derivedMachineTitle,
+              operatingSystem: derivedOperatingSystem,
+              year: derivedYear,
               serialNumber: projectDetails.serialNumber || '-',
               createdDate: offer.sentAt ? new Date(offer.sentAt).toLocaleDateString('tr-TR') : '-',
               status: 'ONAY BEKLİYOR', // All offers will show as "Gönderildi"
@@ -72,6 +79,10 @@ const QuotesSent = ({ onEditService }) => {
           } catch (projectError) {
             console.error(`Error fetching project details for offer ${offer.id}:`, projectError);
             // Return basic offer data if project details can't be fetched
+            const cleanTitle = (title) => {
+              if (!title || title === 'N/A') return title;
+              return title.replace(/\s*\([^)]*\)\s*/g, '').trim();
+            };
             return {
               id: offer.projectId, // Use projectId as the main ID for modals
               offerId: offer.id, // Keep offer ID for reference
@@ -81,11 +92,10 @@ const QuotesSent = ({ onEditService }) => {
               clientCompanyName: offer.clientCompanyName,
               senderUserName: offer.senderUserName,
               sentAt: offer.sentAt,
-              machineName: offer.projectCode,
-              machineTitle: offer.projectCode,
-              model: '-',
+              machineName: cleanTitle(offer.projectCode),
+              machineTitle: cleanTitle(offer.projectCode),
+              operatingSystem: '-',
               year: '-',
-              operatingSystem: offer.projectCode,
               serialNumber: '-',
               createdDate: offer.sentAt ? new Date(offer.sentAt).toLocaleDateString('tr-TR') : '-',
               status: 'ONAY BEKLİYOR',
@@ -183,7 +193,7 @@ const QuotesSent = ({ onEditService }) => {
           {services.map((service) => (
           <div key={service.id} className="service-card">
             <div className="card-header">
-              <h3 className="machine-name">{service.machineName}</h3>
+              <h3 className="machine-name">{service.projectCode}</h3>
               <div className={`status-badge ${getStatusClass(service.status)}`}>
                 {service.status}
               </div>
@@ -197,7 +207,7 @@ const QuotesSent = ({ onEditService }) => {
             <div className="card-details">
               <div className="detail-row">
                 <AiOutlineSetting className="detail-icon" />
-                <span className="detail-value">{service.model}</span>
+                <span className="detail-value">{service.operatingSystem}</span>
                 <span className="detail-value">{service.machineTitle}</span>
                 <AiOutlineCalendar className="detail-icon" />
                 <span className="detail-value">{service.year}</span>

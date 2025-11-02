@@ -183,7 +183,7 @@ const ProposalInformationModal = ({ service, onClose }) => {
                       <div key={offer.id || index} className="offer-card">
                         <div className="offer-header">
                           <div className="offer-info">
-                            <span className="offer-id">Teklif #{offer.id}</span>
+                            <span className="offer-id">Teklif</span>
                             <span 
                               className="offer-status"
                               style={{ color: getStatusColor(offer.status) }}
@@ -214,20 +214,7 @@ const ProposalInformationModal = ({ service, onClose }) => {
                             <span className="detail-value">{offer.projectCode}</span>
                           </div>
                           
-                          <div className="detail-row">
-                            <span className="detail-label">Proje ID:</span>
-                            <span className="detail-value">{offer.projectId}</span>
-                          </div>
                           
-                          <div className="detail-row">
-                            <span className="detail-label">Müşteri ID:</span>
-                            <span className="detail-value">{offer.clientId}</span>
-                          </div>
-                          
-                          <div className="detail-row">
-                            <span className="detail-label">Gönderen ID:</span>
-                            <span className="detail-value">{offer.senderUserId}</span>
-                          </div>
                           
                           {offer.ccEmails && offer.ccEmails.length > 0 && (
                             <div className="detail-row">
@@ -276,7 +263,7 @@ const ProposalInformationModal = ({ service, onClose }) => {
                   </div>
                   <div className="sales-info">
                     <div className="sales-item">
-                      <span>Hedef Satış Fiyatı:</span>
+                      <span>Net Satış Fiyatı:</span>
                       <span className="sales-price">{formatCurrency(salesPrice)}</span>
                     </div>
                     <div className="sales-item">
@@ -293,13 +280,13 @@ const ProposalInformationModal = ({ service, onClose }) => {
                   </div>
                   <div className="profit-info">
                     <div className="profit-item">
-                      <span>Hedef Net Kâr:</span>
+                      <span>Net Kâr:</span>
                       <span className={`profit-amount ${netProfit >= 0 ? 'positive' : 'negative'}`}>
                         {formatCurrency(netProfit)}
                       </span>
                     </div>
                     <div className="profit-item">
-                      <span>Hedef Kâr Marjı:</span>
+                      <span>Net Kâr Marjı:</span>
                       <span className={`profit-margin ${profitMargin >= 0 ? 'positive' : 'negative'}`}>
                         {profitMargin.toFixed(1)}%
                       </span>

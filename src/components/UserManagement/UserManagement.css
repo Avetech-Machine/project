@@ -212,6 +212,34 @@
   font-style: italic;
 }
 
+.form-row input.error-input {
+  border-color: #dc2626;
+}
+
+.form-row input.error-input:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.form-row select {
+  width: 100%;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: #fff;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.form-row select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: #fefefe;
+}
+
 .form-row.two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;

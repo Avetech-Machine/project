@@ -231,6 +231,45 @@ class ProjectService {
     }
   }
 
+  async undeleteProject(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/projects/deleted/${id}/undelete`, {
+        method: 'POST',
+        headers: authService.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Proje geri yüklenirken bir hata oluştu');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Undelete project error:', error);
+      throw error;
+    }
+  }
+
+  async hardDeleteProject(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/projects/deleted/${id}`, {
+        method: 'DELETE',
+        headers: authService.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Proje kalıcı olarak silinirken bir hata oluştu');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Hard delete project error:', error);
+      throw error;
+    }
+  }
+
   async getProjectCostDetails(id) {
     try {
       const response = await fetch(`${API_BASE_URL}/api/projects/${id}/cost-details`, {

@@ -32,28 +32,39 @@ const ClosedProjects = ({ onEditService }) => {
         setError(null);
         const data = await projectService.getProjectsByStatus('SOLD');
         
-        // Transform API data to match the expected format
-        const transformedServices = data.map(project => ({
-          id: project.id,
-          machineName: project.projectCode,
-          year: project.year,
-          operatingSystem: project.operatingSystem,
-          serialNumber: project.serialNumber,
-          createdDate: project.createdAt ? new Date(project.createdAt).toLocaleDateString('tr-TR') : '-',
-          status: 'Tamamlandı', // All projects from this endpoint will show as "Satıldı"
-          totalCost: project.totalCost || 0,
-          salesPrice: project.salesPrice || 0,
-          netProfit: project.netProfit || 0,
-          profitMargin: project.profitMargin || 0,
-          costDetails: project.costDetails || [],
-          workingHours: project.hoursOperated || '-',
-          repairHours: project.repairHours || '-',
-          teamCount: project.teamCount || '-',
-          teamMeasurementProbe: project.takimOlcmeProbu ? 'Var' : 'Yok',
-          partMeasurementProbe: project.parcaOlcmeProbu ? 'Var' : 'Yok',
-          insideWaterGiving: project.ictenSuVerme ? 'Var' : 'Yok',
-          accessoryData: project.additionalEquipment || '-'
-        }));
+        // Transform API data to align center card fields with MainMenu
+        const transformedServices = data.map(project => {
+          const cleanTitle = (title) => {
+            if (!title || title === 'N/A') return title;
+            return title.replace(/\s*\([^)]*\)\s*/g, '').trim();
+          };
+          const machineTitle = cleanTitle(project.title || project.machineName || project.projectCode);
+          const operatingSystem = project.model || project.operatingSystem || project.controlUnit || 'N/A';
+          const year = project.year || (project.createdAt ? new Date(project.createdAt).getFullYear().toString() : 'N/A');
+
+          return {
+            id: project.id,
+            machineName: project.projectCode,
+            machineTitle,
+            operatingSystem,
+            year,
+            serialNumber: project.serialNumber,
+            createdDate: project.createdAt ? new Date(project.createdAt).toLocaleDateString('tr-TR') : '-',
+            status: 'ONAYLANDI',
+            totalCost: project.totalCost || 0,
+            salesPrice: project.salesPrice || 0,
+            netProfit: project.netProfit || 0,
+            profitMargin: project.profitMargin || 0,
+            costDetails: project.costDetails || [],
+            workingHours: project.hoursOperated || '-',
+            repairHours: project.repairHours || '-',
+            teamCount: project.teamCount || '-',
+            teamMeasurementProbe: project.takimOlcmeProbu ? 'Var' : 'Yok',
+            partMeasurementProbe: project.parcaOlcmeProbu ? 'Var' : 'Yok',
+            insideWaterGiving: project.ictenSuVerme ? 'Var' : 'Yok',
+            accessoryData: project.additionalEquipment || '-'
+          };
+        });
         
         setServices(transformedServices);
       } catch (err) {
@@ -101,7 +112,7 @@ const ClosedProjects = ({ onEditService }) => {
         return 'status-draft';
       case 'Onaylandı':
         return 'status-approved';
-      case 'Satıldı':
+      case 'ONAYLANDI':
         return 'status-sold';
       default:
         return 'status-default';
@@ -154,10 +165,11 @@ const ClosedProjects = ({ onEditService }) => {
 
             <div className="card-details">
               <div className="detail-row">
-                <AiOutlineCalendar className="detail-icon" />
-                <span className="detail-label">{service.year}</span>
                 <AiOutlineSetting className="detail-icon" />
-                <span className="detail-label">{service.machineName}</span>
+                <span className="detail-value">{service.operatingSystem}</span>
+                <span className="detail-value">{service.machineTitle}</span>
+                <AiOutlineCalendar className="detail-icon" />
+                <span className="detail-value">{service.year}</span>
               </div>
 
               <div className="detail-row">
