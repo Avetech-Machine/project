@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ServiceDetailsModal from './ServiceDetailsModal';
 import ProfitAnalysisModal from './ProfitAnalysisModal';
 import ViewProposalsModal from './ViewProposalsModal';
@@ -39,6 +39,7 @@ const AllServices = ({ onEditService }) => {
   const [activeFilters, setActiveFilters] = useState({});
   const [isSearching, setIsSearching] = useState(false);
   const [isFiltering, setIsFiltering] = useState(false);
+  const tableRef = useRef(null);
 
   // Load projects from API
   useEffect(() => {
@@ -244,6 +245,167 @@ const AllServices = ({ onEditService }) => {
     return title.replace(/\s*\([^)]*\)\s*/g, '').trim();
   };
 
+  // Calculate and set column widths based on content
+  useEffect(() => {
+    if (!tableRef.current || projects.length === 0) return;
+
+    // Wait for DOM to be fully rendered
+    const timeoutId = setTimeout(() => {
+      const table = tableRef.current;
+      if (!table) return;
+
+      const tableContainer = table.closest('.services-table-container');
+      if (!tableContainer) return;
+
+      const containerMaxWidth = tableContainer.offsetWidth || 1400;
+      
+      // Define max widths for each column (in pixels)
+      const maxWidths = {
+        'PROJE KODU': 200,
+        'MAKİNE MARKASI': 300,
+        'MAKİNE MODELİ': 300,
+        'MAKİNE YILI': 150,
+        'İŞLEMLER': 350
+      };
+
+      // Get all header cells
+      const headerCells = table.querySelectorAll('thead th');
+      const columnWidths = [];
+
+      // Create a temporary measure element with same styles as table cells
+      const measureElement = document.createElement('div');
+      measureElement.style.position = 'absolute';
+      measureElement.style.visibility = 'hidden';
+      measureElement.style.height = 'auto';
+      measureElement.style.width = 'auto';
+      measureElement.style.whiteSpace = 'nowrap';
+      measureElement.style.top = '-9999px';
+      measureElement.style.left = '-9999px';
+      
+      const sampleTh = headerCells[0];
+      const thStyle = window.getComputedStyle(sampleTh);
+      measureElement.style.fontSize = thStyle.fontSize;
+      measureElement.style.fontFamily = thStyle.fontFamily;
+      measureElement.style.fontWeight = thStyle.fontWeight;
+      measureElement.style.padding = '16px 20px';
+      measureElement.style.boxSizing = 'border-box';
+      
+      document.body.appendChild(measureElement);
+
+      // Calculate width for each column
+      headerCells.forEach((th, index) => {
+        const columnName = th.textContent.trim();
+        let maxContentWidth = 0;
+
+        // Measure header width
+        measureElement.textContent = columnName;
+        maxContentWidth = Math.max(maxContentWidth, measureElement.scrollWidth);
+
+        // Measure all cell widths in this column
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+          const cell = row.children[index];
+          if (cell) {
+            // For operation buttons column, use a fixed measurement based on button container
+            if (columnName === 'İŞLEMLER') {
+              const buttonContainer = cell.querySelector('.operation-buttons');
+              if (buttonContainer) {
+                maxContentWidth = Math.max(maxContentWidth, buttonContainer.scrollWidth + 40);
+              } else {
+                maxContentWidth = Math.max(maxContentWidth, 330);
+              }
+            } else {
+              const cellText = cell.textContent.trim();
+              if (cellText) {
+                measureElement.textContent = cellText;
+                maxContentWidth = Math.max(maxContentWidth, measureElement.scrollWidth);
+              }
+            }
+          }
+        });
+
+        // Apply max width constraint
+        const maxWidth = maxWidths[columnName] || 300;
+        const calculatedWidth = Math.min(maxContentWidth, maxWidth);
+        columnWidths.push(calculatedWidth);
+      });
+
+      // Clean up measure element
+      document.body.removeChild(measureElement);
+
+      // Check if total width exceeds container and scale down proportionally if needed
+      const totalWidth = columnWidths.reduce((sum, width) => sum + width, 0);
+      
+      // Minimum widths to ensure usability (especially for operations column)
+      const minWidths = {
+        'PROJE KODU': 100,
+        'MAKİNE MARKASI': 150,
+        'MAKİNE MODELİ': 150,
+        'MAKİNE YILI': 100,
+        'İŞLEMLER': 300
+      };
+      
+      let finalColumnWidths = [...columnWidths];
+      
+      if (totalWidth > containerMaxWidth) {
+        // Scale down, but ensure minimum widths are maintained
+        const operationsIndex = 4; // İŞLEMLER column index
+        const operationsMinWidth = minWidths['İŞLEMLER'];
+        const otherColumnsWidth = columnWidths
+          .map((width, idx) => idx === operationsIndex ? 0 : width)
+          .reduce((sum, width) => sum + width, 0);
+        
+        const availableWidthForOthers = containerMaxWidth - operationsMinWidth;
+        
+        if (availableWidthForOthers > 0 && otherColumnsWidth > 0) {
+          const scaleFactor = availableWidthForOthers / otherColumnsWidth;
+          finalColumnWidths = columnWidths.map((width, index) => {
+            if (index === operationsIndex) {
+              return operationsMinWidth;
+            }
+            return Math.floor(width * scaleFactor);
+          });
+        } else {
+          // If we can't fit even with minimums, use proportional scaling
+          const scaleFactor = containerMaxWidth / totalWidth;
+          finalColumnWidths = columnWidths.map(width => Math.floor(width * scaleFactor));
+        }
+      }
+      
+      // Apply calculated widths to header and body cells
+      headerCells.forEach((th, index) => {
+        const finalWidth = finalColumnWidths[index];
+        if (finalWidth) {
+          th.style.width = `${finalWidth}px`;
+          th.style.minWidth = `${finalWidth}px`;
+          th.style.maxWidth = `${finalWidth}px`;
+          // Preserve center alignment for machine brand header
+          if (th.classList.contains('machine-brand-header')) {
+            th.style.textAlign = 'center';
+          }
+        }
+      });
+
+      const bodyRows = table.querySelectorAll('tbody tr');
+      bodyRows.forEach(row => {
+        Array.from(row.children).forEach((cell, index) => {
+          const finalWidth = finalColumnWidths[index];
+          if (finalWidth) {
+            cell.style.width = `${finalWidth}px`;
+            cell.style.minWidth = `${finalWidth}px`;
+            cell.style.maxWidth = `${finalWidth}px`;
+            // Preserve center alignment for machine brand cells
+            if (cell.classList.contains('machine-brand')) {
+              cell.style.textAlign = 'center';
+            }
+          }
+        });
+      });
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [projects, loading, isSearching, isFiltering]);
+
   return (
     <div className="all-services">
       <div className="services-header">
@@ -294,11 +456,11 @@ const AllServices = ({ onEditService }) => {
             </p>
           </div>
         ) : (
-          <table className="services-table">
+          <table className="services-table" ref={tableRef}>
             <thead>
               <tr>
                 <th>PROJE KODU</th>
-                <th>MAKİNE MARKASI</th>
+                <th className="machine-brand-header">MAKİNE MARKASI</th>
                 <th>MAKİNE MODELİ</th>
                 <th>MAKİNE YILI</th>
                 <th>İŞLEMLER</th>
@@ -308,7 +470,7 @@ const AllServices = ({ onEditService }) => {
               {projects.map((project, index) => (
                 <tr key={project.id} className="service-row">
                   <td className="form-number">{project.projectCode}</td>
-                  <td className="device-name">{cleanTitle(project.title) || 'Belirtilmemiş'}</td>
+                  <td className="device-name machine-brand">{cleanTitle(project.title) || 'Belirtilmemiş'}</td>
                   <td className="device-name">{project.model}</td>
                   <td className="start-date">{project.year}</td>
                   <td className="operations">

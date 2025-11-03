@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineFilter, AiOutlineClear, AiOutlinePlus, AiOutlineClose } from 'react-icons/ai';
+import projectService from '../../services/projectService';
 import './FilterPanel.css';
 
 const FilterPanel = ({ onFilter, onClear }) => {
@@ -7,24 +8,112 @@ const FilterPanel = ({ onFilter, onClear }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isFiltering, setIsFiltering] = useState(false);
   const [showAddDropdown, setShowAddDropdown] = useState(false);
+  const [existingProjects, setExistingProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [filterSearchTerm, setFilterSearchTerm] = useState('');
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const addFilterContainerRef = useRef(null);
+  const addFilterButtonRef = useRef(null);
+  const dropdownRef = useRef(null);
 
-  // Available filter options (excluding status)
+  // Load existing projects for autocomplete options
+  useEffect(() => {
+    const loadProjects = async () => {
+      setLoadingProjects(true);
+      try {
+        const projects = await projectService.getProjects();
+        setExistingProjects(projects);
+      } catch (error) {
+        console.error('Error loading projects for filters:', error);
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+    loadProjects();
+  }, []);
+
+  // Extract unique values from existing projects for each field
+  const getUniqueValues = (field) => {
+    if (!existingProjects.length) return [];
+    
+    const values = existingProjects
+      .map(project => {
+        switch(field) {
+          case 'make':
+          case 'machineName':
+            return project.title || project.machineName;
+          case 'model':
+            return project.model;
+          case 'xMovement':
+            return project.xmovement || project.xMovement;
+          case 'yMovement':
+            return project.ymovement || project.yMovement;
+          case 'zMovement':
+            return project.zmovement || project.zMovement;
+          case 'bMovement':
+            return project.bmovement || project.bMovement;
+          case 'cMovement':
+            return project.cmovement || project.cMovement;
+          case 'holderType':
+            return project.holderType;
+          case 'operatingSystem':
+            return project.operatingSystem;
+          default:
+            return project[field];
+        }
+      })
+      .filter(value => value && value !== '' && value !== 'N/A')
+      .filter((value, index, self) => self.indexOf(value) === index) // Remove duplicates
+      .sort();
+    
+    return values;
+  };
+
+  // Available filter options - ALL fields from CreateServiceReceipt
   const availableFilterOptions = [
     { key: 'projectCode', label: 'Proje Kodu', type: 'text', placeholder: 'Proje kodunu girin' },
-    { key: 'machineName', label: 'Makine Adı', type: 'text', placeholder: 'Makine adını girin' },
-    { key: 'model', label: 'Model', type: 'text', placeholder: 'Model adını girin' },
-    { key: 'make', label: 'Marka', type: 'text', placeholder: 'Marka adını girin' },
+    { key: 'machineName', label: 'Makine Markası', type: 'select-or-text', placeholder: 'Marka seçin veya girin', options: () => getUniqueValues('machineName') },
+    { key: 'model', label: 'Makine Modeli', type: 'select-or-text', placeholder: 'Model seçin veya girin', options: () => getUniqueValues('model') },
     { key: 'year', label: 'Yıl', type: 'number', placeholder: 'Yıl girin', min: '1900', max: '2030' },
+    { key: 'workingHours', label: 'Çalışma Saati', type: 'number', placeholder: 'Minimum saat' },
     { key: 'serialNumber', label: 'Seri Numarası', type: 'text', placeholder: 'Seri numarasını girin' },
-    { key: 'firmName', label: 'Firma Adı', type: 'text', placeholder: 'Firma adını girin' },
-    { key: 'controlUnit', label: 'Kontrol Ünitesi', type: 'text', placeholder: 'Kontrol ünitesini girin' }
+    { key: 'teamCount', label: 'Takım Sayısı', type: 'number', placeholder: 'Minimum takım sayısı' },
+    { key: 'machineNetWeight', label: 'Makine Net Kilo', type: 'number', placeholder: 'Minimum kg' },
+    { key: 'additionalWeight', label: 'Ek Kilo', type: 'number', placeholder: 'Minimum kg' },
+    { key: 'xMovement', label: 'X Hareketi', type: 'select-or-text', placeholder: 'Seçin veya girin (örn: 1000mm)', options: () => getUniqueValues('xMovement') },
+    { key: 'yMovement', label: 'Y Hareketi', type: 'select-or-text', placeholder: 'Seçin veya girin (örn: 500mm)', options: () => getUniqueValues('yMovement') },
+    { key: 'zMovement', label: 'Z Hareketi', type: 'select-or-text', placeholder: 'Seçin veya girin (örn: 300mm)', options: () => getUniqueValues('zMovement') },
+    { key: 'bMovement', label: 'B Hareketi', type: 'select-or-text', placeholder: 'Seçin veya girin (örn: 360°)', options: () => getUniqueValues('bMovement') },
+    { key: 'cMovement', label: 'C Hareketi', type: 'select-or-text', placeholder: 'Seçin veya girin (örn: 360°)', options: () => getUniqueValues('cMovement') },
+    { key: 'holderType', label: 'Tutucu Tipi', type: 'select-or-text', placeholder: 'Seçin veya girin (örn: HSK-63A)', options: () => getUniqueValues('holderType') },
+    { key: 'machineWidth', label: 'Makine Genişliği', type: 'number', placeholder: 'Minimum cm' },
+    { key: 'machineLength', label: 'Makine Uzunluğu', type: 'number', placeholder: 'Minimum cm' },
+    { key: 'machineHeight', label: 'Makine Yüksekliği', type: 'number', placeholder: 'Minimum cm' },
+    { key: 'maxMaterialWeight', label: 'Maksimum Malzeme Ağırlığı', type: 'number', placeholder: 'Minimum kg' },
+    { key: 'operatingSystem', label: 'İşletim Sistemi', type: 'select', placeholder: 'İşletim sistemi seçin', options: () => ['Heidenhain', 'Siemens', 'Fanuc', ...getUniqueValues('operatingSystem').filter(v => !['Heidenhain', 'Siemens', 'Fanuc'].includes(v))] },
+    { key: 'teamMeasurementProbe', label: 'Takım Ölçme Probu', type: 'select', placeholder: 'Seçin', options: () => ['Var', 'Yok'] },
+    { key: 'partMeasurementProbe', label: 'Parça Ölçme Probu', type: 'select', placeholder: 'Seçin', options: () => ['Var', 'Yok'] },
+    { key: 'insideWaterGiving', label: 'İçten Su Verme', type: 'select', placeholder: 'Seçin', options: () => ['Var', 'Yok'] },
+    { key: 'conveyor', label: 'Konveyör', type: 'select', placeholder: 'Seçin', options: () => ['Var', 'Yok'] },
+    { key: 'paperFilter', label: 'Kağıt Filtre', type: 'select', placeholder: 'Seçin', options: () => ['Var', 'Yok'] },
+    { key: 'accessoryData', label: 'Ek Aksesuar', type: 'text', placeholder: 'Aksesuar ara' },
   ];
 
   // Get available options that haven't been added yet
   const getAvailableOptions = () => {
     const activeFields = activeFilters.map(f => f.field);
-    return availableFilterOptions.filter(opt => !activeFields.includes(opt.key));
+    let available = availableFilterOptions.filter(opt => !activeFields.includes(opt.key));
+    
+    // Apply search filter
+    if (filterSearchTerm.trim()) {
+      const searchLower = filterSearchTerm.toLowerCase();
+      available = available.filter(opt => 
+        opt.label.toLowerCase().includes(searchLower) ||
+        opt.key.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    return available;
   };
 
   // Handle adding a new filter field
@@ -38,15 +127,81 @@ const FilterPanel = ({ onFilter, onClear }) => {
         type: option.type,
         placeholder: option.placeholder,
         min: option.min,
-        max: option.max
+        max: option.max,
+        options: option.options ? option.options() : []
       }]);
     }
     setShowAddDropdown(false);
+    setFilterSearchTerm(''); // Clear search when adding a filter
+  };
+
+  // Handle opening/closing dropdown
+  const toggleAddDropdown = () => {
+    if (!showAddDropdown && addFilterButtonRef.current) {
+      // Calculate position for fixed dropdown
+      const buttonRect = addFilterButtonRef.current.getBoundingClientRect();
+      const dropdownHeight = 450; // max-height of dropdown
+      const spacing = 8;
+      const viewportHeight = window.innerHeight;
+      
+      // Try to position above the button
+      let topPosition = buttonRect.top - dropdownHeight - spacing;
+      
+      // If not enough space above, position below
+      if (topPosition < 0) {
+        topPosition = buttonRect.bottom + spacing;
+        // If still doesn't fit, adjust to viewport
+        if (topPosition + dropdownHeight > viewportHeight) {
+          topPosition = Math.max(10, viewportHeight - dropdownHeight - 10);
+        }
+      }
+      
+      // Ensure dropdown doesn't go off screen to the right
+      const dropdownWidth = 400; // max-width
+      let leftPosition = buttonRect.left;
+      if (leftPosition + dropdownWidth > window.innerWidth) {
+        leftPosition = window.innerWidth - dropdownWidth - 10;
+      }
+      // Ensure it doesn't go off screen to the left
+      if (leftPosition < 10) {
+        leftPosition = 10;
+      }
+      
+      setDropdownPosition({
+        top: topPosition,
+        left: leftPosition
+      });
+      setFilterSearchTerm(''); // Clear search when opening
+    }
+    setShowAddDropdown(!showAddDropdown);
   };
 
   // Handle removing a filter field
-  const handleRemoveFilter = (index) => {
-    setActiveFilters(prev => prev.filter((_, i) => i !== index));
+  const handleRemoveFilter = async (index) => {
+    // Remove the filter
+    const updatedFilters = activeFilters.filter((_, i) => i !== index);
+    setActiveFilters(updatedFilters);
+    
+    // Immediately apply remaining filters or clear all
+    setIsFiltering(true);
+    try {
+      const filters = {};
+      updatedFilters.forEach(filter => {
+        if (filter.value !== '') {
+          filters[filter.field] = filter.value;
+        }
+      });
+      
+      // If there are active filter values, apply them, otherwise clear all
+      if (Object.keys(filters).length > 0) {
+        await onFilter(filters);
+      } else {
+        // No filters remaining, show all projects
+        onClear();
+      }
+    } finally {
+      setIsFiltering(false);
+    }
   };
 
   // Handle input value change
@@ -107,13 +262,32 @@ const FilterPanel = ({ onFilter, onClear }) => {
     if (!showAddDropdown) return;
 
     const handleClickOutside = (event) => {
-      if (addFilterContainerRef.current && !addFilterContainerRef.current.contains(event.target)) {
+      // Check if click is outside both the button and the dropdown
+      const isClickOutside = 
+        addFilterContainerRef.current && 
+        !addFilterContainerRef.current.contains(event.target) &&
+        !event.target.closest('.filter-dropdown');
+      
+      if (isClickOutside) {
         setShowAddDropdown(false);
+        setFilterSearchTerm(''); // Clear search when closing
       }
     };
 
+    // Handle scroll to close dropdown - only for page scroll
+    const handleScroll = () => {
+      // Close dropdown on page scroll (scroll events from dropdown are stopped)
+      setShowAddDropdown(false);
+      setFilterSearchTerm('');
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    // Listen to scroll events on window only (dropdown scroll is stopped from bubbling)
+    window.addEventListener('scroll', handleScroll, false);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, false);
+    };
   }, [showAddDropdown]);
 
   return (
@@ -147,14 +321,50 @@ const FilterPanel = ({ onFilter, onClear }) => {
               <div key={`${filter.field}-${index}`} className="filter-field-row">
                 <div className="filter-field">
                   <label>{filter.label}</label>
-                  <input
-                    type={filter.type}
-                    placeholder={filter.placeholder}
-                    value={filter.value}
-                    onChange={(e) => handleInputChange(index, e.target.value)}
-                    min={filter.min}
-                    max={filter.max}
-                  />
+                  
+                  {/* Select dropdown */}
+                  {filter.type === 'select' && (
+                    <select
+                      value={filter.value}
+                      onChange={(e) => handleInputChange(index, e.target.value)}
+                      required
+                    >
+                      <option value="">{filter.placeholder}</option>
+                      {filter.options && filter.options.map(opt => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  )}
+                  
+                  {/* Select or text input with datalist */}
+                  {filter.type === 'select-or-text' && (
+                    <>
+                      <input
+                        type="text"
+                        list={`${filter.field}-datalist-${index}`}
+                        placeholder={filter.placeholder}
+                        value={filter.value}
+                        onChange={(e) => handleInputChange(index, e.target.value)}
+                      />
+                      <datalist id={`${filter.field}-datalist-${index}`}>
+                        {filter.options && filter.options.map(opt => (
+                          <option key={opt} value={opt} />
+                        ))}
+                      </datalist>
+                    </>
+                  )}
+                  
+                  {/* Regular text/number input */}
+                  {(filter.type === 'text' || filter.type === 'number') && (
+                    <input
+                      type={filter.type}
+                      placeholder={filter.placeholder}
+                      value={filter.value}
+                      onChange={(e) => handleInputChange(index, e.target.value)}
+                      min={filter.min}
+                      max={filter.max}
+                    />
+                  )}
                 </div>
                 <button
                   className="remove-filter-button"
@@ -166,26 +376,58 @@ const FilterPanel = ({ onFilter, onClear }) => {
               </div>
             ))}
 
-            {availableOptions.length > 0 && (
+            {(availableOptions.length > 0 || filterSearchTerm) && (
               <div className="add-filter-container" ref={addFilterContainerRef}>
                 <button
+                  ref={addFilterButtonRef}
                   className="add-filter-button"
-                  onClick={() => setShowAddDropdown(!showAddDropdown)}
+                  onClick={toggleAddDropdown}
                 >
                   <AiOutlinePlus />
                   <span>Filtre Ekle</span>
                 </button>
                 {showAddDropdown && (
-                  <div className="filter-dropdown">
-                    {availableOptions.map(option => (
-                      <button
-                        key={option.key}
-                        className="filter-dropdown-item"
-                        onClick={() => handleAddFilter(option.key)}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
+                  <div 
+                    ref={dropdownRef}
+                    className="filter-dropdown"
+                    style={{
+                      top: `${dropdownPosition.top}px`,
+                      left: `${dropdownPosition.left}px`
+                    }}
+                  >
+                    <div className="filter-dropdown-search">
+                      <input
+                        type="text"
+                        placeholder="Filtre ara..."
+                        value={filterSearchTerm}
+                        onChange={(e) => setFilterSearchTerm(e.target.value)}
+                        className="filter-search-input"
+                        autoFocus
+                      />
+                    </div>
+                    <div 
+                      className="filter-dropdown-list"
+                      onScroll={(e) => {
+                        // Stop scroll event from bubbling to window
+                        e.stopPropagation();
+                      }}
+                    >
+                      {availableOptions.length > 0 ? (
+                        availableOptions.map(option => (
+                          <button
+                            key={option.key}
+                            className="filter-dropdown-item"
+                            onClick={() => handleAddFilter(option.key)}
+                          >
+                            {option.label}
+                          </button>
+                        ))
+                      ) : (
+                        <div className="filter-dropdown-empty">
+                          Filtre bulunamadı
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

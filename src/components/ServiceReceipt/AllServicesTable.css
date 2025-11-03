@@ -191,7 +191,8 @@
   margin: 0 auto 40px auto;
   background: white;
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: visible;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -200,6 +201,7 @@
   border-collapse: collapse;
   font-size: 14px;
   margin-bottom: 20px;
+  table-layout: auto;
 }
 
 .services-table thead {
@@ -215,6 +217,11 @@
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.services-table th.machine-brand-header {
+  text-align: center !important;
 }
 
 .services-table tbody tr {
@@ -240,6 +247,7 @@
   border-right: 1px solid white;
   vertical-align: middle;
   background-color: inherit;
+  box-sizing: border-box;
 }
 
 .services-table td:last-child {
@@ -255,14 +263,15 @@
   font-weight: 600;
   color: #2c3e50;
   text-align: center;
-  width: 140px;
   background-color: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .company-name {
   font-weight: 500;
   color: #2c3e50;
-  max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -272,7 +281,6 @@
 .device-name {
   font-weight: 500;
   color: #2c3e50;
-  max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -280,20 +288,26 @@
   background-color: inherit;
 }
 
+.machine-brand {
+  text-align: center !important;
+}
+
 .start-date {
   font-weight: 500;
   color: #2c3e50;
   text-align: center;
-  width: 120px;
   background-color: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Operations column styles */
 .operations {
   text-align: center;
-  width: 200px;
   padding: 8px 12px !important;
   background-color: inherit;
+  overflow: visible;
 }
 
 .operation-buttons {
@@ -315,6 +329,37 @@
   font-size: 14px;
   transition: all 0.2s ease;
   background-color: transparent;
+  position: relative;
+}
+
+.operation-btn[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background-color: #333;
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  margin-bottom: 5px;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.operation-btn[title]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #333;
+  margin-bottom: 1px;
+  z-index: 1000;
+  pointer-events: none;
 }
 
 .operation-btn:hover {

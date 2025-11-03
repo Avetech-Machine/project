@@ -7,7 +7,9 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #e9ecef;
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
+  z-index: 1;
 }
 
 .filter-header {
@@ -17,6 +19,8 @@
   padding: 16px 20px;
   background: #f8f9fa;
   border-bottom: 1px solid #e9ecef;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
 }
 
 .filter-toggle-button {
@@ -75,6 +79,9 @@
 .filter-content {
   padding: 20px;
   padding-bottom: 60px;
+  overflow: visible;
+  position: relative;
+  border-radius: 0 0 12px 12px;
 }
 
 .filter-fields-container {
@@ -185,6 +192,7 @@
   position: relative;
   margin-top: 24px;
   margin-bottom: 4px;
+  z-index: 10;
 }
 
 .add-filter-button {
@@ -208,18 +216,51 @@
 }
 
 .filter-dropdown {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 0;
+  position: fixed;
   background: white;
   border: 2px solid #e9ecef;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  min-width: 200px;
-  max-height: 200px;
+  z-index: 2000;
+  min-width: 280px;
+  max-width: 400px;
+  max-height: 450px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-dropdown-search {
+  padding: 12px;
+  border-bottom: 2px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.filter-search-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #2c3e50;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.filter-search-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.filter-search-input::placeholder {
+  color: #adb5bd;
+}
+
+.filter-dropdown-list {
   overflow-y: auto;
   overflow-x: hidden;
+  max-height: 380px;
 }
 
 .filter-dropdown-item {
@@ -239,23 +280,31 @@
   background-color: #f8f9fa;
 }
 
-/* Custom scrollbar styling for filter dropdown */
-.filter-dropdown::-webkit-scrollbar {
+.filter-dropdown-empty {
+  padding: 16px;
+  text-align: center;
+  color: #6c757d;
+  font-size: 14px;
+  font-style: italic;
+}
+
+/* Custom scrollbar styling for filter dropdown list */
+.filter-dropdown-list::-webkit-scrollbar {
   width: 6px;
 }
 
-.filter-dropdown::-webkit-scrollbar-track {
+.filter-dropdown-list::-webkit-scrollbar-track {
   background: #f8f9fa;
   border-radius: 3px;
 }
 
-.filter-dropdown::-webkit-scrollbar-thumb {
+.filter-dropdown-list::-webkit-scrollbar-thumb {
   background: #dee2e6;
   border-radius: 3px;
   transition: background-color 0.2s ease;
 }
 
-.filter-dropdown::-webkit-scrollbar-thumb:hover {
+.filter-dropdown-list::-webkit-scrollbar-thumb:hover {
   background: #adb5bd;
 }
 
