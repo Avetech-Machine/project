@@ -4,13 +4,15 @@ import ProfitAnalysisModal from './ProfitAnalysisModal';
 import SendOfferModal from './SendOfferModal';
 import ViewOfferModal from './ViewOfferModal';
 import projectService from '../../services/projectService';
+import authService from '../../services/authService';
 import { 
   AiOutlineInfoCircle, 
   AiOutlineEdit, 
   AiOutlineCalendar,
   AiOutlineSetting,
   AiOutlineEuro,
-  AiOutlineEye
+  AiOutlineEye,
+  AiOutlineDownload
 } from 'react-icons/ai';
 import { FaChartLine, FaPaperPlane } from 'react-icons/fa';
 import './AllServices.css';
@@ -147,6 +149,44 @@ const QuotesSent = ({ onEditService }) => {
     setIsProfitModalOpen(true);
   };
 
+  const handleDownloadOffer = async (service) => {
+    if (!service?.offerId) {
+      alert('Teklif ID bulunamadı');
+      return;
+    }
+
+    try {
+      const API_BASE_URL = 'https://avitech-backend-production.up.railway.app';
+      const response = await fetch(`${API_BASE_URL}/api/pdf/offers/${service.offerId}`, {
+        method: 'GET',
+        headers: authService.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'PDF indirilirken bir hata oluştu');
+      }
+
+      // Get the PDF blob
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `teklif-${service.offerId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error downloading offer PDF:', err);
+      alert(err.message || 'PDF indirilirken bir hata oluştu');
+    }
+  };
+
   const getStatusClass = (status) => {
     switch (status) {
       case 'ONAY BEKLİYOR':
@@ -238,6 +278,14 @@ const QuotesSent = ({ onEditService }) => {
               >
                 <AiOutlineEuro className="btn-icon" />
                 Maliyet
+              </button>
+              <button 
+                className="btn-download"
+                onClick={() => handleDownloadOffer(service)}
+                title="Teklif PDF İndir"
+              >
+                <AiOutlineDownload className="btn-icon" />
+                İndir
               </button>
               
             </div>

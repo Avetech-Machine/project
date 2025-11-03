@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AiOutlineClose, AiOutlineEdit, AiOutlineDownload } from 'react-icons/ai';
 import projectService from '../../services/projectService';
+import authService from '../../services/authService';
 import EditProjectModal from './EditProjectModal';
 import './ServiceDetailsModal.css';
 
@@ -9,6 +10,9 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [showPhotoGallery, setShowPhotoGallery] = useState(false);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
 
   useEffect(() => {
     const fetchProjectDetails = async () => {
@@ -66,11 +70,70 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
     setShowEditModal(false);
   };
 
-  const handleDownload = () => {
-    // TODO: Implement PDF download functionality
-    // For now, just log or show a message
-    console.log('Download functionality to be implemented');
-    alert('İndirme özelliği yakında eklenecek');
+  const handleDownload = async () => {
+    if (!service?.id) {
+      alert('Proje ID bulunamadı');
+      return;
+    }
+
+    try {
+      setDownloading(true);
+      const API_BASE_URL = 'https://avitech-backend-production.up.railway.app';
+      const response = await fetch(`${API_BASE_URL}/api/pdf/machines/${service.id}/info`, {
+        method: 'GET',
+        headers: authService.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'PDF indirilirken bir hata oluştu');
+      }
+
+      // Get the PDF blob
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `makine-bilgi-${service.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error downloading PDF:', err);
+      alert(err.message || 'PDF indirilirken bir hata oluştu');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handlePhotoClick = (index = 0) => {
+    setSelectedPhotoIndex(index);
+    setShowPhotoGallery(true);
+  };
+
+  const handleClosePhotoGallery = () => {
+    setShowPhotoGallery(false);
+  };
+
+  const handlePhotoGalleryOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      handleClosePhotoGallery();
+    }
+  };
+
+  const handlePreviousPhoto = () => {
+    const photos = projectDetails?.photos || [];
+    setSelectedPhotoIndex((prev) => (prev > 0 ? prev - 1 : photos.length - 1));
+  };
+
+  const handleNextPhoto = () => {
+    const photos = projectDetails?.photos || [];
+    setSelectedPhotoIndex((prev) => (prev < photos.length - 1 ? prev + 1 : 0));
   };
 
   return (
@@ -89,9 +152,13 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                 <AiOutlineEdit className="button-icon" />
                 Düzenle
             </button>
-            <button className="download-button" onClick={handleDownload}>
+            <button 
+              className="download-button" 
+              onClick={handleDownload}
+              disabled={downloading}
+            >
                 <AiOutlineDownload className="button-icon" />
-                İndir
+                {downloading ? 'İndiriliyor...' : 'İndir'}
             </button>
           </div>
         )}
@@ -266,12 +333,30 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
 
             {/* Right side - Machine image */}
             <div className="machine-image-section">
-              <div className="machine-image-placeholder">
-                <div className="image-placeholder-text">
-                  <span>Makine Görseli</span>
-                  <small>{projectDetails.machineName}</small>
+              {projectDetails.photos && projectDetails.photos.length > 0 ? (
+                <div 
+                  className="machine-image-container"
+                  onClick={() => handlePhotoClick(0)}
+                >
+                  <img 
+                    src={projectDetails.photos[0]} 
+                    alt={projectDetails.machineName || 'Makine Görseli'}
+                    className="machine-image"
+                  />
+                  {projectDetails.photos.length > 1 && (
+                    <div className="photo-count-badge">
+                      +{projectDetails.photos.length - 1}
+                    </div>
+                  )}
                 </div>
-              </div>
+              ) : (
+                <div className="machine-image-placeholder">
+                  <div className="image-placeholder-text">
+                    <span>Makine Görseli</span>
+                    <small>{projectDetails.machineName}</small>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           )}
@@ -285,6 +370,60 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
           onClose={handleEditModalClose}
           onSaveComplete={handleEditSaveComplete}
         />
+      )}
+
+      {/* Photo Gallery Modal */}
+      {showPhotoGallery && projectDetails?.photos && projectDetails.photos.length > 0 && (
+        <div className="photo-gallery-overlay" onClick={handlePhotoGalleryOverlayClick}>
+          <div className="photo-gallery-content" onClick={(e) => e.stopPropagation()}>
+            <div className="photo-gallery-header">
+              <h3>Makine Fotoğrafları</h3>
+              <button className="photo-gallery-close" onClick={handleClosePhotoGallery}>
+                <AiOutlineClose />
+              </button>
+            </div>
+            <div className="photo-gallery-body">
+              <button 
+                className="photo-gallery-nav photo-gallery-prev" 
+                onClick={handlePreviousPhoto}
+                disabled={projectDetails.photos.length <= 1}
+              >
+                ‹
+              </button>
+              <div className="photo-gallery-main-image">
+                <img 
+                  src={projectDetails.photos[selectedPhotoIndex]} 
+                  alt={`Makine Fotoğrafı ${selectedPhotoIndex + 1}`}
+                />
+              </div>
+              <button 
+                className="photo-gallery-nav photo-gallery-next" 
+                onClick={handleNextPhoto}
+                disabled={projectDetails.photos.length <= 1}
+              >
+                ›
+              </button>
+            </div>
+            {projectDetails.photos.length > 1 && (
+              <div className="photo-gallery-footer">
+                <span className="photo-gallery-counter">
+                  {selectedPhotoIndex + 1} / {projectDetails.photos.length}
+                </span>
+                <div className="photo-gallery-thumbnails">
+                  {projectDetails.photos.map((photo, index) => (
+                    <img
+                      key={index}
+                      src={photo}
+                      alt={`Thumbnail ${index + 1}`}
+                      className={`photo-thumbnail ${selectedPhotoIndex === index ? 'active' : ''}`}
+                      onClick={() => setSelectedPhotoIndex(index)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

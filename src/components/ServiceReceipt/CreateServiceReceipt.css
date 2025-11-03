@@ -464,6 +464,11 @@
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+  }
+
+  .photo-preview-container:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
 
   .photo-preview {
@@ -499,6 +504,60 @@
   .photo-delete-btn:hover {
     background: rgba(239, 68, 68, 1);
     transform: scale(1.1);
+  }
+
+  .photo-order-number {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: rgba(51, 51, 51, 0.8);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .photo-reorder-buttons {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+    z-index: 3;
+  }
+
+  .photo-reorder-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    background: rgba(51, 51, 51, 0.85);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    padding: 0;
+    transition: all 0.2s;
+  }
+
+  .photo-reorder-btn:hover:not(:disabled) {
+    background: rgba(51, 51, 51, 1);
+    transform: scale(1.1);
+  }
+
+  .photo-reorder-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 
   /* Photo Modal Styles */
@@ -601,4 +660,38 @@
     font-weight: 500;
     min-width: 60px;
     text-align: center;
+  }
+
+  .photo-gallery-thumbnails {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.5);
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  .photo-thumbnail {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s ease;
+    opacity: 0.6;
+  }
+
+  .photo-thumbnail:hover {
+    opacity: 1;
+    border-color: #007bff;
+    transform: scale(1.05);
+  }
+
+  .photo-thumbnail.active {
+    opacity: 1;
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
   }

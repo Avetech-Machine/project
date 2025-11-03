@@ -3,7 +3,7 @@ import CostDetails from './CostDetails';
 import SalesAnalysis from './SalesAnalysis';
 import { getExchangeRates } from '../../services/currencyService';
 import projectService from '../../services/projectService';
-import { FaEuroSign, FaChartLine, FaPlus, FaCamera, FaTimes } from 'react-icons/fa';
+import { FaEuroSign, FaChartLine, FaPlus, FaCamera, FaTimes, FaChevronUp, FaChevronDown } from 'react-icons/fa';
 import './CreateServiceReceipt.css';
 import './EditProjectModal.css';
 
@@ -62,6 +62,9 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
   const [projectCode, setProjectCode] = useState('AVEMAK-001'); // Project code starting at AVEMAK-001
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [showPhotoGalleryModal, setShowPhotoGalleryModal] = useState(false);
+  const [deletedExistingPhotos, setDeletedExistingPhotos] = useState([]); // Track deleted existing photo URLs
+  const [customerPhotoOrder, setCustomerPhotoOrder] = useState([]); // Track order of first 10 photos for customer
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
@@ -176,8 +179,24 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
         machineHeight: project.machineHeight ? project.machineHeight.toString() : '',
         maxMaterialWeight: project.maxMaterialWeight ? project.maxMaterialWeight.toString() : '',
         accessoryData: project.additionalEquipment || project.accessoryData || '',
-        photos: project.photos || []
+        photos: (project.photos || []).map((photoUrl, index) => {
+          // Transform existing photos from API (URLs) into the format expected by the component
+          if (typeof photoUrl === 'string') {
+            return {
+              id: `existing-${index}-${Date.now()}`,
+              url: photoUrl,
+              existing: true, // Flag to identify existing photos
+              originalUrl: photoUrl // Keep original URL for deletion tracking
+            };
+          }
+          return photoUrl; // Already in correct format
+        })
       });
+      
+      // Initialize customer photo order will be set in useEffect after formData is populated
+      
+      // Reset deleted photos when loading a new project
+      setDeletedExistingPhotos([]);
       
       console.log('=== FORM DATA SET ===');
       console.log('Form Data after setting:', {
@@ -407,10 +426,17 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
   };
 
   const handlePhotoDelete = (photoId) => {
-    setFormData(prev => ({
-      ...prev,
-      photos: prev.photos.filter(photo => photo.id !== photoId)
-    }));
+    setFormData(prev => {
+      const photoToDelete = prev.photos.find(p => p.id === photoId);
+      // If it's an existing photo, add to deletion list
+      if (photoToDelete && photoToDelete.existing && photoToDelete.originalUrl) {
+        setDeletedExistingPhotos(prevDeleted => [...prevDeleted, photoToDelete.originalUrl]);
+      }
+      return {
+        ...prev,
+        photos: prev.photos.filter(photo => photo.id !== photoId)
+      };
+    });
   };
 
   const handlePhotoClick = (index) => {
@@ -422,6 +448,82 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
     setShowPhotoModal(false);
     setSelectedPhotoIndex(null);
   };
+
+  const handlePhotoGalleryClick = () => {
+    setShowPhotoGalleryModal(true);
+  };
+
+  const closePhotoGalleryModal = () => {
+    setShowPhotoGalleryModal(false);
+  };
+
+  // Get the first photo (cover photo) for display
+  const getCoverPhoto = () => {
+    if (formData.photos.length === 0) return null;
+    // Use customer photo order if available, otherwise use first photo
+    if (customerPhotoOrder.length > 0) {
+      const coverPhotoId = customerPhotoOrder[0].photoId;
+      const photo = formData.photos.find(p => (p.id || p) === coverPhotoId) || formData.photos[0];
+      return photo.url || photo;
+    }
+    const firstPhoto = formData.photos[0];
+    return firstPhoto.url || firstPhoto;
+  };
+
+  // Reorder customer photos (first 10)
+  const handleReorderCustomerPhoto = (index, direction) => {
+    if (index === 0 && direction === 'up') return; // Can't move cover photo up
+    if (index >= customerPhotoOrder.length - 1 && direction === 'down') return;
+    
+    const newOrder = [...customerPhotoOrder];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    [newOrder[index], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[index]];
+    setCustomerPhotoOrder(newOrder);
+  };
+
+  // Update customer photo order when photos change
+  useEffect(() => {
+    if (formData.photos.length > 0) {
+      if (customerPhotoOrder.length === 0) {
+        // Initialize customer photo order only if empty
+        const newOrder = formData.photos.slice(0, 10).map((photo, idx) => {
+          const photoId = photo.id || (typeof photo === 'string' ? photo : `photo-${idx}`);
+          return {
+            photoId: photoId,
+            index: idx
+          };
+        });
+        setCustomerPhotoOrder(newOrder);
+      } else {
+        // Update order to remove deleted photos and add new ones if needed
+        const currentOrderIds = customerPhotoOrder.map(item => item.photoId);
+        const allPhotoIds = formData.photos.map(p => p.id || (typeof p === 'string' ? p : `photo-${formData.photos.indexOf(p)}`));
+        const validOrder = customerPhotoOrder.filter(item => allPhotoIds.includes(item.photoId));
+        
+        // Add new photos if we have less than 10
+        if (validOrder.length < 10) {
+          const missingPhotos = formData.photos.filter(p => {
+            const photoId = p.id || (typeof p === 'string' ? p : `photo-${formData.photos.indexOf(p)}`);
+            return !validOrder.some(item => item.photoId === photoId);
+          });
+          
+          const newOrder = [
+            ...validOrder,
+            ...missingPhotos.slice(0, 10 - validOrder.length).map((photo, idx) => {
+              const photoId = photo.id || (typeof photo === 'string' ? photo : `photo-${formData.photos.indexOf(photo)}`);
+              return {
+                photoId: photoId,
+                index: validOrder.length + idx
+              };
+            })
+          ];
+          setCustomerPhotoOrder(newOrder);
+        } else {
+          setCustomerPhotoOrder(validOrder);
+        }
+      }
+    }
+  }, [formData.photos.length]); // Only depend on length to avoid infinite loops
 
   const openFileUpload = () => {
     console.log('Opening file upload...');
@@ -498,8 +600,8 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       takimSayisi: parseInt(formData.teamCount) || 0,
       netWeight: (formData.machineNetWeight && !isNaN(parseFloat(formData.machineNetWeight))) ? parseFloat(formData.machineNetWeight) : null,
       additionalWeight: (formData.additionalWeight && !isNaN(parseFloat(formData.additionalWeight))) ? parseFloat(formData.additionalWeight) : null,
-      operatingSystem: formData.operatingSystem === 'Other' ? formData.customOperatingSystem : formData.operatingSystem || 'Heidenhain',
-      anahtarBilgisi: keyInformation.toString(),
+      operatingSystem: formData.operatingSystem === 'Other' ? (formData.customOperatingSystem || '') : (formData.operatingSystem || 'Heidenhain'),
+      anahtarBilgisi: keyInformation ? keyInformation.toString() : '',
       takimOlcmeProbu: formData.teamMeasurementProbe === 'Var',
       parcaOlcmeProbu: formData.partMeasurementProbe === 'Var',
       ictenSuVerme: formData.insideWaterGiving === 'Var',
@@ -516,10 +618,13 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       machineHeight: (formData.machineHeight && !isNaN(parseFloat(formData.machineHeight))) ? parseFloat(formData.machineHeight) : null,
       maxMaterialWeight: (formData.maxMaterialWeight && !isNaN(parseFloat(formData.maxMaterialWeight))) ? parseFloat(formData.maxMaterialWeight) : null,
       additionalEquipment: formData.accessoryData || '',
-      costDetails: costDetails.map(cost => `${cost.description}: ${cost.currency} ${cost.amount}`).join(', '),
+      costDetails: costDetails.map(cost => `${cost.description}: ${cost.currency} ${cost.amount}`).join(', ') || '',
       priceDetails: `Base price: ${salesPrice}, Total cost: ${totalCost}, Net profit: ${netProfit}`,
-      status: "TEMPLATE",
-      photos: []
+      salesProfitAnalysis: `Sales Price: ${salesPrice} EUR, Total Cost: ${totalCost} EUR, Net Profit: ${netProfit} EUR, Profit Margin: ${profitMargin}%`,
+      targetSalePrice: parseFloat(salesPrice) || null,
+      targetNetProfit: parseFloat(netProfit) || null,
+      status: "TEMPLATE"
+      // Note: photos are now sent separately as files, not as URLs
     };
     
     console.log('=== VALIDATION CHECK ===');
@@ -553,14 +658,28 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       // Map form data to API format
       const apiData = mapFormDataToAPI();
       
+      // Filter photos to only include new ones (those with file property)
+      // Existing photos don't have a file property, so they won't be sent
+      const newPhotos = formData.photos.filter(photo => photo.file);
+      
+      // Add customer photo order to API data
+      const customerPhotoIds = customerPhotoOrder.slice(0, 10).map(item => item.photoId);
+      apiData.customerPhotoOrder = customerPhotoIds;
+      
       // Log the data being sent to API
       console.log('=== API UPDATE REQUEST DATA ===');
       console.log('Raw API Data:', apiData);
-      console.log('JSON Stringified:', JSON.stringify(apiData, null, 2));
+      console.log('All Photos:', formData.photos);
+      console.log('New Photo Files to Upload:', newPhotos);
+      console.log('Number of new photos:', newPhotos.length);
+      console.log('Deleted Existing Photos:', deletedExistingPhotos);
+      console.log('Customer Photo Order:', customerPhotoIds);
       console.log('==============================');
       
-      // Call API to update project using POST method as specified
-      const response = await projectService.updateProject(project.id, apiData);
+      // Call API to update project with photo files
+      // Note: The API will need to handle deletion of photos based on deletedExistingPhotos
+      // For now, we're only sending new photos. The API should handle existing photos that aren't in the list
+      const response = await projectService.updateProject(project.id, apiData, newPhotos);
       
       // Call the callback if provided
       if (onSaveComplete) {
@@ -593,8 +712,9 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
           <div className="create-service-receipt">
             
             {/* Machine Information Section */}
-            <div className="form-section">
-              <h2 className="section-title">Makine Bilgileri</h2>
+            <div className="form-section-with-photos">
+              <div className="form-section-main">
+                <h2 className="section-title">Makine Bilgileri</h2>
               
               {/* Photo Upload Section */}
               <div className="form-row">
@@ -641,23 +761,29 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
                     {/* Photo previews */}
                     {formData.photos.length > 0 && (
                       <div className="photo-previews">
-                        {formData.photos.map((photo, index) => (
-                          <div key={photo.id} className="photo-preview-container">
-                            <img
-                              src={photo.url}
-                              alt={`Photo ${index + 1}`}
-                              className="photo-preview"
-                              onClick={() => handlePhotoClick(index)}
-                            />
-                            <button
-                              type="button"
-                              className="photo-delete-btn"
-                              onClick={() => handlePhotoDelete(photo.id)}
-                            >
-                              <FaTimes />
-                            </button>
-                          </div>
-                        ))}
+                        {formData.photos.map((photo, index) => {
+                          // Handle both existing photos (with url property) and new photos
+                          const photoUrl = photo.url || photo;
+                          const photoId = photo.id || `photo-${index}`;
+                          return (
+                            <div key={photoId} className="photo-preview-container">
+                              <img
+                                src={photoUrl}
+                                alt={`Photo ${index + 1}`}
+                                className="photo-preview"
+                                onClick={() => handlePhotoClick(index)}
+                              />
+                              <button
+                                type="button"
+                                className="photo-delete-btn"
+                                onClick={() => handlePhotoDelete(photoId)}
+                                title="Fotoğrafı Sil"
+                              >
+                                <FaTimes />
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -1088,6 +1214,33 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
                   />
                 </div>
               </div>
+              </div>
+              
+              {/* Photo Display Section (Right Side) */}
+              <div className="photo-display-section">
+                <h3 className="photo-section-title">Fotolar</h3>
+                {getCoverPhoto() ? (
+                  <div 
+                    className="cover-photo-container"
+                    onClick={handlePhotoGalleryClick}
+                  >
+                    <img 
+                      src={getCoverPhoto()} 
+                      alt="Kapak Fotoğrafı"
+                      className="cover-photo"
+                    />
+                    {formData.photos.length > 1 && (
+                      <div className="photo-count-overlay">
+                        {formData.photos.length} Fotoğraf
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="cover-photo-placeholder">
+                    <span>Fotoğraf ekleyin</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Cost Details Section */}
@@ -1132,7 +1285,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
                     <FaTimes />
                   </button>
                   <img
-                    src={formData.photos[selectedPhotoIndex].url}
+                    src={formData.photos[selectedPhotoIndex]?.url || formData.photos[selectedPhotoIndex]}
                     alt={`Photo ${selectedPhotoIndex + 1}`}
                     className="photo-modal-image"
                   />
@@ -1155,6 +1308,108 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
                       ›
                     </button>
                   </div>
+                  {formData.photos.length > 1 && (
+                    <div className="photo-gallery-thumbnails">
+                      {formData.photos.map((photo, index) => {
+                        const photoUrl = photo.url || photo;
+                        return (
+                          <img
+                            key={photo.id || `thumb-${index}`}
+                            src={photoUrl}
+                            alt={`Thumbnail ${index + 1}`}
+                            className={`photo-thumbnail ${selectedPhotoIndex === index ? 'active' : ''}`}
+                            onClick={() => setSelectedPhotoIndex(index)}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Photo Gallery Modal with Customer Photo Management */}
+            {showPhotoGalleryModal && (
+              <div className="photo-gallery-modal-overlay" onClick={closePhotoGalleryModal}>
+                <div className="photo-gallery-modal-content" onClick={(e) => e.stopPropagation()}>
+                  <div className="photo-gallery-modal-header">
+                    <h3>Fotoğraf Galerisi</h3>
+                    <button className="photo-gallery-modal-close" onClick={closePhotoGalleryModal}>
+                      <FaTimes />
+                    </button>
+                  </div>
+                  
+                  <div className="photo-gallery-modal-body">
+                    <div className="customer-photos-section">
+                      <h4>Müşteriye Gönderilecek Fotoğraflar (İlk 10)</h4>
+                      <p className="photo-help-text">İlk fotoğraf kapak fotoğrafıdır. Fotoğrafları yeniden sıralamak için yukarı/aşağı butonlarını kullanın.</p>
+                      <div className="customer-photos-list">
+                        {customerPhotoOrder.slice(0, 10).map((orderItem, index) => {
+                          const photo = formData.photos.find(p => (p.id || p) === orderItem.photoId);
+                          if (!photo) return null;
+                          const photoUrl = photo.url || photo;
+                          return (
+                            <div key={orderItem.photoId} className="customer-photo-item">
+                              <div className="customer-photo-number">{index === 0 ? 'Kapak' : index + 1}</div>
+                              <img 
+                                src={photoUrl} 
+                                alt={`Customer photo ${index + 1}`}
+                                className="customer-photo-thumb"
+                              />
+                              <div className="customer-photo-actions">
+                                <button
+                                  className="reorder-btn"
+                                  onClick={() => handleReorderCustomerPhoto(index, 'up')}
+                                  disabled={index === 0}
+                                  title="Yukarı"
+                                >
+                                  <FaChevronUp />
+                                </button>
+                                <button
+                                  className="reorder-btn"
+                                  onClick={() => handleReorderCustomerPhoto(index, 'down')}
+                                  disabled={index >= Math.min(customerPhotoOrder.length, 10) - 1}
+                                  title="Aşağı"
+                                >
+                                  <FaChevronDown />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    <div className="all-photos-section">
+                      <h4>Tüm Fotoğraflar</h4>
+                      <div className="all-photos-grid">
+                        {formData.photos.map((photo, index) => {
+                          const photoUrl = photo.url || photo;
+                          const photoId = photo.id || `photo-${index}`;
+                          const isCustomerPhoto = customerPhotoOrder.slice(0, 10).some(item => item.photoId === photoId);
+                          return (
+                            <div 
+                              key={photoId} 
+                              className={`all-photo-item ${isCustomerPhoto ? 'customer-photo' : ''}`}
+                            >
+                              <img 
+                                src={photoUrl} 
+                                alt={`Photo ${index + 1}`}
+                                className="all-photo-thumb"
+                              />
+                              {isCustomerPhoto && (
+                                <div className="customer-photo-badge">
+                                  {customerPhotoOrder.findIndex(item => item.photoId === photoId) === 0 
+                                    ? 'Kapak' 
+                                    : customerPhotoOrder.findIndex(item => item.photoId === photoId) + 1}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -1166,3 +1421,4 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
 };
 
 export default EditProjectModal;
+

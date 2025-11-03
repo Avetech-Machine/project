@@ -5,7 +5,7 @@ import SalesAnalysis from './SalesAnalysis';
 import { getExchangeRates } from '../../services/currencyService';
 import projectService from '../../services/projectService';
 import { useAuth } from '../../contexts/AuthContext';
-import { FaEuroSign, FaChartLine, FaPlus, FaCamera, FaTimes } from 'react-icons/fa';
+import { FaEuroSign, FaChartLine, FaPlus, FaCamera, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import './CreateServiceReceipt.css';
 
 const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
@@ -376,6 +376,24 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     }));
   };
 
+  // Photo reordering functions
+  const handlePhotoReorder = (index, direction) => {
+    if (direction === 'left' && index === 0) return; // Can't move first photo left
+    if (direction === 'right' && index >= formData.photos.length - 1) return; // Can't move last photo right
+    
+    setFormData(prev => {
+      const newPhotos = [...prev.photos];
+      const targetIndex = direction === 'left' ? index - 1 : index + 1;
+      // Swap photos
+      [newPhotos[index], newPhotos[targetIndex]] = [newPhotos[targetIndex], newPhotos[index]];
+      
+      return {
+        ...prev,
+        photos: newPhotos
+      };
+    });
+  };
+
   const handlePhotoClick = (index) => {
     setSelectedPhotoIndex(index);
     setShowPhotoModal(true);
@@ -463,8 +481,8 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       takimSayisi: parseInt(formData.teamCount) || 0,
       netWeight: (formData.machineNetWeight && !isNaN(parseFloat(formData.machineNetWeight))) ? parseFloat(formData.machineNetWeight) : null,
       additionalWeight: (formData.additionalWeight && !isNaN(parseFloat(formData.additionalWeight))) ? parseFloat(formData.additionalWeight) : null,
-      operatingSystem: formData.operatingSystem === 'Other' ? formData.customOperatingSystem : formData.operatingSystem || '',
-      anahtarBilgisi: keyInformation || '',
+      operatingSystem: formData.operatingSystem === 'Other' ? (formData.customOperatingSystem || '') : (formData.operatingSystem || ''),
+      anahtarBilgisi: keyInformation ? keyInformation.toString() : '',
       takimOlcmeProbu: formData.teamMeasurementProbe === 'Var',
       parcaOlcmeProbu: formData.partMeasurementProbe === 'Var',
       ictenSuVerme: formData.insideWaterGiving === 'Var',
@@ -481,10 +499,13 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       machineHeight: (formData.machineHeight && !isNaN(parseFloat(formData.machineHeight))) ? parseFloat(formData.machineHeight) : null,
       maxMaterialWeight: (formData.maxMaterialWeight && !isNaN(parseFloat(formData.maxMaterialWeight))) ? parseFloat(formData.maxMaterialWeight) : null,
       additionalEquipment: formData.accessoryData || '',
-      costDetails: costDetails.map(cost => `${cost.description}: ${cost.currency} ${cost.amount}`).join(', '),
+      costDetails: costDetails.map(cost => `${cost.description}: ${cost.currency} ${cost.amount}`).join(', ') || '',
       priceDetails: `Base price: ${salesPrice}, Total cost: ${totalCost}, Net profit: ${netProfit}`,
-      status: "TEMPLATE",
-      photos: (formData.photos && Array.isArray(formData.photos)) ? formData.photos.map(photo => photo.url).filter(url => url) : []
+      salesProfitAnalysis: `Sales Price: ${salesPrice} EUR, Total Cost: ${totalCost} EUR, Net Profit: ${netProfit} EUR, Profit Margin: ${profitMargin}%`,
+      targetSalePrice: parseFloat(salesPrice) || null,
+      targetNetProfit: parseFloat(netProfit) || null,
+      status: "TEMPLATE"
+      // Note: photos are now sent separately as files, not as URLs
     };
     
     return validateAndCleanData(apiData);
@@ -501,11 +522,12 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       // Log the data being sent to API
       console.log('=== API REQUEST DATA ===');
       console.log('Raw API Data:', apiData);
-      console.log('JSON Stringified:', JSON.stringify(apiData, null, 2));
+      console.log('Photo Files to Upload:', formData.photos);
+      console.log('Number of photos:', formData.photos.length);
       console.log('========================');
       
-      // Call API to create project
-      const response = await projectService.createProject(apiData);
+      // Call API to create project with photo files
+      const response = await projectService.createProject(apiData, formData.photos);
       
       // Create service object for local storage (for backward compatibility)
       const serviceData = {
@@ -645,13 +667,43 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               {formData.photos.length > 0 && (
                 <div className="photo-previews">
                   {formData.photos.map((photo, index) => (
-                    <div key={photo.id} className="photo-preview-container">
+                    <div 
+                      key={photo.id} 
+                      className="photo-preview-container"
+                    >
+                      <div className="photo-order-number">{index + 1}</div>
                       <img
                         src={photo.url}
                         alt={`Photo ${index + 1}`}
                         className="photo-preview"
                         onClick={() => handlePhotoClick(index)}
                       />
+                      <div className="photo-reorder-buttons">
+                        <button
+                          type="button"
+                          className="photo-reorder-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePhotoReorder(index, 'left');
+                          }}
+                          disabled={index === 0}
+                          title="Sola"
+                        >
+                          <FaChevronLeft />
+                        </button>
+                        <button
+                          type="button"
+                          className="photo-reorder-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePhotoReorder(index, 'right');
+                          }}
+                          disabled={index >= formData.photos.length - 1}
+                          title="Sağa"
+                        >
+                          <FaChevronRight />
+                        </button>
+                      </div>
                       <button
                         type="button"
                         className="photo-delete-btn"
@@ -1093,7 +1145,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             />
           </div>
         </div>
-      </div>
+      </div> 
 
       {/* Cost Details Section */}
       <CostDetails

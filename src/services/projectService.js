@@ -13,7 +13,7 @@ class ProjectService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Projeler yüklenirken bir hata oluştu');
-      }
+      } 
 
       const data = await response.json();
       return data;
@@ -43,27 +43,51 @@ class ProjectService {
     }
   }
 
-  async createProject(projectData) {
+  async createProject(projectData, photoFiles = []) {
     try {
+      // Create FormData for multipart/form-data request
+      const formData = new FormData();
+      
+      // Remove photos from projectData since we'll send them separately as files
+      const { photos, ...projectDataWithoutPhotos } = projectData;
+      
+      // Add projectData as a JSON Blob with proper content type
+      // This ensures the backend can properly parse the JSON field
+      const projectDataJson = JSON.stringify(projectDataWithoutPhotos);
+      const projectDataBlob = new Blob([projectDataJson], { type: 'application/json' });
+      formData.append('projectData', projectDataBlob, 'projectData.json');
+      
+      // Add photo files
+      if (photoFiles && photoFiles.length > 0) {
+        photoFiles.forEach((photo, index) => {
+          if (photo.file) {
+            // Append actual file object
+            formData.append('photos', photo.file, photo.name || `photo_${index}.jpg`);
+          }
+        });
+      }
+      
       // Log the request details
-      console.log('=== PROJECT SERVICE REQUEST ===');
+      console.log('=== PROJECT SERVICE REQUEST (WITH FILES) ===');
       console.log('URL:', `${API_BASE_URL}/api/projects`);
       console.log('Method: POST');
-      console.log('Headers:', {
-        ...authService.getAuthHeaders(),
-        'Content-Type': 'application/json',
-      });
-      console.log('Body (stringified):', JSON.stringify(projectData));
-      console.log('Body (raw):', projectData);
-      console.log('================================');
+      console.log('Content-Type: multipart/form-data');
+      console.log('Project Data:', projectDataWithoutPhotos);
+      console.log('Number of photos:', photoFiles.length);
+      console.log('==========================================');
+      
+      // Get auth headers but remove Content-Type to let browser set it with boundary
+      const authHeaders = authService.getAuthHeaders();
+      const headersWithoutContentType = { ...authHeaders };
+      delete headersWithoutContentType['Content-Type'];
       
       const response = await fetch(`${API_BASE_URL}/api/projects`, {
         method: 'POST',
         headers: {
-          ...authService.getAuthHeaders(),
-          'Content-Type': 'application/json',
+          ...headersWithoutContentType,
+          // Don't set Content-Type - let browser set it with boundary for multipart/form-data
         },
-        body: JSON.stringify(projectData),
+        body: formData,
       });
 
       console.log('=== RESPONSE DETAILS ===');
@@ -72,10 +96,19 @@ class ProjectService {
       console.log('Headers:', Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        // Try to get error message from response
+        let errorData = {};
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          errorData = await response.json().catch(() => ({}));
+        } else {
+          const text = await response.text().catch(() => '');
+          errorData = { message: text || 'An unexpected error occurred' };
+        }
         console.log('Error Response:', errorData);
+        console.log('Error Status:', response.status);
         console.log('=======================');
-        throw new Error(errorData.message || 'Proje oluşturulurken bir hata oluştu');
+        throw new Error(errorData.message || errorData.error || 'Proje oluşturulurken bir hata oluştu');
       }
 
       const data = await response.json();
@@ -88,27 +121,51 @@ class ProjectService {
     }
   }
 
-  async updateProject(id, projectData) {
+  async updateProject(id, projectData, photoFiles = []) {
     try {
+      // Create FormData for multipart/form-data request
+      const formData = new FormData();
+      
+      // Remove photos from projectData since we'll send them separately as files
+      const { photos, ...projectDataWithoutPhotos } = projectData;
+      
+      // Add projectData as a JSON Blob with proper content type
+      // This ensures the backend can properly parse the JSON field
+      const projectDataJson = JSON.stringify(projectDataWithoutPhotos);
+      const projectDataBlob = new Blob([projectDataJson], { type: 'application/json' });
+      formData.append('projectData', projectDataBlob, 'projectData.json');
+      
+      // Add photo files
+      if (photoFiles && photoFiles.length > 0) {
+        photoFiles.forEach((photo, index) => {
+          if (photo.file) {
+            // Append actual file object
+            formData.append('photos', photo.file, photo.name || `photo_${index}.jpg`);
+          }
+        });
+      }
+      
       // Log the request details
-      console.log('=== PROJECT UPDATE REQUEST ===');
+      console.log('=== PROJECT UPDATE REQUEST (WITH FILES) ===');
       console.log('URL:', `${API_BASE_URL}/api/projects/${id}`);
       console.log('Method: PUT');
-      console.log('Headers:', {
-        ...authService.getAuthHeaders(),
-        'Content-Type': 'application/json',
-      });
-      console.log('Body (stringified):', JSON.stringify(projectData));
-      console.log('Body (raw):', projectData);
-      console.log('==============================');
+      console.log('Content-Type: multipart/form-data');
+      console.log('Project Data:', projectDataWithoutPhotos);
+      console.log('Number of photos:', photoFiles.length);
+      console.log('==========================================');
+      
+      // Get auth headers but remove Content-Type to let browser set it with boundary
+      const authHeaders = authService.getAuthHeaders();
+      const headersWithoutContentType = { ...authHeaders };
+      delete headersWithoutContentType['Content-Type'];
       
       const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
         method: 'PUT',
         headers: {
-          ...authService.getAuthHeaders(),
-          'Content-Type': 'application/json',
+          ...headersWithoutContentType,
+          // Don't set Content-Type - let browser set it with boundary for multipart/form-data
         },
-        body: JSON.stringify(projectData),
+        body: formData,
       });
 
       console.log('=== UPDATE RESPONSE DETAILS ===');
@@ -117,7 +174,15 @@ class ProjectService {
       console.log('Headers:', Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        // Try to get error message from response
+        let errorData = {};
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          errorData = await response.json().catch(() => ({}));
+        } else {
+          const text = await response.text().catch(() => '');
+          errorData = { message: text || 'An unexpected error occurred' };
+        }
         console.log('Error Response:', errorData);
         console.log('Error Status:', response.status);
         console.log('Error Status Text:', response.statusText);
@@ -504,3 +569,4 @@ class ProjectService {
 }
 
 export default new ProjectService();
+
