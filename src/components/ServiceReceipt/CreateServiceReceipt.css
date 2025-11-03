@@ -81,6 +81,13 @@
     color: #333333;
     margin-bottom: 8px;
     font-size: 14px;
+    text-align: left;
+  }
+  
+  /* Ensure machine brand and model labels are left-aligned */
+  .form-group.machine-brand label,
+  .form-group.machine-model label {
+    text-align: left;
   }
   
   .form-group input,

@@ -127,26 +127,26 @@
   gap: 20px;
 }
 
-.form-group {
+.login-form .form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.form-group label {
+.login-form .form-group label {
   color: #e5e7eb;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.025em;
 }
 
-.input-wrapper {
+.login-form .input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.input-icon {
+.login-form .input-icon {
   position: absolute;
   left: 16px;
   width: 18px;
@@ -156,9 +156,9 @@
   z-index: 1;
 }
 
-.form-group input {
+.login-form .form-group input {
   width: 100%;
-  padding: 12px 16px 12px 48px;
+  padding: 12px 16px 12px 52px;
   border: 1.5px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   font-size: 15px;
@@ -168,25 +168,25 @@
   box-sizing: border-box;
 }
 
-.form-group input:focus {
+.login-form .form-group input:focus {
   outline: none;
   border-color: rgba(99, 102, 241, 0.5);
   background: rgba(255, 255, 255, 0.08);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.form-group input:disabled {
+.login-form .form-group input:disabled {
   background: rgba(255, 255, 255, 0.02);
   color: #6b7280;
   cursor: not-allowed;
 }
 
-.form-group input::placeholder {
+.login-form .form-group input::placeholder {
   color: #6b7280;
 }
 
 /* Form Options (Remember Me & Forgot Password) */
-.form-options {
+.login-form .form-options {
   display: flex;
   justify-content: space-between;
   align-items: center;

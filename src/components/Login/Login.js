@@ -87,7 +87,7 @@ const Login = () => {
                   onChange={handleInputChange}
                   required
                   disabled={loading}
-                  placeholder="Kullanıcı adınızı girin"
+                  placeholder="Kullanıcı adınızı girin" 
                 />
               </div>
             </div>
