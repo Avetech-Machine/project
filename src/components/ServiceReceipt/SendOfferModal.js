@@ -375,8 +375,21 @@ const SendOfferModal = ({ service, onClose }) => {
         return;
       }
 
+      // Combine delivery terms, payment terms, and delivery date into description
+      const description = [
+        `Teslimat Şartları: ${editableTexts.deliveryTerms}`,
+        `Ödeme Şartları: ${editableTexts.paymentTerms}`,
+        `Teslimat Tarihi: ${editableTexts.deliveryDate}`
+      ].join('\n');
+
       // Send offer to the client using new endpoint
-      await projectService.sendOfferToClients(service.id, [clientToUse.id], ccEmails);
+      await projectService.sendOfferToClients(
+        service.id, 
+        [clientToUse.id], 
+        ccEmails,
+        formData.salesPrice,
+        description
+      );
       
       setIsSubmitting(false);
       setShowSuccess(true);

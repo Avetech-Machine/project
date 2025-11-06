@@ -66,6 +66,57 @@ class SaleService {
       throw error;
     }
   }
+
+  async createSaleFromOffer(projectId, offerId, description) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/createSaleFromOffer`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authService.getAuthHeaders(),
+        },
+        body: JSON.stringify({
+          offerId: offerId,
+          description: description
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Satış oluşturulurken bir hata oluştu');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Create sale from offer error:', error);
+      throw error;
+    }
+  }
+
+  async createSaleWithPrice(projectId, projectData) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/createSale`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authService.getAuthHeaders(),
+        },
+        body: JSON.stringify(projectData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Satış oluşturulurken bir hata oluştu');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Create sale with price error:', error);
+      throw error;
+    }
+  }
 }
 
 export default new SaleService();

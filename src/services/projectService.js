@@ -379,7 +379,7 @@ class ProjectService {
     }
   }
 
-  async sendOfferToClients(projectId, clientIds, ccEmails = []) {
+  async sendOfferToClients(projectId, clientIds, ccEmails = [], price, description) {
     try {
       // Send individual requests for each client
       const promises = clientIds.map(async (clientId) => {
@@ -392,7 +392,9 @@ class ProjectService {
           body: JSON.stringify({
             projectId: projectId,
             clientId: clientId,
-            ccEmails: ccEmails
+            ccEmails: ccEmails,
+            price: price,
+            description: description
           }),
         });
 

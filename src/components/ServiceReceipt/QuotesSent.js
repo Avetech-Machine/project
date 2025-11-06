@@ -27,6 +27,20 @@ const QuotesSent = ({ onEditService }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Map API status to Turkish display text
+  const getStatusDisplayText = (status) => {
+    switch (status) {
+      case 'COMPLETED':
+        return 'ONAYLANDI';
+      case 'CLOSED':
+        return 'KAPALI';
+      case 'OFFER_SENT':
+        return 'ONAY BEKLİYOR';
+      default:
+        return 'ONAY BEKLİYOR';
+    }
+  };
+
   // Fetch offers from the new API endpoint
   useEffect(() => {
     const fetchQuotesSentProjects = async () => {
@@ -64,7 +78,7 @@ const QuotesSent = ({ onEditService }) => {
               year: derivedYear,
               serialNumber: projectDetails.serialNumber || '-',
               createdDate: offer.sentAt ? new Date(offer.sentAt).toLocaleDateString('tr-TR') : '-',
-              status: 'ONAY BEKLİYOR', // All offers will show as "Gönderildi"
+              status: getStatusDisplayText(offer.status),
               totalCost: projectDetails.totalCost || 0,
               salesPrice: projectDetails.salesPrice || 0,
               netProfit: projectDetails.netProfit || 0,
@@ -85,6 +99,7 @@ const QuotesSent = ({ onEditService }) => {
               if (!title || title === 'N/A') return title;
               return title.replace(/\s*\([^)]*\)\s*/g, '').trim();
             };
+            
             return {
               id: offer.projectId, // Use projectId as the main ID for modals
               offerId: offer.id, // Keep offer ID for reference
@@ -100,7 +115,7 @@ const QuotesSent = ({ onEditService }) => {
               year: '-',
               serialNumber: '-',
               createdDate: offer.sentAt ? new Date(offer.sentAt).toLocaleDateString('tr-TR') : '-',
-              status: 'ONAY BEKLİYOR',
+              status: getStatusDisplayText(offer.status),
               totalCost: 0,
               salesPrice: 0,
               netProfit: 0,
@@ -191,6 +206,10 @@ const QuotesSent = ({ onEditService }) => {
     switch (status) {
       case 'ONAY BEKLİYOR':
         return 'status-sent';
+      case 'ONAYLANDI':
+        return 'status-sold'; // Green badge for approved
+      case 'KAPALI':
+        return 'status-closed'; // Red badge for closed
       case 'Taslak':
         return 'status-draft';
       case 'Onaylandı':

@@ -146,6 +146,11 @@
   color: white;
 }
 
+.status-closed {
+  background-color: #dc3545;
+  color: white;
+}
+
 .status-default {
   background-color: #f8f9fa;
   color: #6c757d;

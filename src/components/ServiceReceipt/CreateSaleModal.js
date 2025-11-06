@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AiOutlineClose, AiOutlineDollar, AiOutlineFileText, AiOutlineCalendar, AiOutlineUser } from 'react-icons/ai';
 import { FaHandshake } from 'react-icons/fa';
 import saleService from '../../services/saleService';
-import projectService from '../../services/projectService';
+import offerService from '../../services/offerService';
 import './CreateSaleModal.css';
 
 const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
@@ -11,39 +11,16 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
-  const [basePrice, setBasePrice] = useState(null);
-  const [loadingPrice, setLoadingPrice] = useState(false);
+  const [originalPrice, setOriginalPrice] = useState(null);
 
-  // Fetch cost details and extract base price
+  // Set initial price from offer when modal opens
   useEffect(() => {
-    const fetchBasePrice = async () => {
-      if (!offer?.projectId) return;
-      
-      setLoadingPrice(true);
-      try {
-        const costData = await projectService.getProjectCostDetails(offer.projectId);
-        
-        // Extract base price from priceDetails string
-        // Format: "Base price: 12332, Total cost: 10200, Net profit: 2132"
-        if (costData.priceDetails) {
-          const basePriceMatch = costData.priceDetails.match(/Base price:\s*([\d,]+(?:\.\d+)?)/i);
-          if (basePriceMatch) {
-            // Remove commas and parse as float
-            const extractedBasePrice = parseFloat(basePriceMatch[1].replace(/,/g, ''));
-            console.log('Extracted base price from API for sale modal:', extractedBasePrice);
-            setBasePrice(extractedBasePrice);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching cost details for sale modal:', error);
-        // Don't show error to user, just continue without placeholder
-      } finally {
-        setLoadingPrice(false);
-      }
-    };
-
-    fetchBasePrice();
-  }, [offer?.projectId]);
+    if (offer?.price) {
+      const priceValue = offer.price.toString();
+      setSalePrice(priceValue);
+      setOriginalPrice(offer.price);
+    }
+  }, [offer?.price]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,19 +30,47 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
       return;
     }
 
+    if (!offer?.id) {
+      setError('Teklif ID bulunamadı');
+      return;
+    }
+
+    if (!offer?.projectId) {
+      setError('Proje ID bulunamadı');
+      return;
+    }
+
     try {
       setLoading(true);
       setError('');
 
-      const saleData = {
-        projectId: offer.projectId,
-        clientId: offer.clientId,
-        salePrice: parseFloat(salePrice),
-        saleNotes: saleNotes.trim(),
-        saleDate: new Date().toISOString()
-      };
+      const currentPrice = parseFloat(salePrice);
+      // Compare prices with tolerance for floating point precision
+      const priceChanged = originalPrice !== null && Math.abs(currentPrice - originalPrice) > 0.01;
+      const description = saleNotes.trim() || '';
 
-      await saleService.createSale(saleData);
+      if (!priceChanged) {
+        // Use default price - call createSaleFromOffer endpoint
+        await saleService.createSaleFromOffer(
+          offer.projectId,
+          offer.id,
+          description
+        );
+      } else {
+        // Price was changed - call createSale endpoint
+        // First, fetch the offer to get ccEmails
+        const offerDetails = await offerService.getOfferById(offer.id);
+        
+        const saleData = {
+          projectId: offer.projectId,
+          clientId: offer.clientId,
+          ccEmails: offerDetails.ccEmails || [],
+          price: currentPrice,
+          description: description
+        };
+
+        await saleService.createSaleWithPrice(offer.projectId, saleData);
+      }
       
       setShowSuccess(true);
       
@@ -85,6 +90,7 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
     setSalePrice('');
     setSaleNotes('');
     setError('');
+    setOriginalPrice(null);
     onClose();
   };
 
@@ -155,7 +161,7 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
                 id="salePrice"
                 value={salePrice}
                 onChange={(e) => setSalePrice(e.target.value)}
-                placeholder={loadingPrice ? "Fiyat yükleniyor..." : (basePrice ? `${basePrice} €` : "Satış fiyatını giriniz")}
+                placeholder={offer?.price ? `${offer.price.toLocaleString('tr-TR')} TL` : "Satış fiyatını giriniz"}
                 min="0"
                 step="0.01"
                 required
