@@ -7,25 +7,65 @@ import './CreateSaleModal.css';
 
 const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
   const [salePrice, setSalePrice] = useState('');
+  const [salePriceDisplay, setSalePriceDisplay] = useState('');
   const [saleNotes, setSaleNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [originalPrice, setOriginalPrice] = useState(null);
 
+  // Helper function to format number with periods as thousand separators
+  const formatNumberWithPeriods = (num) => {
+    if (!num && num !== 0) return '';
+    const numStr = num.toString().replace(/\./g, '');
+    return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
+  // Helper function to parse formatted number (remove periods)
+  const parseFormattedNumber = (str) => {
+    if (!str) return '';
+    return str.replace(/\./g, '');
+  };
+
   // Set initial price from offer when modal opens
   useEffect(() => {
     if (offer?.price) {
       const priceValue = offer.price.toString();
       setSalePrice(priceValue);
+      setSalePriceDisplay(formatNumberWithPeriods(offer.price));
       setOriginalPrice(offer.price);
     }
   }, [offer?.price]);
 
+  const handlePriceChange = (e) => {
+    const inputValue = e.target.value;
+    // Remove all periods and check if remaining is numeric
+    const numericOnly = inputValue.replace(/\./g, '');
+    
+    // Only allow empty string or numeric values
+    if (numericOnly === '' || /^\d+$/.test(numericOnly)) {
+      if (numericOnly === '') {
+        setSalePriceDisplay('');
+        setSalePrice('');
+      } else {
+        const num = parseInt(numericOnly, 10);
+        if (!isNaN(num)) {
+          // Store numeric value as string
+          setSalePrice(num.toString());
+          // Display formatted with periods
+          setSalePriceDisplay(formatNumberWithPeriods(num));
+        }
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!salePrice || salePrice <= 0) {
+    // salePrice already contains the numeric value as string, parse it to int
+    const numericPrice = salePrice ? parseInt(salePrice, 10) : 0;
+    
+    if (!numericPrice || numericPrice <= 0) {
       setError('Geçerli bir satış fiyatı giriniz');
       return;
     }
@@ -44,9 +84,8 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
       setLoading(true);
       setError('');
 
-      const currentPrice = parseFloat(salePrice);
       // Compare prices with tolerance for floating point precision
-      const priceChanged = originalPrice !== null && Math.abs(currentPrice - originalPrice) > 0.01;
+      const priceChanged = originalPrice !== null && Math.abs(numericPrice - originalPrice) > 0.01;
       const description = saleNotes.trim() || '';
 
       if (!priceChanged) {
@@ -65,7 +104,7 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
           projectId: offer.projectId,
           clientId: offer.clientId,
           ccEmails: offerDetails.ccEmails || [],
-          price: currentPrice,
+          price: numericPrice, // Send as integer
           description: description
         };
 
@@ -88,6 +127,7 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
 
   const handleClose = () => {
     setSalePrice('');
+    setSalePriceDisplay('');
     setSaleNotes('');
     setError('');
     setOriginalPrice(null);
@@ -154,18 +194,20 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
             <div className="form-group">
               <label htmlFor="salePrice">
                 <AiOutlineDollar className="label-icon" />
-                Satış Fiyatı *
+                Satış Fiyatı {offer?.price && `(${formatNumberWithPeriods(offer.price)} EUR)`} *
               </label>
-              <input
-                type="number"
-                id="salePrice"
-                value={salePrice}
-                onChange={(e) => setSalePrice(e.target.value)}
-                placeholder={offer?.price ? `${offer.price.toLocaleString('tr-TR')} TL` : "Satış fiyatını giriniz"}
-                min="0"
-                step="0.01"
-                required
-              />
+              <div className="price-input-wrapper">
+                <input
+                  type="text"
+                  id="salePrice"
+                  value={salePriceDisplay}
+                  onChange={handlePriceChange}
+                  placeholder={offer?.price ? `${formatNumberWithPeriods(offer.price)}` : "Satış fiyatını giriniz"}
+                  required
+                  inputMode="numeric"
+                />
+                <span className="currency-label">EUR</span>
+              </div>
             </div>
 
             <div className="form-group">
@@ -227,7 +269,7 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
             </div>
             <h3>Satış Başarıyla Oluşturuldu!</h3>
             <p>Satış kaydı başarıyla oluşturuldu.</p>
-            <p className="success-detail">Satış Fiyatı: {salePrice} TL</p>
+            <p className="success-detail">Satış Fiyatı: {salePriceDisplay || formatNumberWithPeriods(salePrice)} EUR</p>
           </div>
         </div>
       )}

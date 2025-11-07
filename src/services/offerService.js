@@ -1,19 +1,15 @@
 import authService from './authService';
+import { fetchWithAuth } from '../utils/apiUtils';
 
 const API_BASE_URL = 'https://avitech-backend-production.up.railway.app';
 
 class OfferService {
   async getOffersByClient(clientId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/offers/by-client/${clientId}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/offers/by-client/${clientId}`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Teklifler yüklenirken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -25,15 +21,10 @@ class OfferService {
 
   async getOffersByProject(projectId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/offers/by-project/${projectId}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/offers/by-project/${projectId}`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Proje teklifleri yüklenirken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -45,15 +36,10 @@ class OfferService {
 
   async getOfferById(offerId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/offers`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/offers`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Teklif yüklenirken bir hata oluştu');
-      }
 
       const data = await response.json();
       // Find the offer with matching ID

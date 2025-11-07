@@ -1,19 +1,15 @@
 import authService from './authService';
+import { fetchWithAuth } from '../utils/apiUtils';
 
 const API_BASE_URL = 'https://avitech-backend-production.up.railway.app';
 
 class ClientService {
   async getClients() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/clients`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/clients`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Müşteriler yüklenirken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -25,15 +21,10 @@ class ClientService {
 
   async getClientById(clientId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/clients/${clientId}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/clients/${clientId}`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Müşteri bilgileri yüklenirken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -45,7 +36,7 @@ class ClientService {
 
   async createClient(clientData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/clients`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/clients`, {
         method: 'POST',
         headers: {
           ...authService.getAuthHeaders(),
@@ -53,11 +44,6 @@ class ClientService {
         },
         body: JSON.stringify(clientData),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Müşteri oluşturulurken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -69,7 +55,7 @@ class ClientService {
 
   async updateClient(clientId, clientData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/clients/${clientId}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/clients/${clientId}`, {
         method: 'PUT',
         headers: {
           ...authService.getAuthHeaders(),
@@ -77,11 +63,6 @@ class ClientService {
         },
         body: JSON.stringify(clientData),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Müşteri güncellenirken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;

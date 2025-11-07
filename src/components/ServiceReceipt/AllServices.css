@@ -232,7 +232,8 @@
 }
 
 .serial-number,
-.creation-date {
+.creation-date,
+.client-company-name {
   margin-left: auto;
   text-align: right;
 }

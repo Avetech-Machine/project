@@ -1,19 +1,15 @@
 import authService from './authService';
+import { fetchWithAuth } from '../utils/apiUtils';
 
 const API_BASE_URL = 'https://avitech-backend-production.up.railway.app';
 
 class ProjectService {
   async getProjects() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projects`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Projeler yüklenirken bir hata oluştu');
-      } 
 
       const data = await response.json();
       return data;
@@ -25,15 +21,10 @@ class ProjectService {
 
   async getProjectById(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/${id}`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Proje detayları yüklenirken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -219,15 +210,10 @@ class ProjectService {
 
   async deleteProject(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/${id}`, {
         method: 'DELETE',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Proje silinirken bir hata oluştu');
-      }
 
       return true;
     } catch (error) {
@@ -238,15 +224,10 @@ class ProjectService {
 
   async getProjectsByStatus(status) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projects/status/${status}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/status/${status}`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Projeler yüklenirken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -258,15 +239,10 @@ class ProjectService {
 
   async getOffers() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/offers`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/offers`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Teklifler yüklenirken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -278,15 +254,10 @@ class ProjectService {
 
   async getDeletedProjects() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projects/deleted`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/deleted`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Silinmiş projeler yüklenirken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -298,15 +269,10 @@ class ProjectService {
 
   async undeleteProject(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projects/deleted/${id}/undelete`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/deleted/${id}/undelete`, {
         method: 'POST',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Proje geri yüklenirken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -318,15 +284,10 @@ class ProjectService {
 
   async hardDeleteProject(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projects/deleted/${id}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/deleted/${id}`, {
         method: 'DELETE',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Proje kalıcı olarak silinirken bir hata oluştu');
-      }
 
       return true;
     } catch (error) {
@@ -337,15 +298,10 @@ class ProjectService {
 
   async getProjectCostDetails(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projects/${id}/cost-details`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/${id}/cost-details`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Maliyet detayları yüklenirken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -357,7 +313,7 @@ class ProjectService {
 
   async sendOffer(id, offerData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projects/${id}/send-offer`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/${id}/send-offer`, {
         method: 'POST',
         headers: {
           ...authService.getAuthHeaders(),
@@ -365,11 +321,6 @@ class ProjectService {
         },
         body: JSON.stringify(offerData),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Teklif gönderilirken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -383,7 +334,7 @@ class ProjectService {
     try {
       // Send individual requests for each client
       const promises = clientIds.map(async (clientId) => {
-        const response = await fetch(`${API_BASE_URL}/api/offers`, {
+        const response = await fetchWithAuth(`${API_BASE_URL}/api/offers`, {
           method: 'POST',
           headers: {
             ...authService.getAuthHeaders(),
@@ -397,11 +348,6 @@ class ProjectService {
             description: description
           }),
         });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || `Teklif gönderilirken bir hata oluştu (Müşteri ID: ${clientId})`);
-        }
 
         return await response.json();
       });
@@ -417,7 +363,7 @@ class ProjectService {
 
   async getProjectCountsByStatus() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projects/count-by-status`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/count-by-status`, {
         method: 'POST',
         headers: {
           ...authService.getAuthHeaders(),
@@ -427,11 +373,6 @@ class ProjectService {
           statuses: ["TEMPLATE", "SOLD", "BOUGHT", "OFFER_SENT", "CANCELLED"]
         }),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Proje sayıları yüklenirken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -443,15 +384,10 @@ class ProjectService {
 
   async searchProjects(query) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projects/search?q=${encodeURIComponent(query)}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/search?q=${encodeURIComponent(query)}`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Proje arama sırasında bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -472,15 +408,10 @@ class ProjectService {
         }
       });
 
-      const response = await fetch(`${API_BASE_URL}/api/projects/filter?${queryParams.toString()}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/filter?${queryParams.toString()}`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Proje filtreleme sırasında bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;

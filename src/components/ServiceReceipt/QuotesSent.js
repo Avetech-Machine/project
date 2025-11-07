@@ -278,6 +278,11 @@ const QuotesSent = ({ onEditService }) => {
               </div>
 
               <div className="detail-row">
+                <span className="detail-label">Müşteri:</span>
+                <span className="detail-value client-company-name">{service.clientCompanyName || '-'}</span>
+              </div>
+
+              <div className="detail-row">
                 <span className="detail-label">Oluşturma:</span>
                 <span className="detail-value creation-date">{service.createdDate}</span>
               </div>

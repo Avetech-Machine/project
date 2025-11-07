@@ -25,6 +25,7 @@ import './AllServicesTable.css';
 const AllServices = ({ onEditService }) => {
   const [projects, setProjects] = useState([]);
   const [selectedService, setSelectedService] = useState(null);
+  const [selectedProjectForOffers, setSelectedProjectForOffers] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfitModalOpen, setIsProfitModalOpen] = useState(false);
   const [isProposalsModalOpen, setIsProposalsModalOpen] = useState(false);
@@ -191,18 +192,31 @@ const AllServices = ({ onEditService }) => {
 
   const handleViewOffersClick = (service) => {
     setSelectedService(service);
+    setSelectedProjectForOffers(service); // Store the project separately for ViewOfferModal
     setIsViewOfferModalOpen(true);
   };
 
   const handleCreateSaleClick = (offer) => {
+    // Store the offer for CreateSaleModal
+    // Keep selectedProjectForOffers unchanged so ViewOfferModal keeps the correct projectId
     setSelectedService(offer);
     setIsCreateSaleModalOpen(true);
+  };
+
+  const handleSaleClose = () => {
+    // Only close CreateSaleModal, keep ViewOfferModal open
+    setIsCreateSaleModalOpen(false);
+    // Restore selectedService to the original project so ViewOfferModal doesn't break
+    if (selectedProjectForOffers) {
+      setSelectedService(selectedProjectForOffers);
+    }
   };
 
   const handleSaleComplete = () => {
     // Close both CreateSaleModal and ViewOfferModal
     setIsCreateSaleModalOpen(false);
     setIsViewOfferModalOpen(false);
+    setSelectedProjectForOffers(null);
     // Refresh the projects list after successful sale
     loadProjects();
   };
@@ -568,12 +582,15 @@ const AllServices = ({ onEditService }) => {
         />
       )}
 
-      {isViewOfferModalOpen && selectedService && (
+      {isViewOfferModalOpen && selectedProjectForOffers && (
         <ViewOfferModal
           isOpen={isViewOfferModalOpen}
-          onClose={() => setIsViewOfferModalOpen(false)}
-          projectId={selectedService.id}
-          projectCode={selectedService.projectCode}
+          onClose={() => {
+            setIsViewOfferModalOpen(false);
+            setSelectedProjectForOffers(null);
+          }}
+          projectId={selectedProjectForOffers.id}
+          projectCode={selectedProjectForOffers.projectCode}
           onCreateSale={handleCreateSaleClick}
         />
       )}
@@ -581,7 +598,7 @@ const AllServices = ({ onEditService }) => {
       {isCreateSaleModalOpen && selectedService && (
         <CreateSaleModal
           offer={selectedService}
-          onClose={() => setIsCreateSaleModalOpen(false)}
+          onClose={handleSaleClose}
           onSaleComplete={handleSaleComplete}
         />
       )}

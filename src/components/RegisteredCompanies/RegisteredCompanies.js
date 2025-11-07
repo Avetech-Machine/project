@@ -8,10 +8,12 @@ import {
   AiOutlinePhone,
   AiOutlineFileText,
   AiOutlineEdit,
-  AiOutlineIdcard
+  AiOutlineIdcard,
+  AiOutlinePlus
 } from 'react-icons/ai';
 import ViewOfferModal from './ViewOfferModal';
 import EditCompanyModal from './EditCompanyModal';
+import AddCompanyModal from './AddCompanyModal';
 import './RegisteredCompanies.css';
 
 const RegisteredCompanies = () => {
@@ -22,6 +24,7 @@ const RegisteredCompanies = () => {
   const [isViewOfferModalOpen, setIsViewOfferModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   useEffect(() => {
     loadClients();
@@ -69,6 +72,18 @@ const RegisteredCompanies = () => {
     loadClients();
   };
 
+  const handleAddCompany = () => {
+    setIsAddModalOpen(true);
+  };
+
+  const handleCloseAddModal = () => {
+    setIsAddModalOpen(false);
+  };
+
+  const handleAddSuccess = () => {
+    loadClients();
+  };
+
   if (loading) {
     return (
       <div className="registered-companies">
@@ -102,6 +117,13 @@ const RegisteredCompanies = () => {
           <div className="header-text">
             <h1>Kayıtlı Firmalar</h1>
             <p>Kayıtlı müşteri firmalarının listesi</p>
+            <button 
+              className="add-company-button"
+              onClick={handleAddCompany}
+            >
+              <AiOutlinePlus className="button-icon" />
+              Firma Ekle
+            </button>
           </div>
           
         </div>
@@ -203,6 +225,12 @@ const RegisteredCompanies = () => {
         onClose={handleCloseEditModal}
         client={editingClient}
         onSuccess={handleEditSuccess}
+      />
+      
+      <AddCompanyModal
+        isOpen={isAddModalOpen}
+        onClose={handleCloseAddModal}
+        onSuccess={handleAddSuccess}
       />
     </div>
   );

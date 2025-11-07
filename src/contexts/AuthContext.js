@@ -22,6 +22,10 @@ export const AuthProvider = ({ children }) => {
     
     if (token && userData) {
       setUser(userData);
+    } else {
+      // If no token or user data, clear everything
+      authService.logout();
+      setUser(null);
     }
     setLoading(false);
   }, []);

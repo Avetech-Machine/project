@@ -1,11 +1,12 @@
 import authService from './authService';
+import { fetchWithAuth } from '../utils/apiUtils';
 
 const API_BASE_URL = 'https://avitech-backend-production.up.railway.app';
 
 class SaleService {
   async createSale(saleData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/sales`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/sales`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -13,11 +14,6 @@ class SaleService {
         },
         body: JSON.stringify(saleData),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Satış oluşturulurken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -29,15 +25,10 @@ class SaleService {
 
   async getSales() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/sales`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/sales`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Satışlar yüklenirken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -49,15 +40,10 @@ class SaleService {
 
   async getSalesByProject(projectId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/sales/by-project/${projectId}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/sales/by-project/${projectId}`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Proje satışları yüklenirken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;
@@ -69,7 +55,7 @@ class SaleService {
 
   async createSaleFromOffer(projectId, offerId, description) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/createSaleFromOffer`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/${projectId}/createSaleFromOffer`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,11 +67,6 @@ class SaleService {
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Satış oluşturulurken bir hata oluştu');
-      }
-
       const data = await response.json();
       return data;
     } catch (error) {
@@ -96,7 +77,7 @@ class SaleService {
 
   async createSaleWithPrice(projectId, projectData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/createSale`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/${projectId}/createSale`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,11 +85,6 @@ class SaleService {
         },
         body: JSON.stringify(projectData),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Satış oluşturulurken bir hata oluştu');
-      }
 
       const data = await response.json();
       return data;

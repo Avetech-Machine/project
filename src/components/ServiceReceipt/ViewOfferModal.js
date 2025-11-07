@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineClose, AiOutlineFileText, AiOutlineCalendar, AiOutlineUser, AiOutlineProject, AiOutlineDollar } from 'react-icons/ai';
 import { FaHandshake } from 'react-icons/fa';
 import offerService from '../../services/offerService';
@@ -10,28 +10,63 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
   const [projectsDetails, setProjectsDetails] = useState({}); // Store project details by offer id
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const isMountedRef = useRef(true);
+  const lastProjectIdRef = useRef(null);
 
   useEffect(() => {
+    isMountedRef.current = isOpen;
+    
     if (isOpen && projectId) {
-      loadOffers();
+      // Only reload if projectId actually changed
+      const projectIdChanged = lastProjectIdRef.current !== projectId;
+      
+      if (projectIdChanged) {
+        // Clear previous data only if projectId changed
+        setOffers([]);
+        setProjectsDetails({});
+        setError('');
+        lastProjectIdRef.current = projectId;
+        loadOffers();
+      } else if (lastProjectIdRef.current === null) {
+        // First time loading for this modal session
+        lastProjectIdRef.current = projectId;
+        loadOffers();
+      }
+      // If projectId hasn't changed and we've already loaded, do nothing
+    } else if (!isOpen) {
+      // Clear data when modal closes
+      setOffers([]);
+      setProjectsDetails({});
+      setError('');
+      setLoading(false);
+      lastProjectIdRef.current = null;
     }
+    
+    return () => {
+      if (!isOpen) {
+        isMountedRef.current = false;
+      }
+    };
   }, [isOpen, projectId]);
 
-  // Expose loadOffers function for parent components to trigger refresh
-  useEffect(() => {
-    if (isOpen) {
-      // Refresh offers when modal opens
-      loadOffers();
-    }
-  }, [isOpen]);
-
   const loadOffers = async () => {
+    // Don't load if modal is not open or projectId is missing
+    if (!isOpen || !projectId) {
+      return;
+    }
+
     try {
       setLoading(true);
       setError('');
       
       // Load offers for the project
       const offersData = await offerService.getOffersByProject(projectId);
+      
+      // Only update state if modal is still open
+      if (!isMountedRef.current || !isOpen) {
+        return;
+      }
+      
       setOffers(offersData);
       
       // Load project details for each offer using offer.projectId
@@ -39,21 +74,46 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
       const projectPromises = offersData.map(async (offer) => {
         try {
           const projectData = await projectService.getProjectById(offer.projectId);
-          projectDetailsMap[offer.id] = projectData;
+          // Check again if modal is still open before updating
+          if (isMountedRef.current && isOpen) {
+            projectDetailsMap[offer.id] = projectData;
+          }
         } catch (projectError) {
-          console.error(`Error loading project details for offer ${offer.id}:`, projectError);
-          projectDetailsMap[offer.id] = null;
+          // Silently handle individual project detail errors
+          // Don't show error for missing project details, just mark as null
+          // This prevents "Proje bulunamadı" errors from showing up
+          if (isMountedRef.current && isOpen) {
+            projectDetailsMap[offer.id] = null;
+          }
         }
       });
       
       // Wait for all project details to load
       await Promise.all(projectPromises);
-      setProjectsDetails(projectDetailsMap);
+      
+      // Only update state if modal is still open
+      if (isMountedRef.current && isOpen) {
+        setProjectsDetails(projectDetailsMap);
+      }
     } catch (err) {
-      console.error('Error loading offers:', err);
-      setError(err.message || 'Teklifler yüklenirken bir hata oluştu');
+      // Only show error if modal is still open
+      if (isMountedRef.current && isOpen) {
+        console.error('Error loading offers:', err);
+        // Don't show "Proje bulunamadı" or project-related errors
+        // Only show general loading errors
+        const errorMessage = err.message || 'Teklifler yüklenirken bir hata oluştu';
+        if (errorMessage.includes('bulunamadı') || errorMessage.toLowerCase().includes('project') || errorMessage.toLowerCase().includes('proje')) {
+          // For project-related errors, just show empty state without error message
+          setOffers([]);
+          setError('');
+        } else {
+          setError(errorMessage);
+        }
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current && isOpen) {
+        setLoading(false);
+      }
     }
   };
 
@@ -70,6 +130,14 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
     } catch (error) {
       return dateString;
     }
+  };
+
+  const formatCurrency = (amount, currency = 'EUR') => {
+    if (!amount && amount !== 0) return 'Belirtilmemiş';
+    if (currency === 'TRY') {
+      return `₺${amount.toLocaleString('tr-TR')}`;
+    }
+    return `€${amount.toLocaleString('de-DE')}`;
   };
 
   const handleClose = () => {
@@ -149,9 +217,7 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
                         <div className="info-item">
                           <span className="info-label">Fiyat:</span>
                           <span className="info-value price">
-                            {offer.price 
-                              ? `${offer.price.toLocaleString('tr-TR')} TL` 
-                              : 'Belirtilmemiş'}
+                            {formatCurrency(offer.price, 'EUR')}
                           </span>
                         </div>
                         <div className="info-item">
@@ -167,20 +233,24 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
                         {projectsDetails[offer.id].totalCost && (
                           <div className="info-item">
                             <span className="info-label">Toplam Maliyet:</span>
-                            <span className="info-value cost">{projectsDetails[offer.id].totalCost} TL</span>
+                            <span className="info-value cost">{formatCurrency(projectsDetails[offer.id].totalCost, 'EUR')}</span>
                           </div>
                         )}
                         {projectsDetails[offer.id].salesPrice && (
                           <div className="info-item">
                             <span className="info-label">Satış Fiyatı:</span>
-                            <span className="info-value sales">{projectsDetails[offer.id].salesPrice} TL</span>
+                            <span className="info-value sales">{formatCurrency(projectsDetails[offer.id].salesPrice, 'EUR')}</span>
                           </div>
                         )}
                       </div>
                     </div>
-                  ) : (
+                  ) : loading ? (
                     <div className="project-loading">
                       <p>Proje detayları yükleniyor...</p>
+                    </div>
+                  ) : (
+                    <div className="project-loading">
+                      <p>Proje detayları mevcut değil</p>
                     </div>
                   )}
 
