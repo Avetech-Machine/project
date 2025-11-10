@@ -39,7 +39,7 @@ const Sidebar = () => {
     ],
     other: [
       { id: 'manual', label: 'Kullanım Kılavuzu', icon: AiOutlineFile, path: '/manual' },
-      { id: 'error-receipts', label: 'Hatalı Proje Formları', icon: AiOutlineDelete, path: '/errorReceipts' },
+      { id: 'error-receipts', label: 'İptal', icon: AiOutlineDelete, path: '/errorReceipts' },
     ]
   };
 

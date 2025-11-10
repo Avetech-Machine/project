@@ -25,6 +25,7 @@ const RegisteredCompanies = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadClients();
@@ -84,6 +85,30 @@ const RegisteredCompanies = () => {
     loadClients();
   };
 
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const filteredClients = clients.filter((client) => {
+    if (!normalizedSearchTerm) {
+      return true;
+    }
+
+    const fieldsToSearch = [
+      client.companyName,
+      client.contactName,
+      client.email,
+      client.phone,
+      client.vergiDairesi,
+      client.vergiNo
+    ];
+
+    return fieldsToSearch
+      .filter(Boolean)
+      .some((field) => String(field).toLowerCase().includes(normalizedSearchTerm));
+  });
+
   if (loading) {
     return (
       <div className="registered-companies">
@@ -124,8 +149,16 @@ const RegisteredCompanies = () => {
               <AiOutlinePlus className="button-icon" />
               Firma Ekle
             </button>
+            <div className="company-search">
+              <input
+                type="text"
+                className="company-search-input"
+                placeholder="Firmalarda ara... (firma, iletişim kişisi, e-posta, telefon)"
+                value={searchTerm}
+                onChange={handleSearchChange}
+              />
+            </div>
           </div>
-          
         </div>
       </div>
 
@@ -136,9 +169,15 @@ const RegisteredCompanies = () => {
             <h3>Henüz kayıtlı firma bulunmuyor</h3>
             <p>Kayıtlı müşteri firmaları burada görüntülenecek.</p>
           </div>
+        ) : filteredClients.length === 0 ? (
+          <div className="empty-state">
+            <AiOutlineHome className="empty-icon" />
+            <h3>Arama kriterlerinize uygun firma bulunamadı</h3>
+            <p>Farklı bir anahtar kelime deneyerek tekrar arama yapabilirsiniz.</p>
+          </div>
         ) : (
           <div className="companies-grid">
-            {clients.map((client) => (
+            {filteredClients.map((client) => (
               <div key={client.id} className="company-card">
                 <div className="company-header">
                   <AiOutlineHome className="company-icon" />

@@ -5,9 +5,9 @@ import authService from '../services/authService';
  * Checks for authentication errors and handles them appropriately
  */
 export const handleApiResponse = async (response) => {
-  // Check for authentication errors (401 Unauthorized)
-  if (response.status === 401) {
-    console.warn('Authentication failed - clearing auth data and redirecting to login');
+  // Check for authentication errors (401 Unauthorized, 403 Forbidden)
+  if (response.status === 401 || response.status === 403) {
+    console.warn('Authentication expired or forbidden - clearing auth data and redirecting to login');
     
     // Clear authentication data
     authService.logout();

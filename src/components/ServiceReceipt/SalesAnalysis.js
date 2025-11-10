@@ -182,7 +182,7 @@ const SalesAnalysis = ({ totalCost, salesPrice, setSalesPrice, netProfit, profit
                 value={inputValue}
                 onChange={handlePriceChange}
                 onBlur={handlePriceBlur}
-                placeholder="20000"
+                placeholder="0"
               />
               <span className="currency-label">{selectedCurrency}</span>
             </div>

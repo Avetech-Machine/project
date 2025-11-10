@@ -38,7 +38,7 @@ const UserManagement = () => {
   const getRoleDisplayName = (role) => {
     const roleMap = {
       'VIEWER': 'İZLEYİCİ',
-      'SALES': 'SATIŞÇI',
+      'SALES': 'SATIŞ ELEMANI',
       'ADMIN': 'ADMIN'
     };
     return roleMap[role] || role;
@@ -354,7 +354,7 @@ const UserManagement = () => {
                 <label>Rol *</label>
                 <select name="role" value={form.role} onChange={handleChange}>
                   <option value="VIEWER">İzleyici</option>
-                  <option value="SALES">Satışçı</option>
+                  <option value="SALES">Satış Elemanı</option>
                   <option value="ADMIN">Admin</option>
                 </select>
               </div>
@@ -446,7 +446,7 @@ const UserManagement = () => {
                 <label>Rol *</label>
                 <select name="role" value={editForm.role} onChange={handleEditChange}>
                   <option value="VIEWER">İzleyici</option>
-                  <option value="SALES">Satışçı</option>
+                  <option value="SALES">Satış Elemanı</option>
                   <option value="ADMIN">Admin</option>
                 </select>
               </div>

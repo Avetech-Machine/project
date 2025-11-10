@@ -72,7 +72,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     { id: 1, description: 'Makine Alım Bedeli', currency: '', amount: '' }
   ]);
 
-  const [salesPrice, setSalesPrice] = useState(20000);
+  const [salesPrice, setSalesPrice] = useState(0);
   const [exchangeRates, setExchangeRates] = useState({
     EUR: 1.0,
     TRY: 34.5,

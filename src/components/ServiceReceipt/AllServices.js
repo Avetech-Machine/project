@@ -279,7 +279,8 @@ const AllServices = ({ onEditService }) => {
         'MAKİNE MARKASI': 300,
         'MAKİNE MODELİ': 300,
         'MAKİNE YILI': 150,
-        'İŞLEMLER': 350
+        'İŞLEMLER': 350,
+        'SİL': 140
       };
 
       // Get all header cells
@@ -328,6 +329,13 @@ const AllServices = ({ onEditService }) => {
               } else {
                 maxContentWidth = Math.max(maxContentWidth, 330);
               }
+            } else if (columnName === 'SİL') {
+              const deleteButton = cell.querySelector('.delete-btn');
+              if (deleteButton) {
+                maxContentWidth = Math.max(maxContentWidth, deleteButton.offsetWidth + 40);
+              } else {
+                maxContentWidth = Math.max(maxContentWidth, 120);
+              }
             } else {
               const cellText = cell.textContent.trim();
               if (cellText) {
@@ -356,20 +364,24 @@ const AllServices = ({ onEditService }) => {
         'MAKİNE MARKASI': 150,
         'MAKİNE MODELİ': 150,
         'MAKİNE YILI': 100,
-        'İŞLEMLER': 300
+        'İŞLEMLER': 300,
+        'SİL': 100
       };
       
       let finalColumnWidths = [...columnWidths];
       
       if (totalWidth > containerMaxWidth) {
         // Scale down, but ensure minimum widths are maintained
-        const operationsIndex = 4; // İŞLEMLER column index
-        const operationsMinWidth = minWidths['İŞLEMLER'];
+        const headerNames = Array.from(headerCells).map(th => th.textContent.trim());
+        const operationsIndex = headerNames.indexOf('İŞLEMLER');
+        const deleteIndex = headerNames.indexOf('SİL');
+        const operationsMinWidth = operationsIndex >= 0 ? minWidths['İŞLEMLER'] : 0;
+        const deleteMinWidth = deleteIndex >= 0 ? minWidths['SİL'] : 0;
         const otherColumnsWidth = columnWidths
-          .map((width, idx) => idx === operationsIndex ? 0 : width)
+          .map((width, idx) => (idx === operationsIndex || idx === deleteIndex) ? 0 : width)
           .reduce((sum, width) => sum + width, 0);
         
-        const availableWidthForOthers = containerMaxWidth - operationsMinWidth;
+        const availableWidthForOthers = containerMaxWidth - operationsMinWidth - deleteMinWidth;
         
         if (availableWidthForOthers > 0 && otherColumnsWidth > 0) {
           const scaleFactor = availableWidthForOthers / otherColumnsWidth;
@@ -377,12 +389,23 @@ const AllServices = ({ onEditService }) => {
             if (index === operationsIndex) {
               return operationsMinWidth;
             }
+            if (index === deleteIndex) {
+              return deleteMinWidth;
+            }
             return Math.floor(width * scaleFactor);
           });
         } else {
           // If we can't fit even with minimums, use proportional scaling
           const scaleFactor = containerMaxWidth / totalWidth;
-          finalColumnWidths = columnWidths.map(width => Math.floor(width * scaleFactor));
+          finalColumnWidths = columnWidths.map((width, index) => {
+            if (index === operationsIndex) {
+              return operationsMinWidth;
+            }
+            if (index === deleteIndex) {
+              return deleteMinWidth;
+            }
+            return Math.floor(width * scaleFactor);
+          });
         }
       }
       
@@ -478,6 +501,7 @@ const AllServices = ({ onEditService }) => {
                 <th>MAKİNE MODELİ</th>
                 <th>MAKİNE YILI</th>
                 <th>İŞLEMLER</th>
+                <th>SİL</th>
               </tr>
             </thead>
             <tbody>
@@ -529,6 +553,10 @@ const AllServices = ({ onEditService }) => {
                           <AiOutlineEdit />
                         )}
                       </button>
+                    </div>
+                  </td>
+                  <td className="delete-column">
+                    <div className="delete-button-wrapper">
                       <button 
                         className="operation-btn delete-btn" 
                         onClick={() => handleDeleteProject(project.id)}

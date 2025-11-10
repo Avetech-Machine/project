@@ -65,6 +65,44 @@ const ViewOfferModal = ({ isOpen, onClose, clientId, clientName }) => {
     }
   };
 
+  const formatCurrency = (amount) => {
+    if (amount === null || amount === undefined) {
+      return 'Belirtilmemiş';
+    }
+
+    const numericAmount =
+      typeof amount === 'number'
+        ? amount
+        : (() => {
+            const raw = String(amount).replace(/[^\d.,-]/g, '');
+            if (raw === '') {
+              return Number.NaN;
+            }
+
+            const lastComma = raw.lastIndexOf(',');
+            const lastDot = raw.lastIndexOf('.');
+
+            if (lastComma > -1 && lastDot > -1) {
+              if (lastComma > lastDot) {
+                return Number(raw.replace(/\./g, '').replace(',', '.'));
+              }
+              return Number(raw.replace(/,/g, ''));
+            }
+
+            if (lastComma > -1) {
+              return Number(raw.replace(/\./g, '').replace(',', '.'));
+            }
+
+            return Number(raw.replace(/,/g, ''));
+          })();
+
+    if (Number.isNaN(numericAmount)) {
+      return 'Belirtilmemiş';
+    }
+
+    return `€${numericAmount.toLocaleString('de-DE')}`;
+  };
+
   const handleClose = () => {
     setOffers([]);
     setProjectDetails({});
@@ -138,11 +176,7 @@ const ViewOfferModal = ({ isOpen, onClose, clientId, clientName }) => {
                           </div>
                           <div className="info-item">
                             <span className="info-label">Fiyat:</span>
-                            <span className="info-value price">
-                              {offer.price !== null && offer.price !== undefined
-                                ? `${offer.price.toLocaleString('tr-TR')} TL`
-                                : 'Belirtilmemiş'}
-                            </span>
+                            <span className="info-value price">{formatCurrency(offer.price)}</span>
                           </div>
                           <div className="info-item">
                             <span className="info-label">Müşteri:</span>
@@ -157,13 +191,13 @@ const ViewOfferModal = ({ isOpen, onClose, clientId, clientName }) => {
                           {project.totalCost && (
                             <div className="info-item">
                               <span className="info-label">Toplam Maliyet:</span>
-                              <span className="info-value cost">{project.totalCost} TL</span>
+                              <span className="info-value cost">{formatCurrency(project.totalCost)}</span>
                             </div>
                           )}
                           {project.salesPrice && (
                             <div className="info-item">
                               <span className="info-label">Satış Fiyatı:</span>
-                              <span className="info-value sales">{project.salesPrice} TL</span>
+                              <span className="info-value sales">{formatCurrency(project.salesPrice)}</span>
                             </div>
                           )}
                         </div>
