@@ -18,7 +18,7 @@ import './RegisteredCompanies.css';
 
 const RegisteredCompanies = () => {
   const [clients, setClients] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); 
   const [error, setError] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
   const [isViewOfferModalOpen, setIsViewOfferModalOpen] = useState(false);
