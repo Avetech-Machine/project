@@ -15,7 +15,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     // Machine Information
     machineName: '',
     model: '', // New machine model field
-    year: '2024',
+    year: '',
     workingHours: '',
     repairHours: '', // This now represents "Devri/dakika"
     serialNumber: '',
@@ -69,7 +69,13 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   const cameraInputRef = useRef(null);
 
   const [costDetails, setCostDetails] = useState([
-    { id: 1, description: 'Makine Alım Bedeli', currency: '', amount: '' }
+    { id: 1, description: 'Makine Alım Bedeli', currency: 'EUR', amount: '' },
+    { id: 2, description: 'Uçak', currency: 'EUR', amount: '' },
+    { id: 3, description: 'Otel', currency: 'EUR', amount: '' },
+    { id: 4, description: 'Ek Giderler (Yemek vb.)', currency: 'EUR', amount: '' },
+    { id: 5, description: 'Lojistik', currency: 'EUR', amount: '' },
+    { id: 6, description: 'Dış Firma Komisyonu', currency: 'EUR', amount: '' },
+    { id: 7, description: 'Kurulum', currency: 'EUR', amount: '' }
   ]);
 
   const [salesPrice, setSalesPrice] = useState(0);
@@ -109,7 +115,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       setFormData({
         machineName: editingService.machineName || '',
         model: editingService.model || '',
-        year: editingService.year || '2024',
+        year: editingService.year || '',
         workingHours: editingService.workingHours || '',
         repairHours: editingService.repairHours || '',
         serialNumber: editingService.serialNumber || '',
@@ -573,7 +579,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
         setFormData({
           machineName: '',
           model: '',
-          year: '2024',
+          year: '',
           workingHours: '',
           repairHours: '',
           serialNumber: '',
@@ -600,7 +606,13 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
           photos: []
         });
         setCostDetails([
-          { id: 1, description: 'Makine Alım Bedeli', currency: '', amount: '' }
+          { id: 1, description: 'Makine Alım Bedeli', currency: 'EUR', amount: '' },
+          { id: 2, description: 'Uçak', currency: 'EUR', amount: '' },
+          { id: 3, description: 'Otel', currency: 'EUR', amount: '' },
+          { id: 4, description: 'Ek Giderler (Yemek vb.)', currency: 'EUR', amount: '' },
+          { id: 5, description: 'Lojistik', currency: 'EUR', amount: '' },
+          { id: 6, description: 'Dış Firma Komisyonu', currency: 'EUR', amount: '' },
+          { id: 7, description: 'Kurulum', currency: 'EUR', amount: '' }
         ]);
         setSalesPrice(20000);
       }
@@ -744,11 +756,12 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             />
           </div>
           <div className="form-group machine-year">
-            <label>Yılı</label>
+            <label>Makine Yılı</label>
             <input
               type="text"
               value={formData.year}
               onChange={(e) => handleRestrictedInput('year', e.target.value)}
+            placeholder="Makine yılı"
             />
           </div>
         </div>
@@ -1220,3 +1233,4 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
 };
 
 export default CreateServiceReceipt;
+

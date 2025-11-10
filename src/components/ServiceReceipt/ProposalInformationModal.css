@@ -132,11 +132,20 @@
     border: 1px solid #e9ecef;
     border-radius: 8px;
     padding: 16px;
-    transition: box-shadow 0.2s;
+    transition: box-shadow 0.2s, border-color 0.2s;
   }
   
   .offer-card:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .offer-card.price-source {
+    background: #e8f5e9;
+    border: 2px solid #4caf50;
+  }
+
+  .offer-card.price-source:hover {
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
   }
   
   .offer-header {
@@ -164,6 +173,29 @@
     padding: 4px 8px;
     border-radius: 4px;
     background: rgba(0, 0, 0, 0.05);
+  }
+
+  .price-badge {
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: #4caf50;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: help;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
   }
   
   .offer-date {
@@ -204,6 +236,12 @@
     color: #2c3e50;
     font-size: 0.85rem;
     font-weight: 500;
+  }
+
+  .detail-value.highlight-price {
+    color: #4caf50;
+    font-weight: 700;
+    font-size: 0.9rem;
   }
   
   /* No Offers Message */
@@ -376,7 +414,12 @@
     .offer-info {
       flex-direction: column;
       align-items: flex-start;
-      gap: 4px;
+      gap: 8px;
+    }
+
+    .price-badge {
+      font-size: 0.7rem;
+      padding: 3px 8px;
     }
     
     .offer-details {

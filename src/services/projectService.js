@@ -186,7 +186,7 @@ class ProjectService {
         } else if (errorData.error) {
           errorMessage = errorData.error;
         } else if (errorData.details) {
-          errorMessage = `Validation Error: ${JSON.stringify(errorData.details)}`;
+          errorMessage = `Tüm Alanları Kontrol Edin: ${JSON.stringify(errorData.details)}`;
         } else if (response.status === 400) {
           errorMessage = 'Geçersiz veri formatı. Lütfen tüm alanları kontrol edin.';
         } else if (response.status === 404) {

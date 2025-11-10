@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { FaTimes, FaPaperPlane, FaPlus, FaTrash, FaPencilAlt } from 'react-icons/fa';
+import React, { useState, useEffect, useRef } from 'react';
+import { FaTimes, FaPaperPlane, FaPlus, FaTrash, FaPencilAlt, FaSearch, FaChevronDown } from 'react-icons/fa';
 import projectService from '../../services/projectService';
 import clientService from '../../services/clientService';
 import './SendOfferModal.css';
@@ -45,6 +45,12 @@ const SendOfferModal = ({ service, onClose }) => {
     paymentTerms: 'Yükleme öncesi nihai ödeme.',
     deliveryDate: 'Önceden anlaşma sonrası.'
   });
+  const [clientSearchQuery, setClientSearchQuery] = useState('');
+  const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
+  const clientDropdownRef = useRef(null);
+  const [conditionsValidated, setConditionsValidated] = useState(false);
+  const [showConditionsWarning, setShowConditionsWarning] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
   // Fetch cost details and extract base price
   useEffect(() => {
@@ -109,11 +115,49 @@ const SendOfferModal = ({ service, onClose }) => {
     fetchClients();
   }, []);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (clientDropdownRef.current && !clientDropdownRef.current.contains(event.target)) {
+        setIsClientDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleInputChange = (field, value) => { 
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  // Filter clients based on search query
+  const filteredClients = availableClients.filter(client => {
+    const searchLower = clientSearchQuery.toLowerCase();
+    return (
+      client.companyName?.toLowerCase().includes(searchLower) ||
+      client.contactName?.toLowerCase().includes(searchLower) ||
+      client.email?.toLowerCase().includes(searchLower) ||
+      client.phone?.toLowerCase().includes(searchLower) ||
+      client.address?.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const handleClientSelect = (clientId) => {
+    setSelectedClientId(clientId);
+    setIsClientDropdownOpen(false);
+    setClientSearchQuery('');
+  };
+
+  const toggleClientDropdown = () => {
+    if (!selectedClient) {
+      setIsClientDropdownOpen(!isClientDropdownOpen);
+    }
   };
 
   // Auto-fill form when client is selected
@@ -313,6 +357,10 @@ const SendOfferModal = ({ service, onClose }) => {
 
   const handleEditClick = (field) => {
     setEditingField(field);
+    // Hide warning when user starts editing conditions
+    if (['deliveryTerms', 'paymentTerms', 'deliveryDate'].includes(field)) {
+      setShowConditionsWarning(false);
+    }
   };
 
   const handleEditSave = (field, value) => {
@@ -337,10 +385,56 @@ const SendOfferModal = ({ service, onClose }) => {
     }
   };
 
+  const validateConditions = () => {
+    // Check if all three conditions are filled and meaningful
+    const isDeliveryTermsValid = editableTexts.deliveryTerms && editableTexts.deliveryTerms.trim().length > 0;
+    const isPaymentTermsValid = editableTexts.paymentTerms && editableTexts.paymentTerms.trim().length > 0;
+    const isDeliveryDateValid = editableTexts.deliveryDate && editableTexts.deliveryDate.trim().length > 0;
+    
+    return isDeliveryTermsValid && isPaymentTermsValid && isDeliveryDateValid;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setError(null);
+    
+    // Step 1: First click - always show warning to review conditions
+    if (!conditionsValidated) {
+      // Validate that conditions are filled
+      if (!validateConditions()) {
+        setShowConditionsWarning(true);
+        // Scroll to the conditions section
+        setTimeout(() => {
+          const termsSection = document.querySelector('.terms-section');
+          if (termsSection) {
+            termsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+        return;
+      }
+      // Show warning for user to review
+      setShowConditionsWarning(true);
+      setConditionsValidated(true);
+      // Scroll to the conditions section
+      setTimeout(() => {
+        const termsSection = document.querySelector('.terms-section');
+        if (termsSection) {
+          termsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+      return;
+    }
+
+    // Step 2: Second click - show confirmation modal
+    if (conditionsValidated && !showConfirmationModal) {
+      setShowConditionsWarning(false);
+      setShowConfirmationModal(true);
+      return;
+    }
+
+    // Step 2: If conditions already validated, proceed with sending
+    // This will be called from the confirmation modal
+    setIsSubmitting(true);
     
     try {
       let clientToUse = selectedClient;
@@ -393,6 +487,7 @@ const SendOfferModal = ({ service, onClose }) => {
       
       setIsSubmitting(false);
       setShowSuccess(true);
+      setShowConfirmationModal(false);
       
       // Close modal after showing success message
       setTimeout(() => {
@@ -402,7 +497,18 @@ const SendOfferModal = ({ service, onClose }) => {
       console.error('Error sending offer:', err);
       setError(err.message || 'Teklif gönderilirken bir hata oluştu');
       setIsSubmitting(false);
+      setShowConfirmationModal(false);
     }
+  };
+
+  const handleConfirmSend = () => {
+    // Close confirmation modal and proceed with sending
+    handleSubmit(new Event('submit'));
+  };
+
+  const handleCancelConfirmation = () => {
+    setShowConfirmationModal(false);
+    setConditionsValidated(false); // Reset validation state
   };
 
   const formatCurrency = (amount, currency = 'EUR') => {
@@ -461,22 +567,57 @@ const SendOfferModal = ({ service, onClose }) => {
                   </button>
                 </div>
                 <div className="client-selection-container">
-                  <div className="client-input-row">
-                    <select
-                      value={selectedClientId}
-                      onChange={(e) => setSelectedClientId(e.target.value)}
-                      className="client-select"
-                      disabled={loadingClients || selectedClient}
+                  <div className="custom-client-dropdown" ref={clientDropdownRef}>
+                    <div 
+                      className={`custom-dropdown-trigger ${selectedClient ? 'disabled' : ''} ${isClientDropdownOpen ? 'active' : ''}`}
+                      onClick={toggleClientDropdown}
                     >
-                      <option value="">
-                        {loadingClients ? 'Müşteriler yükleniyor...' : selectedClient ? 'Müşteri seçildi' : 'Müşteri seçin'}
-                      </option>
-                      {availableClients.map((client) => (
-                        <option key={client.id} value={client.id}>
-                          {client.companyName} - {client.contactName} ({client.email})
-                        </option>
-                      ))}
-                    </select>
+                      <span className="dropdown-trigger-text">
+                        {loadingClients 
+                          ? 'Müşteriler yükleniyor...' 
+                          : selectedClient 
+                            ? `${selectedClient.companyName} - ${selectedClient.contactName}` 
+                            : 'Müşteri seçin'}
+                      </span>
+                      <FaChevronDown className="dropdown-trigger-icon" />
+                    </div>
+                    
+                    {isClientDropdownOpen && !selectedClient && (
+                      <div className="custom-dropdown-menu">
+                        <div className="custom-dropdown-search">
+                          <input
+                            type="text"
+                            placeholder="Müşteri ara..."
+                            value={clientSearchQuery}
+                            onChange={(e) => setClientSearchQuery(e.target.value)}
+                            className="custom-dropdown-search-input"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                        <div className="custom-dropdown-list">
+                          {filteredClients.length > 0 ? (
+                            filteredClients.map((client) => (
+                              <div
+                                key={client.id}
+                                className="custom-dropdown-item"
+                                onClick={() => handleClientSelect(client.id)}
+                              >
+                                <div className="dropdown-item-main">
+                                  {client.companyName}
+                                </div>
+                                <div className="dropdown-item-sub">
+                                  {client.contactName} • {client.email}
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="custom-dropdown-empty">
+                              Müşteri bulunamadı
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   {selectedClient && (
@@ -527,7 +668,7 @@ const SendOfferModal = ({ service, onClose }) => {
                   </div>
                   
                   {ccEmails.length > 0 && (
-                    <div className="cc-email-list">
+                    <div className="cc-email-list"> 
                       {ccEmails.map((email, index) => (
                         <div key={index} className="cc-email-item">
                           <span className="cc-email-text">{email}</span>
@@ -728,7 +869,7 @@ const SendOfferModal = ({ service, onClose }) => {
                 </div>
                 
                 <div className="terms-section">
-                  <div className="terms-row">
+                  <div className={`terms-row ${showConditionsWarning ? 'terms-row-warning' : ''}`}>
                     <strong>Teslimat Şartları:</strong> 
                     {editingField === 'deliveryTerms' ? (
                       <div className="edit-input-container">
@@ -773,7 +914,7 @@ const SendOfferModal = ({ service, onClose }) => {
                       </span>
                     )}
                   </div>
-                  <div className="terms-row">
+                  <div className={`terms-row ${showConditionsWarning ? 'terms-row-warning' : ''}`}>
                     <strong>Ödeme Şartları:</strong> 
                     {editingField === 'paymentTerms' ? (
                       <div className="edit-input-container">
@@ -818,7 +959,7 @@ const SendOfferModal = ({ service, onClose }) => {
                       </span>
                     )}
                   </div>
-                  <div className="terms-row">
+                  <div className={`terms-row ${showConditionsWarning ? 'terms-row-warning' : ''}`}>
                     <strong>Teslimat Tarihi:</strong> 
                     {editingField === 'deliveryDate' ? (
                       <div className="edit-input-container">
@@ -864,6 +1005,15 @@ const SendOfferModal = ({ service, onClose }) => {
                     )}
                   </div>
                 </div>
+                
+                {showConditionsWarning && (
+                  <div className="conditions-warning">
+                    <div className="warning-icon">⚠</div>
+                    <div className="warning-text">
+                      Lütfen teslimat şartlarını, ödeme şartlarını ve teslimat tarihini kontrol edin ve onaylayın.
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -893,6 +1043,47 @@ const SendOfferModal = ({ service, onClose }) => {
               {selectedClient && (
                 <p>Gönderilen Müşteri: {selectedClient.companyName}</p>
               )}
+            </div>
+          </div>
+        )}
+
+        {showConfirmationModal && (
+          <div className="confirmation-modal-overlay">
+            <div className="confirmation-modal">
+              <div className="confirmation-header">
+                <h3>Teklifi Onayla</h3>
+              </div>
+              <div className="confirmation-body">
+                <p>Teklif bilgileri doğru mu?</p>
+                <p className="confirmation-warning">
+                  Onayladığınızda müşteriye teklif e-postası gönderilecektir.
+                </p>
+                <div className="confirmation-details">
+                  <p><strong>Müşteri:</strong> {selectedClient?.companyName || newClientData?.companyName}</p>
+                  <p><strong>Fiyat:</strong> {formatCurrency(formData.salesPrice, 'EUR')}</p>
+                  <p><strong>Teslimat Şartları:</strong> {editableTexts.deliveryTerms}</p>
+                  <p><strong>Ödeme Şartları:</strong> {editableTexts.paymentTerms}</p>
+                  <p><strong>Teslimat Tarihi:</strong> {editableTexts.deliveryDate}</p>
+                </div>
+              </div>
+              <div className="confirmation-actions">
+                <button 
+                  type="button" 
+                  className="btn-confirmation-cancel" 
+                  onClick={handleCancelConfirmation}
+                  disabled={isSubmitting}
+                >
+                  Hayır
+                </button>
+                <button 
+                  type="button" 
+                  className="btn-confirmation-confirm" 
+                  onClick={handleConfirmSend}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Gönderiliyor...' : 'Evet, Gönder'}
+                </button>
+              </div>
             </div>
           </div>
         )}

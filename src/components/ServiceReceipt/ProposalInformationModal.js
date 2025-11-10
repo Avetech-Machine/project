@@ -9,6 +9,7 @@ const ProposalInformationModal = ({ service, onClose }) => {
   const [offerDetails, setOfferDetails] = useState(null);
   const [costDetails, setCostDetails] = useState(null);
   const [priceDetails, setPriceDetails] = useState(null);
+  const [offerPrice, setOfferPrice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -27,6 +28,15 @@ const ProposalInformationModal = ({ service, onClose }) => {
         // Fetch offer details
         const offerData = await offerService.getOffersByProject(service.id);
         setOfferDetails(offerData);
+        
+        // Extract price from the first available offer
+        if (offerData && offerData.length > 0) {
+          // Find the first offer with a price, preferring SENT status offers
+          const sentOffer = offerData.find(offer => offer.status === 'SENT' && offer.price);
+          const anyOfferWithPrice = offerData.find(offer => offer.price);
+          const priceToUse = sentOffer?.price || anyOfferWithPrice?.price || null;
+          setOfferPrice(priceToUse);
+        }
         
         // Fetch cost details
         const costData = await projectService.getProjectCostDetails(service.id);
@@ -107,7 +117,8 @@ const ProposalInformationModal = ({ service, onClose }) => {
   const parsedPriceDetails = parsePriceDetails(priceDetails);
   
   const totalCost = parsedPriceDetails.totalCost || parsedCostDetails.reduce((sum, item) => sum + item.amount, 0);
-  const salesPrice = parsedPriceDetails.salesPrice || service.salesPrice || 0;
+  // Use price from offer if available, otherwise fallback to parsed price details or service data
+  const salesPrice = offerPrice ?? parsedPriceDetails.salesPrice ?? service.salesPrice ?? 0;
   const netProfit = parsedPriceDetails.netProfit || (salesPrice - totalCost);
   const profitMargin = totalCost > 0 ? ((netProfit / totalCost) * 100) : 0;
 
@@ -179,53 +190,63 @@ const ProposalInformationModal = ({ service, onClose }) => {
                 
                 {offerDetails && offerDetails.length > 0 ? (
                   <div className="offer-list">
-                    {offerDetails.map((offer, index) => (
-                      <div key={offer.id || index} className="offer-card">
-                        <div className="offer-header">
-                          <div className="offer-info">
-                            <span className="offer-id">Teklif</span>
-                            <span 
-                              className="offer-status"
-                              style={{ color: getStatusColor(offer.status) }}
-                            >
-                              {getStatusText(offer.status)}
+                    {offerDetails.map((offer, index) => {
+                      const isUsedForPrice = offer.price && offer.price === offerPrice;
+                      return (
+                        <div key={offer.id || index} className={`offer-card ${isUsedForPrice ? 'price-source' : ''}`}>
+                          <div className="offer-header">
+                            <div className="offer-info">
+                              <span className="offer-id">Teklif</span>
+                              <span 
+                                className="offer-status"
+                                style={{ color: getStatusColor(offer.status) }}
+                              >
+                                {getStatusText(offer.status)}
+                              </span>
+                              
+                            </div>
+                            <span className="offer-date">
+                              {formatDate(offer.sentAt)}
                             </span>
                           </div>
-                          <span className="offer-date">
-                            {formatDate(offer.sentAt)}
-                          </span>
-                        </div>
-                        
-                        <div className="offer-details">
-                          <div className="detail-row">
-                            <AiOutlineUser className="detail-icon" />
-                            <span className="detail-label">Gönderen:</span>
-                            <span className="detail-value">{offer.senderUserName}</span>
-                          </div>
                           
-                          <div className="detail-row">
-                            <AiOutlineUser className="detail-icon" />
-                            <span className="detail-label">Müşteri:</span>
-                            <span className="detail-value">{offer.clientCompanyName}</span>
-                          </div>
-                          
-                          <div className="detail-row">
-                            <span className="detail-label">Proje Kodu:</span>
-                            <span className="detail-value">{offer.projectCode}</span>
-                          </div>
-                          
-                          
-                          
-                          {offer.ccEmails && offer.ccEmails.length > 0 && (
+                          <div className="offer-details">
                             <div className="detail-row">
-                              <AiOutlineMail className="detail-icon" />
-                              <span className="detail-label">CC E-postalar:</span>
-                              <span className="detail-value">{offer.ccEmails.join(', ')}</span>
+                              <AiOutlineUser className="detail-icon" />
+                              <span className="detail-label">Gönderen:</span>
+                              <span className="detail-value">{offer.senderUserName}</span>
                             </div>
-                          )}
+                            
+                            <div className="detail-row">
+                              <AiOutlineUser className="detail-icon" />
+                              <span className="detail-label">Müşteri:</span>
+                              <span className="detail-value">{offer.clientCompanyName}</span>
+                            </div>
+                            
+                            <div className="detail-row">
+                              <span className="detail-label">Proje Kodu:</span>
+                              <span className="detail-value">{offer.projectCode}</span>
+                            </div>
+                            
+                            {offer.price && (
+                              <div className="detail-row">
+                                <AiOutlineEuro className="detail-icon" />
+                                <span className="detail-label">Teklif Fiyatı:</span>
+                                <span className="detail-value highlight-price">{formatCurrency(offer.price)}</span>
+                              </div>
+                            )}
+                            
+                            {offer.ccEmails && offer.ccEmails.length > 0 && (
+                              <div className="detail-row">
+                                <AiOutlineMail className="detail-icon" />
+                                <span className="detail-label">CC E-postalar:</span>
+                                <span className="detail-value">{offer.ccEmails.join(', ')}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="no-offers">

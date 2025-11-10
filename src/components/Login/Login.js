@@ -57,9 +57,6 @@ const Login = () => {
           {/* Logos */}
           <div className="login-logos">
             <div className="logo-box">
-              <img src="/assets/n_logo.jpeg" alt="N Logo" />
-            </div>
-            <div className="logo-box">
               <img src="/assets/avitech_logo.png" alt="Avitech Logo" />
             </div>
           </div>

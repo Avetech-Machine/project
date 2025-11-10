@@ -84,8 +84,8 @@ const ErrorReceipts = () => {
   return (
     <div className="all-services">
       <div className="services-header">
-        <h1>Hatalı Proje Formları</h1>
-        <p>Silinmiş projeler burada listelenir.</p>
+        <h1>İptal Edilen Projeler</h1>
+        <p>İptal edilen projeler burada listelenir.</p>
       </div>
 
       {loading && (
