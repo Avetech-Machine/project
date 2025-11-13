@@ -499,6 +499,21 @@ class ProjectService {
       return 'AVEMAK-001';
     }
   }
+
+  async sentToAccounting(id) {
+    try {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/${id}/sendToAccounting`, {
+        method: 'POST',
+        headers: authService.getAuthHeaders(),
+      });
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Send to accounting error:', error);
+      throw error;
+    }
+  }
 }
 
 export default new ProjectService();

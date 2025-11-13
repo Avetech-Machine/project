@@ -168,6 +168,10 @@
   box-sizing: border-box;
 }
 
+.login-form .form-group .password-input {
+  padding-right: 48px;
+}
+
 .login-form .form-group input:focus {
   outline: none;
   border-color: rgba(99, 102, 241, 0.5);
@@ -183,6 +187,39 @@
 
 .login-form .form-group input::placeholder {
   color: #6b7280;
+}
+
+/* Password Toggle Button */
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: color 0.2s ease;
+  z-index: 2;
+}
+
+.password-toggle:hover:not(:disabled) {
+  color: #9ca3af;
+}
+
+.password-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-icon {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
 }
 
 /* Form Options (Remember Me & Forgot Password) */

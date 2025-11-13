@@ -23,6 +23,7 @@ const ClosedProjects = ({ onEditService }) => {
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ show: false, projectId: null });
 
   // Fetch projects with SOLD status from API
   useEffect(() => {
@@ -32,8 +33,21 @@ const ClosedProjects = ({ onEditService }) => {
         setError(null);
         const data = await projectService.getProjectsByStatus('SOLD');
         
+        // Fetch detailed information for each project to get sentToAccounting status
+        const projectsWithDetails = await Promise.all(
+          data.map(async (project) => {
+            try {
+              const detailedProject = await projectService.getProjectById(project.id);
+              return { ...project, sentToAccounting: detailedProject.sentToAccounting || false };
+            } catch (error) {
+              console.error(`Error fetching details for project ${project.id}:`, error);
+              return { ...project, sentToAccounting: false };
+            }
+          })
+        );
+        
         // Transform API data to align center card fields with MainMenu
-        const transformedServices = data.map(project => {
+        const transformedServices = projectsWithDetails.map(project => {
           const cleanTitle = (title) => {
             if (!title || title === 'N/A') return title;
             return title.replace(/\s*\([^)]*\)\s*/g, '').trim();
@@ -62,7 +76,8 @@ const ClosedProjects = ({ onEditService }) => {
             teamMeasurementProbe: project.takimOlcmeProbu ? 'Var' : 'Yok',
             partMeasurementProbe: project.parcaOlcmeProbu ? 'Var' : 'Yok',
             insideWaterGiving: project.ictenSuVerme ? 'Var' : 'Yok',
-            accessoryData: project.additionalEquipment || '-'
+            accessoryData: project.additionalEquipment || '-',
+            sentToAccounting: project.sentToAccounting || false
           };
         });
         
@@ -102,6 +117,41 @@ const ClosedProjects = ({ onEditService }) => {
   const handleSubmitInformationAll = () => {
     // Handle "Submit Information" for all projects
     console.log('Submit Information for all closed projects');
+  };
+
+  const handleAccountingToggle = (service) => {
+    // Don't allow toggling if already sent to accounting
+    if (service.sentToAccounting) {
+      return;
+    }
+    
+    // Show confirmation dialog
+    setConfirmDialog({ show: true, projectId: service.id });
+  };
+
+  const handleConfirmAccounting = async () => {
+    const projectId = confirmDialog.projectId;
+    setConfirmDialog({ show: false, projectId: null });
+    
+    try {
+      await projectService.sentToAccounting(projectId);
+      
+      // Update the service in the list to mark it as sent to accounting
+      setServices(prevServices => 
+        prevServices.map(service => 
+          service.id === projectId 
+            ? { ...service, sentToAccounting: true }
+            : service
+        )
+      );
+    } catch (err) {
+      console.error('Error sending to accounting:', err);
+      alert('Muhasebe gönderimi sırasında bir hata oluştu: ' + err.message);
+    }
+  };
+
+  const handleCancelAccounting = () => {
+    setConfirmDialog({ show: false, projectId: null });
   };
 
   const getStatusClass = (status) => {
@@ -172,6 +222,18 @@ const ClosedProjects = ({ onEditService }) => {
                 <span className="detail-value">{service.year}</span>
               </div>
 
+              <div className="accounting-toggle-row">
+                <label className="accounting-toggle-label">
+                  Muhasebe Onayı:
+                </label>
+                <div 
+                  className={`accounting-toggle ${service.sentToAccounting ? 'active' : 'inactive'} ${service.sentToAccounting ? 'disabled' : ''}`}
+                  onClick={() => handleAccountingToggle(service)}
+                >
+                  <div className="toggle-slider"></div>
+                </div>
+              </div>
+
               <div className="detail-row">
                 <span className="detail-label">Seri No:</span>
                 <span className="detail-value serial-number">{service.serialNumber}</span>
@@ -218,6 +280,29 @@ const ClosedProjects = ({ onEditService }) => {
           service={selectedService}
           onClose={() => setIsProposalModalOpen(false)}
         />
+      )}
+
+      {confirmDialog.show && (
+        <div className="confirmation-overlay">
+          <div className="confirmation-dialog">
+            <h3>Muhasebe Onayı</h3>
+            <p>Bu işlem geri alınamaz. Devam etmek istediğinizden emin misiniz?</p>
+            <div className="confirmation-actions">
+              <button 
+                className="btn-cancel"
+                onClick={handleCancelAccounting}
+              >
+                İptal
+              </button>
+              <button 
+                className="btn-confirm"
+                onClick={handleConfirmAccounting}
+              >
+                Evet, Onayla
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
