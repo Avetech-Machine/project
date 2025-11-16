@@ -72,7 +72,15 @@
   margin-top: 4px;
 }
 
+.search-export-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
 .company-search {
+  flex: 0 1 auto;
   width: 100%;
   max-width: 420px;
 }
@@ -96,6 +104,39 @@
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+.export-excel-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+  margin-left: auto;
+}
+
+.export-excel-button:hover {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.export-excel-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+
+.export-excel-button .button-icon {
+  font-size: 16px;
 }
 
 .refresh-button {
@@ -418,8 +459,19 @@
     justify-content: center;
   }
 
+  .search-export-row {
+    flex-direction: column;
+    align-items: stretch;
+    max-width: none;
+  }
+
   .company-search {
     width: 100%;
+  }
+
+  .export-excel-button {
+    width: 100%;
+    justify-content: center;
   }
   
   .header-text h1 {
@@ -430,10 +482,6 @@
     grid-template-columns: 1fr;
     padding: 16px;
     gap: 16px;
-  }
-
-  .company-search {
-    max-width: none;
   }
   
   .company-card {

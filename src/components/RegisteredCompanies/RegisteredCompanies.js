@@ -9,7 +9,8 @@ import {
   AiOutlineFileText,
   AiOutlineEdit,
   AiOutlineIdcard,
-  AiOutlinePlus
+  AiOutlinePlus,
+  AiOutlineFileExcel
 } from 'react-icons/ai';
 import ViewOfferModal from './ViewOfferModal';
 import EditCompanyModal from './EditCompanyModal';
@@ -89,6 +90,11 @@ const RegisteredCompanies = () => {
     setSearchTerm(event.target.value);
   };
 
+  const handleExportToExcel = () => {
+    // TODO: Implement Excel export functionality
+    console.log('Export to Excel clicked');
+  };
+
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
   const filteredClients = clients.filter((client) => {
     if (!normalizedSearchTerm) {
@@ -149,14 +155,23 @@ const RegisteredCompanies = () => {
               <AiOutlinePlus className="button-icon" />
               Firma Ekle
             </button>
-            <div className="company-search">
-              <input
-                type="text"
-                className="company-search-input"
-                placeholder="Firmalarda ara... (firma, iletişim kişisi, e-posta, telefon)"
-                value={searchTerm}
-                onChange={handleSearchChange}
-              />
+            <div className="search-export-row">
+              <div className="company-search">
+                <input
+                  type="text"
+                  className="company-search-input"
+                  placeholder="Firmalarda ara... (firma, iletişim kişisi, e-posta, telefon)"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                />
+              </div>
+              <button 
+                className="export-excel-button"
+                onClick={handleExportToExcel}
+              >
+                <AiOutlineFileExcel className="button-icon" />
+                Excel ile Dışa Aktar
+              </button>
             </div>
           </div>
         </div>
