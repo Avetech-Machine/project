@@ -17,7 +17,7 @@ import {
 } from 'react-icons/ai';
 import './Sidebar.css';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout, user } = useAuth();
@@ -43,13 +43,21 @@ const Sidebar = () => {
     ]
   };
 
+  // Menü öğesine tıklandığında mobilde sidebar'ı kapat
+  const handleMenuItemClick = (path) => {
+    navigate(path);
+    if (onClose && window.innerWidth <= 768) {
+      onClose();
+    }
+  };
+
   // Belirli bir bölümdeki menü öğelerini render eden yardımcı fonksiyon
   const renderMenuItems = (items) => {
     return items.map(item => (
       <div 
         key={item.id}
         className={`menu-item ${location.pathname === item.path ? 'active' : ''}`}
-        onClick={() => navigate(item.path)}
+        onClick={() => handleMenuItemClick(item.path)}
       >
         {item.isLogo ? (
           <img 
@@ -71,7 +79,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="sidebar">
+    <div className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-content">
         {/* Ana Menü */}
         <div className="menu-section">

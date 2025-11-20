@@ -42,6 +42,23 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
     return `€${amount.toLocaleString('de-DE')}`;
   };
 
+  const getDisplayStatus = (status) => {
+    switch (status) {
+      case 'TEMPLATE':
+        return 'Aktif';
+      case 'SOLD':
+        return 'Tamamlandı';
+      case 'OFFER_SENT':
+        return 'Teklif Gönderildi';
+      case 'BOUGHT':
+        return 'Satın Alındı';
+      case 'CANCELLED':
+        return 'İptal Edildi';
+      default:
+        return status;
+    }
+  };
+
   // Parse cost details from API response
   const parseCostDetails = (costDetailsString) => {
     if (!costDetailsString) return [];
@@ -149,7 +166,7 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
                   </div>
                   <div className="sales-item">
                     <span>Durum:</span>
-                    <span className="sales-status">{service.status}</span>
+                    <span className="sales-status">{getDisplayStatus(service.status)}</span>
                   </div>
                 </div>
               </div>

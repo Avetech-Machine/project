@@ -130,6 +130,10 @@ const ProposalInformationModal = ({ service, onClose }) => {
         return '#ffc107';
       case 'PENDING':
         return '#17a2b8';
+      case 'COMPLETED':
+        return '#28a745'; // Green for completed/approved
+      case 'CLOSED':
+        return '#dc3545'; // Red for closed
       default:
         return '#6c757d';
     }
@@ -143,6 +147,10 @@ const ProposalInformationModal = ({ service, onClose }) => {
         return 'Taslak';
       case 'PENDING':
         return 'Beklemede';
+      case 'COMPLETED':
+        return 'Tamamlandı';
+      case 'CLOSED':
+        return 'Kapatıldı';
       default:
         return status;
     }
@@ -198,7 +206,10 @@ const ProposalInformationModal = ({ service, onClose }) => {
                             <div className="offer-info">
                               <span className="offer-id">Teklif</span>
                               <span 
-                                className="offer-status"
+                                className={`offer-status ${
+                                  offer.status === 'CLOSED' ? 'status-closed' : 
+                                  offer.status === 'COMPLETED' ? 'status-completed' : ''
+                                }`}
                                 style={{ color: getStatusColor(offer.status) }}
                               >
                                 {getStatusText(offer.status)}

@@ -18,7 +18,10 @@
   /* Sidebar içeriği için ek bir sarmalayıcı */
   .sidebar-content {
     width: 100%;
+    height: 100%;
     overflow: visible;
+    display: flex;
+    flex-direction: column;
   }
   
   /* Menü Bölümleri (Servis İşlemleri, Kullanıcı İşlemleri vb.) */
@@ -147,20 +150,101 @@
     color: inherit;
   }
 
-  /* Mobil Cihazlar için Uyumluluk */
-  @media (max-width: 768px) {
-    .sidebar {
-      width: 250px; /* Mobil için genişlik ayarı */
-      /* Mobil görünümde kenar boşluklarını sıfırlayabilirsiniz */
-      top: 0;
-      left: 0;
-      height: 100vh;
-      border-radius: 0;
-      transform: translateX(-100%);
-      transition: transform 0.3s ease-in-out;
-    }
-  
-    .sidebar.open {
-      transform: translateX(0);
-    }
+/* Mobil Cihazlar için Uyumluluk */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 280px; /* Mobil için biraz daha geniş */
+    top: 0;
+    left: 0;
+    height: 100vh;
+    border-radius: 0;
+    padding: 15px 10px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1060; /* Overlay'in üstünde olması için */
+    box-shadow: 2px 0 15px rgba(0, 0, 0, 0.2);
+    overflow: hidden; /* Sidebar'ın kendisi overflow hidden */
   }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Mobilde sidebar içeriği scroll edilebilir olmalı */
+  .sidebar-content {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 100%;
+    padding-bottom: 10px;
+  }
+
+  /* Scrollbar stilini iyileştir */
+  .sidebar-content::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .sidebar-content::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .sidebar-content::-webkit-scrollbar-thumb {
+    background: #d0d0d0;
+    border-radius: 3px;
+  }
+
+  .sidebar-content::-webkit-scrollbar-thumb:hover {
+    background: #b0b0b0;
+  }
+
+  /* Mobilde logo boyutunu küçült ve margin ayarla */
+  .sidebar .menu-logo {
+    transform: scale(2.2);
+    margin-left: 70px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  /* Logo içeren menü öğesi için özel padding */
+  .sidebar .menu-item:has(.menu-logo) {
+    padding: 15px 16px;
+    margin-bottom: 5px;
+  }
+
+  /* Mobilde section başlıklarını daha küçük yap */
+  .sidebar .section-header {
+    padding: 4px 16px 6px 16px;
+  }
+
+  .sidebar .section-title {
+    font-size: 10px;
+  }
+
+  /* Mobilde menü öğelerini optimize et */
+  .sidebar .menu-item {
+    padding: 10px 14px;
+    font-size: 13px;
+    margin: 1px 0;
+  }
+
+  .sidebar .menu-icon {
+    font-size: 16px;
+    margin-right: 10px;
+  }
+
+  /* Mobilde menu section spacing'i azalt */
+  .menu-section {
+    margin-bottom: 8px;
+  }
+
+  /* User section için özel ayar */
+  .user-section {
+    margin-top: auto;
+    padding-top: 15px;
+    padding-bottom: 5px;
+  }
+
+  /* Logout button için özel stil */
+  .logout-item {
+    font-size: 13px !important;
+  }
+}
