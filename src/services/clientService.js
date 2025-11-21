@@ -71,6 +71,38 @@ class ClientService {
       throw error;
     }
   }
+
+  async exportClientsToExcel() {
+    try {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/clients/export/excel`, {
+        method: 'GET',
+        headers: authService.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Excel dışa aktarma başarısız oldu');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0];
+      const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+      link.download = `clients_${dateStr}_${timeStr}.xlsx`;
+      
+      document.body.appendChild(link);
+      link.click();
+      
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export clients to Excel error:', error);
+      throw error;
+    }
+  }
 }
 
 export default new ClientService();

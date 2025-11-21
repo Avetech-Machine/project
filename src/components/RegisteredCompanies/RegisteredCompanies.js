@@ -90,9 +90,13 @@ const RegisteredCompanies = () => {
     setSearchTerm(event.target.value);
   };
 
-  const handleExportToExcel = () => {
-    // TODO: Implement Excel export functionality
-    console.log('Export to Excel clicked');
+  const handleExportToExcel = async () => {
+    try {
+      await clientService.exportClientsToExcel();
+    } catch (err) {
+      console.error('Error exporting to Excel:', err);
+      alert('Excel dışa aktarma sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+    }
   };
 
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
