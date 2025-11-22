@@ -20,6 +20,8 @@ export const AuthProvider = ({ children }) => {
     const token = authService.getToken();
     const userData = authService.getUser();
     
+    console.log('AuthContext - Initial load:', { token, userData });
+    
     if (token && userData) {
       setUser(userData);
     } else {
@@ -33,6 +35,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     try {
       const response = await authService.login(username, password);
+      console.log('AuthContext - Login response:', response);
       setUser(response);
       return response;
     } catch (error) {
@@ -49,11 +52,18 @@ export const AuthProvider = ({ children }) => {
     return authService.isAuthenticated();
   };
 
+  const isAdmin = () => {
+    const result = user && user.role === 'ADMIN';
+    console.log('AuthContext - isAdmin check:', { user, role: user?.role, isAdmin: result });
+    return result;
+  };
+
   const value = {
     user,
     login,
     logout,
     isAuthenticated,
+    isAdmin,
     loading
   };
 

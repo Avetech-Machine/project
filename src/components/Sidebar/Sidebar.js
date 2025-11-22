@@ -13,14 +13,19 @@ import {
   AiOutlineSend,
   AiOutlineCheckCircle,
   AiOutlineLogout,
-  AiOutlineBank
+  AiOutlineBank,
+  AiOutlineDashboard
 } from 'react-icons/ai';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout, user } = useAuth();
+  const { logout, user, isAdmin } = useAuth();
+  
+  // Debug logging
+  console.log('Sidebar - Current user:', user);
+  console.log('Sidebar - isAdmin():', isAdmin());
   
   // Menü öğeleri, daha kolay yönetim için bir nesne içinde gruplandırıldı.
   const menuItems = {
@@ -39,9 +44,20 @@ const Sidebar = ({ isOpen, onClose }) => {
     ],
     other: [
       { id: 'manual', label: 'Kullanım Kılavuzu', icon: AiOutlineFile, path: '/manual' },
-      { id: 'error-receipts', label: 'İptal Edilen Projeler', icon: AiOutlineDelete, path: '/errorReceipts' },
+      { id: 'error-receipts', label: 'İptal Edilen Projeler', icon: AiOutlineDelete, path: '/errorReceipts' }
     ]
   };
+
+  // Admin-only menu items - only visible to users with ADMIN role
+  // Add to services section, right after "Completed Projects"
+  if (isAdmin()) {
+    menuItems.services.push({
+      id: 'admin-panel',
+      label: 'Yönetici Paneli',
+      icon: AiOutlineDashboard,
+      path: '/adminPanel'
+    });
+  }
 
   // Menü öğesine tıklandığında mobilde sidebar'ı kapat
   const handleMenuItemClick = (path) => {

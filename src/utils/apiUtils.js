@@ -5,9 +5,10 @@ import authService from '../services/authService';
  * Checks for authentication errors and handles them appropriately
  */
 export const handleApiResponse = async (response) => {
-  // Check for authentication errors (401 Unauthorized, 403 Forbidden)
-  if (response.status === 401 || response.status === 403) {
-    console.warn('Authentication expired or forbidden - clearing auth data and redirecting to login');
+  // Check for authentication errors (401 Unauthorized only)
+  // 401 means the token is invalid/expired, so we should log out
+  if (response.status === 401) {
+    console.warn('Authentication expired - clearing auth data and redirecting to login');
     
     // Clear authentication data
     authService.logout();
@@ -17,6 +18,14 @@ export const handleApiResponse = async (response) => {
     
     // Throw error to prevent further processing
     throw new Error('Authentication failed. Please login again.');
+  }
+  
+  // Check for authorization errors (403 Forbidden)
+  // 403 means the user is authenticated but doesn't have permission
+  // Don't log out, just throw an error that can be displayed
+  if (response.status === 403) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'You do not have permission to perform this action.');
   }
   
   // Check for other errors

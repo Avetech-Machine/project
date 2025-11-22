@@ -19,6 +19,21 @@ class UserService {
     }
   }
 
+  async getUserById(userId) {
+    try {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/users/${userId}`, {
+        method: 'GET',
+        headers: authService.getAuthHeaders(),
+      });
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Get user by ID error:', error);
+      throw error;
+    }
+  }
+
   async createUser(userData) {
     try {
       const payload = {

@@ -10,9 +10,11 @@ import ErrorReceipts from './components/ServiceReceipt/ErrorReceipts';
 import MainMenu from './components/MainMenu/MainMenu';
 import Login from './components/Login/Login';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
+import AdminRoute from './components/AdminRoute/AdminRoute';
 import './App.css';
 import UserManagement from './components/UserManagement/UserManagement';
 import RegisteredCompanies from './components/RegisteredCompanies/RegisteredCompanies';
+import AdminPanel from './components/AdminPanel/AdminPanel';
 
 function AppContent() {
   const navigate = useNavigate();
@@ -127,6 +129,14 @@ function AppContent() {
                 <Route 
                   path="/errorReceipts" 
                   element={<ErrorReceipts />} 
+                />
+                <Route 
+                  path="/adminPanel" 
+                  element={
+                    <AdminRoute>
+                      <AdminPanel />
+                    </AdminRoute>
+                  } 
                 />
                 <Route 
                   path="*" 
