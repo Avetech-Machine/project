@@ -16,6 +16,7 @@ import {
   AiOutlineSetting,
   AiOutlineClose
 } from 'react-icons/ai';
+import { useAuth } from '../../contexts/AuthContext';
 import ServiceDetailsModal from '../ServiceReceipt/ServiceDetailsModal';
 import SendOfferModal from '../ServiceReceipt/SendOfferModal';
 import SearchBar from '../ServiceReceipt/SearchBar';
@@ -24,6 +25,7 @@ import projectService from '../../services/projectService';
 import './MainMenu.css';
 
 const MainMenu = () => {
+  const { canSubmitOffer } = useAuth();
   const [selectedService, setSelectedService] = useState(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [isSendOfferModalOpen, setIsSendOfferModalOpen] = useState(false);
@@ -549,13 +551,15 @@ const MainMenu = () => {
 
               {!isSelectMode && (
                 <div className="card-actions">
-                  <button 
-                    className="btn-offer"
-                    onClick={() => handleEditClick(service)}
-                  >
-                    <FaPaperPlane className="btn-icon" />
-                    Teklif Gönder
-                  </button>
+                  {canSubmitOffer() && (
+                    <button 
+                      className="btn-offer"
+                      onClick={() => handleEditClick(service)}
+                    >
+                      <FaPaperPlane className="btn-icon" />
+                      Teklif Gönder
+                    </button>
+                  )}
                   <button 
                     className="btn-info"
                     onClick={() => handleInfoClick(service)}
