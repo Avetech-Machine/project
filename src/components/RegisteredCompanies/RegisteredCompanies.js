@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import clientService from '../../services/clientService';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   AiOutlineReload,
   AiOutlineHome,
@@ -18,6 +19,7 @@ import AddCompanyModal from './AddCompanyModal';
 import './RegisteredCompanies.css';
 
 const RegisteredCompanies = () => {
+  const { canAddCompany } = useAuth();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true); 
   const [error, setError] = useState('');
@@ -152,13 +154,15 @@ const RegisteredCompanies = () => {
           <div className="header-text">
             <h1>Kayıtlı Firmalar</h1>
             <p>Kayıtlı müşteri firmalarının listesi</p>
-            <button 
-              className="add-company-button"
-              onClick={handleAddCompany}
-            >
-              <AiOutlinePlus className="button-icon" />
-              Firma Ekle
-            </button>
+            {canAddCompany() && (
+              <button 
+                className="add-company-button"
+                onClick={handleAddCompany}
+              >
+                <AiOutlinePlus className="button-icon" />
+                Firma Ekle
+              </button>
+            )}
             <div className="search-export-row">
               <div className="company-search">
                 <input

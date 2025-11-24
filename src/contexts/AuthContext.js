@@ -48,6 +48,18 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const handleSessionExpired = () => {
+    // Clear auth data
+    authService.logout();
+    setUser(null);
+    
+    // Show user-friendly message in Turkish
+    alert('Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.');
+    
+    // Redirect to login page
+    window.location.href = '/login';
+  };
+
   const isAuthenticated = () => {
     return authService.isAuthenticated();
   };
@@ -58,12 +70,53 @@ export const AuthProvider = ({ children }) => {
     return result;
   };
 
+  const canEdit = () => {
+    // Users with VIEWER or SALES roles cannot edit
+    const result = user && user.role !== 'VIEWER' && user.role !== 'SALES';
+    console.log('AuthContext - canEdit check:', { user, role: user?.role, canEdit: result });
+    return result;
+  };
+
+  const canAccessUserManagement = () => {
+    // Only ADMIN users can access user management
+    const result = user && user.role === 'ADMIN';
+    console.log('AuthContext - canAccessUserManagement check:', { user, role: user?.role, canAccess: result });
+    return result;
+  };
+
+  const canDelete = () => {
+    // Users with VIEWER or SALES roles cannot delete
+    const result = user && user.role !== 'VIEWER' && user.role !== 'SALES';
+    console.log('AuthContext - canDelete check:', { user, role: user?.role, canDelete: result });
+    return result;
+  };
+
+  const canSubmitOffer = () => {
+    // Only VIEWER role cannot submit offers (SALES and ADMIN can)
+    const result = user && user.role !== 'VIEWER';
+    console.log('AuthContext - canSubmitOffer check:', { user, role: user?.role, canSubmitOffer: result });
+    return result;
+  };
+
+  const canAddCompany = () => {
+    // Only VIEWER role cannot add companies (SALES and ADMIN can)
+    const result = user && user.role !== 'VIEWER';
+    console.log('AuthContext - canAddCompany check:', { user, role: user?.role, canAddCompany: result });
+    return result;
+  };
+
   const value = {
     user,
     login,
     logout,
+    handleSessionExpired,
     isAuthenticated,
     isAdmin,
+    canEdit,
+    canAccessUserManagement,
+    canDelete,
+    canSubmitOffer,
+    canAddCompany,
     loading
   };
 

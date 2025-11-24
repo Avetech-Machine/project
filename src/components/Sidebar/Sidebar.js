@@ -21,7 +21,7 @@ import './Sidebar.css';
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout, user, isAdmin } = useAuth();
+  const { logout, user, isAdmin, canAccessUserManagement } = useAuth();
   
   // Debug logging
   console.log('Sidebar - Current user:', user);
@@ -39,7 +39,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       { id: 'closed-projects', label: 'Tamamlanan Projeler', icon: AiOutlineCheckCircle, path: '/closedProjects' }
     ],
     userActions: [
-      { id: 'user-management', label: 'Kullanıcı İşlemleri', icon: AiOutlineTeam, path: '/userManagement' },
+      { id: 'user-management', label: 'Kullanıcı İşlemleri', icon: AiOutlineTeam, path: '/userManagement', adminOnly: true },
       { id: 'registered-companies', label: 'Kayıtlı Firmalar', icon: AiOutlineBank, path: '/registeredCompanies' }
     ],
     other: [
@@ -69,24 +69,32 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   // Belirli bir bölümdeki menü öğelerini render eden yardımcı fonksiyon
   const renderMenuItems = (items) => {
-    return items.map(item => (
-      <div 
-        key={item.id}
-        className={`menu-item ${location.pathname === item.path ? 'active' : ''}`}
-        onClick={() => handleMenuItemClick(item.path)}
-      >
-        {item.isLogo ? (
-          <img 
-            src="/assets/avitech_logo.png" 
-            alt="Avitech Logo" 
-            className="menu-logo"
-          />
-        ) : (
-          <item.icon className="menu-icon" />
-        )}
-        {!item.isLogo && <span className="menu-label">{item.label}</span>}
-      </div>
-    ));
+    return items
+      .filter(item => {
+        // If item is marked as adminOnly, only show to admin users
+        if (item.adminOnly) {
+          return canAccessUserManagement();
+        }
+        return true;
+      })
+      .map(item => (
+        <div 
+          key={item.id}
+          className={`menu-item ${location.pathname === item.path ? 'active' : ''}`}
+          onClick={() => handleMenuItemClick(item.path)}
+        >
+          {item.isLogo ? (
+            <img 
+              src="/assets/avitech_logo.png" 
+              alt="Avitech Logo" 
+              className="menu-logo"
+            />
+          ) : (
+            <item.icon className="menu-icon" />
+          )}
+          {!item.isLogo && <span className="menu-label">{item.label}</span>}
+        </div>
+      ));
   };
 
   const handleLogout = () => {
@@ -110,7 +118,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           {renderMenuItems(menuItems.services)}
         </div>
 
-        {/* Kullanıcı İşlemleri */}
+        {/* Kullanıcı İşlemleri - Visible to all users, but User Management only to ADMIN */}
         <div className="menu-section">
           <div className="section-header">
             <span className="section-title">KULLANICI İŞLEMLERİ</span>

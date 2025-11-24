@@ -1,5 +1,5 @@
 import authService from './authService';
-import { fetchWithAuth } from '../utils/apiUtils';
+import { fetchWithAuth, handleApiResponse } from '../utils/apiUtils';
 
 const API_BASE_URL = 'https://avitech-backend-production.up.railway.app';
 
@@ -86,21 +86,8 @@ class ProjectService {
       console.log('Status Text:', response.statusText);
       console.log('Headers:', Object.fromEntries(response.headers.entries()));
       
-      if (!response.ok) {
-        // Try to get error message from response
-        let errorData = {};
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          errorData = await response.json().catch(() => ({}));
-        } else {
-          const text = await response.text().catch(() => '');
-          errorData = { message: text || 'An unexpected error occurred' };
-        }
-        console.log('Error Response:', errorData);
-        console.log('Error Status:', response.status);
-        console.log('=======================');
-        throw new Error(errorData.message || errorData.error || 'Proje oluşturulurken bir hata oluştu');
-      }
+      // Use handleApiResponse to check for auth errors (401) and handle logout/redirect
+      await handleApiResponse(response);
 
       const data = await response.json();
       console.log('Success Response:', data);
@@ -164,39 +151,8 @@ class ProjectService {
       console.log('Status Text:', response.statusText);
       console.log('Headers:', Object.fromEntries(response.headers.entries()));
       
-      if (!response.ok) {
-        // Try to get error message from response
-        let errorData = {};
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          errorData = await response.json().catch(() => ({}));
-        } else {
-          const text = await response.text().catch(() => '');
-          errorData = { message: text || 'An unexpected error occurred' };
-        }
-        console.log('Error Response:', errorData);
-        console.log('Error Status:', response.status);
-        console.log('Error Status Text:', response.statusText);
-        console.log('==============================');
-        
-        // Provide more detailed error message
-        let errorMessage = 'Proje güncellenirken bir hata oluştu';
-        if (errorData.message) {
-          errorMessage = errorData.message;
-        } else if (errorData.error) {
-          errorMessage = errorData.error;
-        } else if (errorData.details) {
-          errorMessage = `Tüm Alanları Kontrol Edin: ${JSON.stringify(errorData.details)}`;
-        } else if (response.status === 400) {
-          errorMessage = 'Geçersiz veri formatı. Lütfen tüm alanları kontrol edin.';
-        } else if (response.status === 404) {
-          errorMessage = 'Proje bulunamadı.';
-        } else if (response.status === 500) {
-          errorMessage = 'Sunucu hatası. Lütfen daha sonra tekrar deneyin.';
-        }
-        
-        throw new Error(errorMessage);
-      }
+      // Use handleApiResponse to check for auth errors (401) and handle logout/redirect
+      await handleApiResponse(response);
 
       const data = await response.json();
       console.log('Success Response:', data);

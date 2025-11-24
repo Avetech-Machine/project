@@ -9,6 +9,7 @@ import CreateSaleModal from './CreateSaleModal';
 import SearchBar from './SearchBar';
 import FilterPanel from './FilterPanel';
 import projectService from '../../services/projectService';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   AiOutlineInfoCircle, 
   AiOutlineEdit, 
@@ -23,6 +24,7 @@ import { FaChartLine, FaPaperPlane } from 'react-icons/fa';
 import './AllServicesTable.css';
 
 const AllServices = ({ onEditService }) => {
+  const { canEdit, canDelete, canSubmitOffer } = useAuth();
   const [projects, setProjects] = useState([]);
   const [selectedService, setSelectedService] = useState(null);
   const [selectedProjectForOffers, setSelectedProjectForOffers] = useState(null);
@@ -501,7 +503,7 @@ const AllServices = ({ onEditService }) => {
                 <th>MAKİNE MODELİ</th>
                 <th>MAKİNE YILI</th>
                 <th>İŞLEMLER</th>
-                <th>SİL</th>
+                {canDelete() && <th>SİL</th>}
               </tr>
             </thead>
             <tbody>
@@ -534,38 +536,44 @@ const AllServices = ({ onEditService }) => {
                       >
                         <AiOutlineEuro />
                       </button>
-                      <button 
-                        className="operation-btn submit-btn-enhanced" 
-                        onClick={() => handleSubmitOffer(project)}
-                        title="Teklif Gönder"
-                      >
-                        <FaPaperPlane /> 
-                      </button>
-                      <button 
-                        className="operation-btn edit-btn" 
-                        onClick={() => handleEditClick(project)}
-                        title="Düzenle"
-                        disabled={editingProjectId === project.id}
-                      >
-                        {editingProjectId === project.id ? (
-                          <div className="loading-spinner-small"></div>
-                        ) : (
-                          <AiOutlineEdit />
-                        )}
-                      </button>
+                      {canSubmitOffer() && (
+                        <button 
+                          className="operation-btn submit-btn-enhanced" 
+                          onClick={() => handleSubmitOffer(project)}
+                          title="Teklif Gönder"
+                        >
+                          <FaPaperPlane /> 
+                        </button>
+                      )}
+                      {canEdit() && (
+                        <button 
+                          className="operation-btn edit-btn" 
+                          onClick={() => handleEditClick(project)}
+                          title="Düzenle"
+                          disabled={editingProjectId === project.id}
+                        >
+                          {editingProjectId === project.id ? (
+                            <div className="loading-spinner-small"></div>
+                          ) : (
+                            <AiOutlineEdit />
+                          )}
+                        </button>
+                      )}
                     </div>
                   </td>
-                  <td className="delete-column">
-                    <div className="delete-button-wrapper">
-                      <button 
-                        className="operation-btn delete-btn" 
-                        onClick={() => handleDeleteProject(project.id)}
-                        title="Sil"
-                      >
-                        <AiOutlineDelete />
-                      </button>
-                    </div>
-                  </td>
+                  {canDelete() && (
+                    <td className="delete-column">
+                      <div className="delete-button-wrapper">
+                        <button 
+                          className="operation-btn delete-btn" 
+                          onClick={() => handleDeleteProject(project.id)}
+                          title="Sil"
+                        >
+                          <AiOutlineDelete />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

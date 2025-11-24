@@ -66,7 +66,6 @@ const Login = () => {
           <div className="login-welcome">
             <div className="welcome-line"></div>
             <h1>Hoş Geldiniz</h1>
-            <p>Makine Alım-Satım Yönetim Sistemi</p>
           </div>
 
           {/* Login Form */}
@@ -137,7 +136,6 @@ const Login = () => {
                 />
                 <span>Beni Hatırla</span>
               </label>
-              <a href="#" className="forgot-password">Şifremi Unuttum</a>
             </div>
 
             {error && (
@@ -159,9 +157,7 @@ const Login = () => {
           </form>
 
           {/* Support Text */}
-          <div className="login-footer">
-            <p>Hesabınız yok mu? <a href="#">Destek ile iletişime geçin</a></p>
-          </div>
+          
         </div>
 
         {/* Copyright */}
