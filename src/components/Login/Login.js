@@ -70,14 +70,15 @@ const Login = () => {
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="login-form">
-            <div className="form-group">
+          <div className="form-group">
               <label htmlFor="username">E-posta</label>
               <div className="input-wrapper">
+                {/* İKON BURADA DEĞİŞTİ (Zarf ikonu yapıldı) */}
                 <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 <input
-                  type="text"
+                  type="text" // Burayı isterseniz type="email" yapabilirsiniz
                   id="username"
                   name="username"
                   value={formData.username}
