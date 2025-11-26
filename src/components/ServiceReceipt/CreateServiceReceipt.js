@@ -87,6 +87,56 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   const [isRatesLoading, setIsRatesLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Parse formatted input (remove thousand separators, keep decimal point)
+  const parseFormattedInput = (value) => {
+    if (value === '' || value === '.') return value;
+    
+    // Remove all dots to get clean number
+    const withoutDots = value.replace(/\./g, '');
+    
+    // If original had dots, try to determine if last part was decimal
+    const parts = value.split('.');
+    if (parts.length > 1) {
+      const lastPart = parts[parts.length - 1];
+      // If last part has 1-2 digits, it's likely a decimal part
+      if (lastPart.length <= 2 && /^\d+$/.test(lastPart)) {
+        // Reconstruct: all parts except last are integer, last is decimal
+        const integerPart = parts.slice(0, -1).join('').replace(/\./g, '');
+        return `${integerPart}.${lastPart}`;
+      }
+    }
+    
+    // No decimal detected, return without dots
+    return withoutDots;
+  };
+
+  // Format input value with dots as thousand separators
+  const formatInputValue = (value) => {
+    if (value === '' || value === '.' || value === null || value === undefined) return value === null || value === undefined ? '' : value;
+    
+    // Convert to string if it's a number
+    const strValue = String(value);
+    if (strValue === '' || strValue === '.') return strValue;
+    
+    // Parse to get clean numeric string
+    const cleaned = parseFormattedInput(strValue);
+    if (cleaned === '' || cleaned === '.') return cleaned;
+    
+    // Split by decimal point
+    const parts = cleaned.split('.');
+    const integerPart = parts[0].replace(/\D/g, ''); // Remove non-digits
+    const decimalPart = parts[1] || '';
+    
+    // Format integer part with dots
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+    // Combine with decimal part
+    if (decimalPart) {
+      return `${formattedInteger}.${decimalPart}`;
+    }
+    return formattedInteger;
+  };
+
   // Fetch live exchange rates
   useEffect(() => {
     const fetchExchangeRates = async () => {
@@ -117,16 +167,29 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       const osValue = editingService.operatingSystem || '';
       const isCustomOS = osValue && !predefinedOS.includes(osValue);
       
+      // Helper to format numeric value with dots and unit
+      const formatWithUnit = (value, unit) => {
+        if (!value && value !== 0) return '';
+        // If already has unit, return as is
+        if (String(value).includes(unit)) return String(value);
+        // Extract numeric value
+        const num = typeof value === 'number' ? value : parseFloat(String(value).replace(/[^\d.]/g, ''));
+        if (isNaN(num)) return '';
+        // Format with dots and add unit
+        const formatted = formatInputValue(String(Math.round(num)));
+        return formatted ? `${formatted}${unit}` : '';
+      };
+
       setFormData({
         machineName: editingService.machineName || '',
         model: editingService.model || '',
         year: editingService.year || '',
-        workingHours: editingService.workingHours || '',
+        workingHours: formatWithUnit(editingService.workingHours, ' saat'),
         repairHours: editingService.repairHours || '',
         serialNumber: editingService.serialNumber || '',
         teamCount: editingService.teamCount || '2',
-        machineNetWeight: editingService.machineNetWeight || '',
-        additionalWeight: editingService.additionalWeight || '',
+        machineNetWeight: formatWithUnit(editingService.machineNetWeight, 'kg'),
+        additionalWeight: formatWithUnit(editingService.additionalWeight, 'kg'),
         operatingSystem: isCustomOS ? 'Other' : (editingService.operatingSystem || 'Heidenhain'),
         customOperatingSystem: isCustomOS ? osValue : (editingService.customOperatingSystem || ''),
         teamMeasurementProbe: editingService.teamMeasurementProbe || 'Var',
@@ -263,10 +326,44 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     }));
   };
 
+  // Handle weight input change (format with dots while typing)
+  const handleWeightInput = (field, value) => {
+    // Remove "kg" if present
+    const cleanedValue = value.replace(/kg$/, '').trim();
+    
+    // Allow empty string, numbers, dots, and decimal points
+    if (cleanedValue === '' || cleanedValue === '.' || /^-?[\d.]*$/.test(cleanedValue)) {
+      // Format the input value with dots
+      const formattedValue = formatInputValue(cleanedValue);
+      setFormData(prev => ({
+        ...prev,
+        [field]: formattedValue
+      }));
+    }
+  };
+
   // Round weight to nearest kg and append unit on blur
   const handleWeightBlur = (field, value) => {
-    const numeric = parseFloat(String(value).replace(/[^\d.,-]/g, '').replace(',', '.'));
-    const processedValue = isNaN(numeric) ? '' : `${Math.round(numeric)}kg`;
+    // Remove "kg" if present
+    let cleanedValue = value.replace(/kg$/, '').trim();
+    
+    // Parse to get numeric value (remove dots, keep decimal)
+    cleanedValue = parseFormattedInput(cleanedValue);
+    const numeric = parseFloat(cleanedValue);
+    
+    if (isNaN(numeric) || cleanedValue === '' || cleanedValue === '.') {
+      setFormData(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+      return;
+    }
+    
+    // Round to nearest integer and format with dots
+    const rounded = Math.round(numeric);
+    const formatted = formatInputValue(String(rounded));
+    const processedValue = `${formatted} kg`;
+    
     setFormData(prev => ({
       ...prev,
       [field]: processedValue
@@ -294,12 +391,18 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
         repairHours: value
       }));
     } else {
-      // During typing: only allow numbers, remove all letters (including Turkish letters)
-      const sanitized = sanitizeNumeric(value);
-      setFormData(prev => ({
-        ...prev,
-        repairHours: sanitized
-      }));
+      // Remove "Max 1/min" if present
+      const cleanedValue = value.replace(/Max 1\/min$/, '').trim();
+      
+      // Allow empty string, numbers, commas, dots, and decimal points
+      if (cleanedValue === '' || /^-?[\d.,]*$/.test(cleanedValue)) {
+        // Format with dots as thousand separators (consistent with other fields)
+        const formattedValue = formatInputValue(cleanedValue);
+        setFormData(prev => ({
+          ...prev,
+          repairHours: formattedValue
+        }));
+      }
     }
   };
 
@@ -311,13 +414,15 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       return;
     }
     
-    // Remove any existing commas and get numeric value
-    const numericValue = value.replace(/,/g, '').trim();
+    // Parse to get numeric value (remove commas, dots, and any formatting)
+    const cleanedValue = parseFormattedInput(value.replace(/,/g, ''));
+    const numericValue = parseFloat(cleanedValue);
     
     // Check if it's a valid number
-    if (numericValue && !isNaN(numericValue)) {
-      // Format with commas
-      const formattedValue = parseInt(numericValue).toLocaleString();
+    if (cleanedValue !== '' && cleanedValue !== '.' && !isNaN(numericValue)) {
+      // Round to integer and format with dots
+      const rounded = Math.round(numericValue);
+      const formattedValue = formatInputValue(String(rounded));
       // Add "Max 1/min" suffix
       const finalValue = `${formattedValue} Max 1/min`;
       
@@ -329,10 +434,46 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   };
 
   const handleWorkingHoursInput = (e) => {
-    const value = sanitizeNumeric(e.target.value);
+    const value = e.target.value;
+    // Remove "saat" if present
+    const cleanedValue = value.replace(/saat$/, '').trim();
+    
+    // Allow empty string, numbers, dots, and decimal points
+    if (cleanedValue === '' || cleanedValue === '.' || /^-?[\d.]*$/.test(cleanedValue)) {
+      // Format the input value with dots
+      const formattedValue = formatInputValue(cleanedValue);
+      setFormData(prev => ({
+        ...prev,
+        workingHours: formattedValue
+      }));
+    }
+  };
+
+  const handleWorkingHoursBlur = (e) => {
+    const value = e.target.value;
+    // Remove "saat" if present
+    let cleanedValue = value.replace(/saat$/, '').trim();
+    
+    // Parse to get numeric value (remove dots, keep decimal)
+    cleanedValue = parseFormattedInput(cleanedValue);
+    const numeric = parseFloat(cleanedValue);
+    
+    if (isNaN(numeric) || cleanedValue === '' || cleanedValue === '.') {
+      setFormData(prev => ({
+        ...prev,
+        workingHours: ''
+      }));
+      return;
+    }
+    
+    // Round to nearest integer and format with dots
+    const rounded = Math.round(numeric);
+    const formatted = formatInputValue(String(rounded));
+    const processedValue = `${formatted} saat`;
+    
     setFormData(prev => ({
       ...prev,
-      workingHours: value
+      workingHours: processedValue
     }));
   };
 
@@ -340,26 +481,10 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       const input = e.target;
-      const value = input.value.replace(/,/g, ''); // Remove existing commas
-      
-      // Check if it's a valid number
-      if (!isNaN(value) && value !== '') {
-        // Format with commas
-        const formattedValue = parseInt(value).toLocaleString();
-        // Add "saat" suffix
-        const finalValue = `${formattedValue}`;
-        
-        setFormData(prev => ({
-          ...prev,
-          workingHours: finalValue
-        }));
-        
-        // Move to next field instead of blurring
-        moveToNextField(input);
-      } else {
-        // If invalid, just move to next field
-        moveToNextField(input);
-      }
+      // Trigger blur to format the value
+      handleWorkingHoursBlur(e);
+      // Move to next field
+      moveToNextField(input);
     }
   };
 
@@ -535,12 +660,36 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       model: formData.model || '', // Using separate model field
       make: (formData.machineName && formData.machineName.split(' ')[0]) || 'Unknown', // Extract make from machine name
       year: parseInt(formData.year) || 2024,
-      hoursOperated: parseInt(formData.workingHours) || 0,
-      rpm: parseInt(formData.repairHours) || 0, // Using repairHours as rpm
+      hoursOperated: (() => {
+        // Extract numeric value from workingHours (remove "saat" and dots)
+        const cleaned = String(formData.workingHours || '').replace(/saat$/, '').trim().replace(/\./g, '');
+        const numeric = parseInt(cleaned) || 0;
+        return numeric;
+      })(),
+      rpm: (() => {
+        // Extract numeric value from repairHours (remove "Max 1/min", commas, and dots)
+        const cleaned = String(formData.repairHours || '')
+          .replace(/Max 1\/min$/, '') // Remove "Max 1/min" suffix
+          .trim()
+          .replace(/,/g, '') // Remove commas
+          .replace(/\./g, ''); // Remove dots
+        const numeric = parseInt(cleaned) || 0;
+        return numeric;
+      })(), // Using repairHours as rpm
       serialNumber: formData.serialNumber || '',
       takimSayisi: parseInt(formData.teamCount) || 0,
-      netWeight: (formData.machineNetWeight && !isNaN(parseFloat(formData.machineNetWeight))) ? parseFloat(formData.machineNetWeight) : null,
-      additionalWeight: (formData.additionalWeight && !isNaN(parseFloat(formData.additionalWeight))) ? parseFloat(formData.additionalWeight) : null,
+      netWeight: (() => {
+        // Extract numeric value from machineNetWeight (remove "kg" and dots)
+        const cleaned = String(formData.machineNetWeight || '').replace(/kg$/, '').trim().replace(/\./g, '');
+        const numeric = parseFloat(cleaned);
+        return (!isNaN(numeric) && cleaned !== '') ? Math.round(numeric) : null;
+      })(),
+      additionalWeight: (() => {
+        // Extract numeric value from additionalWeight (remove "kg" and dots)
+        const cleaned = String(formData.additionalWeight || '').replace(/kg$/, '').trim().replace(/\./g, '');
+        const numeric = parseFloat(cleaned);
+        return (!isNaN(numeric) && cleaned !== '') ? Math.round(numeric) : null;
+      })(),
       operatingSystem: formData.operatingSystem === 'Other' ? (formData.customOperatingSystem || '') : (formData.operatingSystem || ''),
       anahtarBilgisi: keyInformation ? keyInformation.toString() : '',
       takimOlcmeProbu: formData.teamMeasurementProbe === 'Var',
@@ -830,6 +979,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       type="text"
       value={formData.workingHours}
       onChange={handleWorkingHoursInput}
+      onBlur={handleWorkingHoursBlur}
       onKeyPress={handleWorkingHoursKeyPress}
       placeholder="Çalışma saati"
     />
@@ -875,7 +1025,8 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             <input
               type="text"
               value={formData.machineNetWeight}
-              onChange={(e) => handleRestrictedInput('machineNetWeight', e.target.value)}
+              onChange={(e) => handleWeightInput('machineNetWeight', e.target.value)}
+              onBlur={(e) => handleWeightBlur('machineNetWeight', e.target.value)}
               onKeyPress={handleEnterKeyPress}
               placeholder="kg"
             />
@@ -885,7 +1036,8 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             <input
               type="text"
               value={formData.additionalWeight}
-              onChange={(e) => handleRestrictedInput('additionalWeight', e.target.value)}
+              onChange={(e) => handleWeightInput('additionalWeight', e.target.value)}
+              onBlur={(e) => handleWeightBlur('additionalWeight', e.target.value)}
               onKeyPress={handleEnterKeyPress}
               placeholder="kg"
             />

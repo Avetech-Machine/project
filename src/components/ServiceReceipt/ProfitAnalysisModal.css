@@ -23,6 +23,8 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   scrollbar-width: thin;
   scrollbar-color: #6c757d #f8f9fa;
+  display: flex;
+  flex-direction: column;
 }
 
 .profit-analysis-modal::-webkit-scrollbar {
@@ -71,6 +73,8 @@
 .modal-content {
   padding: 24px;
   position: relative;
+  min-height: 0;
+  flex: 1 1 auto;
 }
 
 .service-info {

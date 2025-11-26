@@ -22,12 +22,12 @@
   margin: 0;
 }
 
-.refresh-button {
+.export-excel-button {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: #3498db;
+  background: #1d6f42;
   color: white;
   border: none;
   border-radius: 8px;
@@ -37,13 +37,13 @@
   transition: all 0.3s ease;
 }
 
-.refresh-button:hover {
-  background: #2980b9;
+.export-excel-button:hover {
+  background: #155d32;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 4px 12px rgba(29, 111, 66, 0.3);
 }
 
-.refresh-button svg {
+.export-excel-button svg {
   font-size: 18px;
 }
 
@@ -222,7 +222,7 @@
     font-size: 22px;
   }
 
-  .refresh-button {
+  .export-excel-button {
     width: 100%;
     justify-content: center;
   }
@@ -290,7 +290,7 @@
   }
 
   .admin-panel-header,
-  .refresh-button {
+  .export-excel-button {
     display: none;
   }
 

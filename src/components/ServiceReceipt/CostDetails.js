@@ -1,5 +1,5 @@
 import React from 'react';
-import { convertCurrency, formatCurrency } from '../../services/currencyService';
+import { convertCurrency } from '../../services/currencyService';
 import { FaEuroSign, FaTrashAlt } from 'react-icons/fa';
 import './CostDetails.css';
 
@@ -54,6 +54,86 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
       e.preventDefault();
       moveToNextField(e.target);
     }
+  };
+
+  // Parse formatted input (remove thousand separators, keep decimal point)
+  const parseFormattedInput = (value) => {
+    if (value === '' || value === '.') return value;
+    
+    // Remove all dots to get clean number
+    const withoutDots = value.replace(/\./g, '');
+    
+    // If original had dots, try to determine if last part was decimal
+    const parts = value.split('.');
+    if (parts.length > 1) {
+      const lastPart = parts[parts.length - 1];
+      // If last part has 1-2 digits, it's likely a decimal part
+      if (lastPart.length <= 2 && /^\d+$/.test(lastPart)) {
+        // Reconstruct: all parts except last are integer, last is decimal
+        const integerPart = parts.slice(0, -1).join('').replace(/\./g, '');
+        return `${integerPart}.${lastPart}`;
+      }
+    }
+    
+    // No decimal detected, return without dots
+    return withoutDots;
+  };
+
+  // Format input value with dots as thousand separators
+  const formatInputValue = (value) => {
+    if (value === '' || value === '.' || value === null || value === undefined) return value === null || value === undefined ? '' : value;
+    
+    // Convert to string if it's a number
+    const strValue = String(value);
+    if (strValue === '' || strValue === '.') return strValue;
+    
+    // Parse to get clean numeric string
+    const cleaned = parseFormattedInput(strValue);
+    if (cleaned === '' || cleaned === '.') return cleaned;
+    
+    // Split by decimal point
+    const parts = cleaned.split('.');
+    const integerPart = parts[0].replace(/\D/g, ''); // Remove non-digits
+    const decimalPart = parts[1] || '';
+    
+    // Format integer part with dots
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+    // Combine with decimal part
+    if (decimalPart) {
+      return `${formattedInteger}.${decimalPart}`;
+    }
+    return formattedInteger;
+  };
+
+  // Format number with dots as thousand separators for display (e.g., 12000.03 -> 12.000.03)
+  const formatNumberWithDots = (number) => {
+    if (number === null || number === undefined || isNaN(number)) {
+      return '0.00';
+    }
+    
+    // Handle negative numbers
+    const isNegative = number < 0;
+    const absNumber = Math.abs(number);
+    
+    // Convert to string and split by decimal point
+    const numStr = absNumber.toString();
+    const parts = numStr.split('.');
+    
+    // Format integer part with dots as thousand separators
+    const integerPart = parts[0];
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+    // Handle decimal part
+    let decimalPart = '00';
+    if (parts.length > 1) {
+      // Keep decimal part, pad to 2 digits if needed
+      decimalPart = parts[1].padEnd(2, '0').substring(0, 2);
+    }
+    
+    // Combine parts with negative sign if needed
+    const formatted = `${formattedInteger}.${decimalPart}`;
+    return isNegative ? `-${formatted}` : formatted;
   };
 
   return (
@@ -128,12 +208,34 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
               <input
                 type="text"
                 inputMode="numeric"
-                value={item.amount}
+                value={formatInputValue(item.amount)}
                 onChange={(e) => {
-                  const value = e.target.value;
-                  // Only update if the value is a valid number or empty string
-                  if (value === '' || !isNaN(parseFloat(value))) {
-                    onUpdateCost(item.id, 'amount', value === '' ? '' : parseFloat(value));
+                  const rawValue = e.target.value;
+                  
+                  // Allow empty string, numbers, dots, and decimal points
+                  if (rawValue === '' || rawValue === '.' || /^-?[\d.]*$/.test(rawValue)) {
+                    // Parse to get numeric value (remove dots, keep decimal)
+                    const cleanedValue = parseFormattedInput(rawValue);
+                    const numericValue = parseFloat(cleanedValue);
+                    
+                    // Update with numeric value (or empty string)
+                    if (cleanedValue === '' || cleanedValue === '.') {
+                      onUpdateCost(item.id, 'amount', '');
+                    } else if (!isNaN(numericValue)) {
+                      onUpdateCost(item.id, 'amount', numericValue);
+                    }
+                  }
+                }}
+                onBlur={(e) => {
+                  // Format on blur to ensure proper display
+                  const rawValue = e.target.value;
+                  const cleanedValue = parseFormattedInput(rawValue);
+                  const numericValue = parseFloat(cleanedValue);
+                  
+                  if (cleanedValue === '' || cleanedValue === '.' || isNaN(numericValue)) {
+                    onUpdateCost(item.id, 'amount', '');
+                  } else {
+                    onUpdateCost(item.id, 'amount', numericValue);
                   }
                 }}
                 onKeyPress={handleEnterKeyPress}
@@ -145,10 +247,7 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
                 {isRatesLoading ? (
                   <span className="loading">Yükleniyor...</span>
                 ) : (
-                  formatCurrency(
-                    convertCurrency(item.amount, item.currency, 'EUR', exchangeRates),
-                    'EUR'
-                  )
+                  `€${formatNumberWithDots(convertCurrency(item.amount, item.currency, 'EUR', exchangeRates))}`
                 )}
               </div>
             </div>
@@ -168,7 +267,7 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
       {/* Ana Değişiklik: "cost-summary" yapısı güncellendi */}
       <div className="cost-summary">
         <span className="total-cost-label">Toplam Maliyet:</span>
-        <span className="total-cost-value">{formatCurrency(totalCost, 'EUR')}</span>
+        <span className="total-cost-value">€{formatNumberWithDots(totalCost)}</span>
       </div>
     </div>
   );

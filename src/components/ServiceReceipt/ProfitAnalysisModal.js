@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineClose, AiOutlineEuro } from 'react-icons/ai';
 import { FaChartLine } from 'react-icons/fa';
 import projectService from '../../services/projectService';
@@ -9,6 +9,7 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
   const [priceDetails, setPriceDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const modalRef = useRef(null);
 
   useEffect(() => {
     const fetchCostDetails = async () => {
@@ -109,9 +110,65 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
   const netProfit = parsedPriceDetails.netProfit || (salesPrice - totalCost);
   const profitMargin = totalCost > 0 ? ((netProfit / totalCost) * 100) : 0;
 
+  // Force scroll recalculation after content loads
+  useEffect(() => {
+    if (!loading && !error && modalRef.current) {
+      const forceScrollRecalculation = () => {
+        if (modalRef.current) {
+          // Force browser to recalculate layout by accessing scroll properties
+          // This ensures the scroll container properly calculates its scrollable area
+          const scrollHeight = modalRef.current.scrollHeight;
+          const clientHeight = modalRef.current.clientHeight;
+          void scrollHeight;
+          void clientHeight;
+          void modalRef.current.scrollTop;
+        }
+      };
+      
+      // Use ResizeObserver to watch for content size changes
+      let resizeObserver;
+      const contentElement = modalRef.current.querySelector('.modal-content');
+      
+      if (window.ResizeObserver && contentElement) {
+        resizeObserver = new ResizeObserver(() => {
+          // Delay to ensure layout is complete
+          setTimeout(() => {
+            forceScrollRecalculation();
+          }, 0);
+        });
+        resizeObserver.observe(contentElement);
+      }
+      
+      // Initial recalculation with multiple delays to ensure DOM is ready
+      const timeout1 = setTimeout(() => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            forceScrollRecalculation();
+          });
+        });
+      }, 0);
+      
+      const timeout2 = setTimeout(() => {
+        forceScrollRecalculation();
+      }, 100);
+      
+      return () => {
+        clearTimeout(timeout1);
+        clearTimeout(timeout2);
+        if (resizeObserver) {
+          resizeObserver.disconnect();
+        }
+      };
+    }
+  }, [loading, error, costDetails, priceDetails]);
+
   return (
     <div className="profit-analysis-modal-overlay" onClick={onClose}>
-      <div className="profit-analysis-modal" onClick={(e) => e.stopPropagation()}>
+      <div 
+        ref={modalRef}
+        className="profit-analysis-modal" 
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-content">
           <button className="close-button" onClick={onClose}>
             <AiOutlineClose />

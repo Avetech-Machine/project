@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AiOutlineLoading3Quarters, AiOutlineReload } from 'react-icons/ai';
+import { FaFileExcel } from 'react-icons/fa';
 import projectService from '../../services/projectService';
 import offerService from '../../services/offerService';
 import './AdminPanel.css';
@@ -12,6 +13,19 @@ const AdminPanel = () => {
   useEffect(() => {
     fetchAdminData();
   }, []);
+
+  // Extract numeric value from currency string
+  const extractNumericValue = (value) => {
+    if (!value || value === 'N/A') return 0;
+    const valueStr = String(value);
+    const currencyMatch = valueStr.match(/(EUR|TRY|USD)?\s*([\d.,]+)/i);
+    if (currencyMatch) {
+      const numericStr = currencyMatch[2].replace(/,/g, '').replace(/\./g, '');
+      const numericValue = parseFloat(numericStr);
+      return isNaN(numericValue) ? 0 : numericValue;
+    }
+    return 0;
+  };
 
   const fetchAdminData = async () => {
     setLoading(true);
@@ -59,6 +73,12 @@ const AdminPanel = () => {
             }
           }
 
+          // Calculate other costs (Diğer Maliyetler) = Total Cost - Purchase Price
+          const purchasePriceNum = extractNumericValue(purchasePrice);
+          const totalCostNum = extractNumericValue(totalCost);
+          const otherCostsNum = totalCostNum - purchasePriceNum;
+          const otherCosts = otherCostsNum >= 0 ? `EUR ${otherCostsNum}` : 'EUR 0';
+
           // Fetch offers for this project to get sale information
           let saleDate = null;
           let salePrice = null;
@@ -85,6 +105,12 @@ const AdminPanel = () => {
             console.warn(`Could not fetch offers for project ${project.id}:`, offerError);
           }
 
+          // Calculate gross profit = Sale Price - Total Cost
+          const salePriceNum = extractNumericValue(salePrice);
+          const grossProfitNum = salePriceNum - totalCostNum;
+          // Only show gross profit if there's a sale price
+          const grossProfit = salePriceNum > 0 ? `EUR ${grossProfitNum}` : null;
+
           return {
             id: project.id,
             projectCode: project.projectCode || 'N/A',
@@ -92,9 +118,10 @@ const AdminPanel = () => {
             model: project.model || 'N/A',
             purchaseDate: project.createdAt,
             purchasePrice,
-            totalCost,
+            otherCosts,
             saleDate,
             salePrice,
+            grossProfit,
             companySold,
             status: project.status === 'SOLD' ? 'SATILDI' : 'STOKTA',
             rawStatus: project.status
@@ -109,9 +136,10 @@ const AdminPanel = () => {
             model: project.model || 'N/A',
             purchaseDate: project.createdAt,
             purchasePrice: 'EUR 0',
-            totalCost: 'EUR 0',
+            otherCosts: 'EUR 0',
             saleDate: null,
             salePrice: null,
+            grossProfit: null,
             companySold: null,
             status: project.status === 'SOLD' ? 'SATILDI' : 'STOKTA',
             rawStatus: project.status
@@ -144,9 +172,42 @@ const AdminPanel = () => {
     }
   };
 
+  // Format number with dots as thousand separators
+  const formatNumberWithDots = (number) => {
+    if (number === null || number === undefined || number === '' || isNaN(number)) {
+      return null;
+    }
+    const num = typeof number === 'number' ? number : parseFloat(number);
+    if (isNaN(num)) return null;
+    
+    const numStr = Math.round(num).toString();
+    return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
   const formatCurrency = (value) => {
     if (!value || value === 'N/A') return 'N/A';
+    
+    // Extract numeric value from string like "EUR 18000" or "18000"
+    const valueStr = String(value);
+    const currencyMatch = valueStr.match(/(EUR|TRY|USD)?\s*([\d.,]+)/i);
+    
+    if (currencyMatch) {
+      const currency = currencyMatch[1] || 'EUR';
+      const numericStr = currencyMatch[2].replace(/,/g, '').replace(/\./g, '');
+      const numericValue = parseFloat(numericStr);
+      
+      if (!isNaN(numericValue)) {
+        const formatted = formatNumberWithDots(numericValue);
+        return formatted ? `${currency} ${formatted}` : value;
+      }
+    }
+    
     return value;
+  };
+
+  const handleExportToExcel = () => {
+    // Placeholder for future Excel export functionality
+    console.log('Export to Excel clicked');
   };
 
   if (loading) {
@@ -183,8 +244,8 @@ const AdminPanel = () => {
     <div className="admin-panel">
       <div className="admin-panel-header">
         <h1>Yönetici Paneli</h1>
-        <button className="refresh-button" onClick={fetchAdminData}>
-          <AiOutlineReload /> Yenile
+        <button className="export-excel-button" onClick={handleExportToExcel}>
+          <FaFileExcel /> Excel ile Dışa Aktar
         </button>
       </div>
 
@@ -197,17 +258,18 @@ const AdminPanel = () => {
                 <th>Marka & Model</th>
                 <th>Satın Alma Tarihi</th>
                 <th>Satın Alma Fiyatı</th>
-                <th>Toplam Maliyet</th>
+                <th>Diğer Maliyetler</th>
                 <th>Satış Tarihi</th>
                 <th>Satış Fiyatı</th>
                 <th>Satılan Firma</th>
+                <th>Brüt Kar</th>
                 <th>Durum</th>
               </tr>
             </thead>
             <tbody>
               {adminData.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="no-data">
+                  <td colSpan="10" className="no-data">
                     Gösterilecek veri bulunmamaktadır.
                   </td>
                 </tr>
@@ -218,12 +280,15 @@ const AdminPanel = () => {
                     <td className="make-model">{item.make} {item.model}</td>
                     <td>{formatDate(item.purchaseDate)}</td>
                     <td className="currency">{formatCurrency(item.purchasePrice)}</td>
-                    <td className="currency">{formatCurrency(item.totalCost)}</td>
+                    <td className="currency">{formatCurrency(item.otherCosts)}</td>
                     <td>{formatDate(item.saleDate)}</td>
                     <td className="currency">
                       {item.salePrice ? formatCurrency(item.salePrice) : 'N/A'}
                     </td>
                     <td>{item.companySold || 'N/A'}</td>
+                    <td className="currency">
+                      {item.grossProfit ? formatCurrency(item.grossProfit) : 'N/A'}
+                    </td>
                     <td className={`status-cell ${item.status === 'SATILDI' ? 'sold' : 'instock'}`}>
                       {item.status}
                     </td>

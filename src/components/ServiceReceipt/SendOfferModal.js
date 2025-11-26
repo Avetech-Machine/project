@@ -10,6 +10,7 @@ const SendOfferModal = ({ service, onClose }) => {
     documentDate: new Date().toLocaleDateString('tr-TR'),
     salesPrice: service?.salesPrice || service?.totalCost || 0
   });
+  const [salesPriceDisplay, setSalesPriceDisplay] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
   const [availableClients, setAvailableClients] = useState([]);
   const [selectedClientId, setSelectedClientId] = useState('');
@@ -52,6 +53,56 @@ const SendOfferModal = ({ service, onClose }) => {
   const [showConditionsWarning, setShowConditionsWarning] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
+  // Parse formatted input (remove thousand separators, keep decimal point)
+  const parseFormattedInput = (value) => {
+    if (value === '' || value === '.') return value;
+    
+    // Remove all dots to get clean number
+    const withoutDots = value.replace(/\./g, '');
+    
+    // If original had dots, try to determine if last part was decimal
+    const parts = value.split('.');
+    if (parts.length > 1) {
+      const lastPart = parts[parts.length - 1];
+      // If last part has 1-2 digits, it's likely a decimal part
+      if (lastPart.length <= 2 && /^\d+$/.test(lastPart)) {
+        // Reconstruct: all parts except last are integer, last is decimal
+        const integerPart = parts.slice(0, -1).join('').replace(/\./g, '');
+        return `${integerPart}.${lastPart}`;
+      }
+    }
+    
+    // No decimal detected, return without dots
+    return withoutDots;
+  };
+
+  // Format input value with dots as thousand separators
+  const formatInputValue = (value) => {
+    if (value === '' || value === '.' || value === null || value === undefined) return value === null || value === undefined ? '' : value;
+    
+    // Convert to string if it's a number
+    const strValue = String(value);
+    if (strValue === '' || strValue === '.') return strValue;
+    
+    // Parse to get clean numeric string
+    const cleaned = parseFormattedInput(strValue);
+    if (cleaned === '' || cleaned === '.') return cleaned;
+    
+    // Split by decimal point
+    const parts = cleaned.split('.');
+    const integerPart = parts[0].replace(/\D/g, ''); // Remove non-digits
+    const decimalPart = parts[1] || '';
+    
+    // Format integer part with dots
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+    // Combine with decimal part
+    if (decimalPart) {
+      return `${formattedInteger}.${decimalPart}`;
+    }
+    return formattedInteger;
+  };
+
   // Fetch cost details and extract base price
   useEffect(() => {
     const fetchCostDetails = async () => {
@@ -74,6 +125,8 @@ const SendOfferModal = ({ service, onClose }) => {
               ...prev,
               salesPrice: basePrice
             }));
+            // Format the display value
+            setSalesPriceDisplay(formatInputValue(String(basePrice)));
           }
         }
       } catch (error) {
@@ -90,12 +143,23 @@ const SendOfferModal = ({ service, onClose }) => {
   // Update form data when service prop changes (fallback if API fails)
   useEffect(() => {
     if (service && !loadingCostDetails) {
+      const price = formData.salesPrice || service.salesPrice || service.totalCost || 0;
       setFormData(prev => ({
         ...prev,
-        salesPrice: prev.salesPrice || service.salesPrice || service.totalCost || 0
+        salesPrice: price
       }));
+      // Format the display value
+      setSalesPriceDisplay(formatInputValue(String(price)));
     }
   }, [service, loadingCostDetails]);
+
+  // Initialize display value on mount
+  useEffect(() => {
+    const initialPrice = service?.salesPrice || service?.totalCost || 0;
+    if (initialPrice && !salesPriceDisplay) {
+      setSalesPriceDisplay(formatInputValue(String(initialPrice)));
+    }
+  }, []);
 
   // Fetch clients on component mount
   useEffect(() => {
@@ -134,6 +198,57 @@ const SendOfferModal = ({ service, onClose }) => {
       ...prev,
       [field]: value
     }));
+  };
+
+  // Handle sales price input change
+  const handleSalesPriceChange = (e) => {
+    const rawValue = e.target.value;
+    
+    // Allow empty string, numbers, dots, and decimal points
+    if (rawValue === '' || rawValue === '.' || /^-?[\d.]*$/.test(rawValue)) {
+      // Format the input value with dots
+      const formattedValue = formatInputValue(rawValue);
+      setSalesPriceDisplay(formattedValue);
+      
+      // Parse to get numeric value (remove dots, keep decimal)
+      const cleanedValue = parseFormattedInput(formattedValue);
+      const numericValue = parseFloat(cleanedValue);
+      
+      // Update the actual numeric value
+      if (cleanedValue === '' || cleanedValue === '.' || isNaN(numericValue)) {
+        setFormData(prev => ({
+          ...prev,
+          salesPrice: 0
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          salesPrice: numericValue
+        }));
+      }
+    }
+  };
+
+  // Handle sales price blur
+  const handleSalesPriceBlur = (e) => {
+    const rawValue = e.target.value;
+    
+    // Parse to get numeric value (remove dots, keep decimal)
+    const cleanedValue = parseFormattedInput(rawValue);
+    const numericValue = parseFloat(cleanedValue);
+    
+    if (cleanedValue === '' || cleanedValue === '.' || isNaN(numericValue)) {
+      // Reset to current salesPrice
+      setSalesPriceDisplay(formatInputValue(String(formData.salesPrice || '0')));
+    } else {
+      // Format the final value with dots
+      const formatted = formatInputValue(String(numericValue));
+      setSalesPriceDisplay(formatted);
+      setFormData(prev => ({
+        ...prev,
+        salesPrice: numericValue
+      }));
+    }
   };
 
   // Filter clients based on search query
@@ -511,11 +626,42 @@ const SendOfferModal = ({ service, onClose }) => {
     setConditionsValidated(false); // Reset validation state
   };
 
-  const formatCurrency = (amount, currency = 'EUR') => {
-    if (currency === 'TRY') {
-      return `₺${amount.toLocaleString('tr-TR')}`;
+  // Format number with dots as thousand separators (e.g., 12000.03 -> 12.000.03)
+  const formatNumberWithDots = (number) => {
+    if (number === null || number === undefined || isNaN(number)) {
+      return '0.00';
     }
-    return `€${amount.toLocaleString('de-DE')}`;
+    
+    // Handle negative numbers
+    const isNegative = number < 0;
+    const absNumber = Math.abs(number);
+    
+    // Convert to string and split by decimal point
+    const numStr = absNumber.toString();
+    const parts = numStr.split('.');
+    
+    // Format integer part with dots as thousand separators
+    const integerPart = parts[0];
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+    // Handle decimal part
+    let decimalPart = '00';
+    if (parts.length > 1) {
+      // Keep decimal part, pad to 2 digits if needed
+      decimalPart = parts[1].padEnd(2, '0').substring(0, 2);
+    }
+    
+    // Combine parts with negative sign if needed
+    const formatted = `${formattedInteger}.${decimalPart}`;
+    return isNegative ? `-${formatted}` : formatted;
+  };
+
+  const formatCurrency = (amount, currency = 'EUR') => {
+    const formattedAmount = formatNumberWithDots(amount);
+    if (currency === 'TRY') {
+      return `₺${formattedAmount}`;
+    }
+    return `€${formattedAmount}`;
   };
 
   return (
@@ -541,12 +687,12 @@ const SendOfferModal = ({ service, onClose }) => {
               <div className="input-group">
                 <label>Fiyat (EUR):</label>
                 <input
-                  type="number"
-                  value={formData.salesPrice}
-                  onChange={(e) => handleInputChange('salesPrice', parseFloat(e.target.value) || 0)}
+                  type="text"
+                  inputMode="decimal"
+                  value={salesPriceDisplay}
+                  onChange={handleSalesPriceChange}
+                  onBlur={handleSalesPriceBlur}
                   placeholder={loadingCostDetails ? "Fiyat yükleniyor..." : "Proje maliyetini girin"}
-                  min="0"
-                  step="0.01"
                   disabled={loadingCostDetails}
                 />
               </div>

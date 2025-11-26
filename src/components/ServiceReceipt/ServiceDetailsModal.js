@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { AiOutlineClose, AiOutlineEdit, AiOutlineDownload } from 'react-icons/ai';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { AiOutlineClose, AiOutlineEdit, AiOutlineDownload, AiOutlineZoomIn, AiOutlineZoomOut, AiOutlineExpand } from 'react-icons/ai';
 import projectService from '../../services/projectService';
 import authService from '../../services/authService';
 import EditProjectModal from './EditProjectModal';
@@ -13,6 +13,11 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
   const [downloading, setDownloading] = useState(false);
   const [showPhotoGallery, setShowPhotoGallery] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const imagePositionRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const fetchProjectDetails = async () => {
@@ -39,6 +44,39 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
   }, [service?.id]);
 
   if (!service) return null;
+
+  // Format number with dots as thousand separators
+  const formatNumberWithDots = (number) => {
+    if (number === null || number === undefined || number === '' || isNaN(number)) {
+      return null;
+    }
+    const num = typeof number === 'number' ? number : parseFloat(number);
+    if (isNaN(num)) return null;
+    
+    const numStr = Math.round(num).toString();
+    return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
+  // Format hours with unit
+  const formatHours = (value) => {
+    if (!value && value !== 0) return '-';
+    const formatted = formatNumberWithDots(value);
+    return formatted ? `${formatted} saat` : '-';
+  };
+
+  // Format RPM with unit
+  const formatRpm = (value) => {
+    if (!value && value !== 0) return '-';
+    const formatted = formatNumberWithDots(value);
+    return formatted ? `${formatted} Max 1/min` : '-';
+  };
+
+  // Format weight with unit
+  const formatWeight = (value) => {
+    if (!value && value !== 0) return '-';
+    const formatted = formatNumberWithDots(value);
+    return formatted ? `${formatted} kg` : '-';
+  };
 
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -113,11 +151,15 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
 
   const handlePhotoClick = (index = 0) => {
     setSelectedPhotoIndex(index);
+    setZoomLevel(1);
+    setImagePosition({ x: 0, y: 0 });
     setShowPhotoGallery(true);
   };
 
   const handleClosePhotoGallery = () => {
     setShowPhotoGallery(false);
+    setZoomLevel(1);
+    setImagePosition({ x: 0, y: 0 });
   };
 
   const handlePhotoGalleryOverlayClick = (e) => {
@@ -128,13 +170,140 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
 
   const handlePreviousPhoto = () => {
     const photos = projectDetails?.photos || [];
-    setSelectedPhotoIndex((prev) => (prev > 0 ? prev - 1 : photos.length - 1));
+    setSelectedPhotoIndex((prev) => {
+      const newIndex = prev > 0 ? prev - 1 : photos.length - 1;
+      setZoomLevel(1);
+      setImagePosition({ x: 0, y: 0 });
+      return newIndex; 
+    }); 
   };
 
   const handleNextPhoto = () => {
     const photos = projectDetails?.photos || [];
-    setSelectedPhotoIndex((prev) => (prev < photos.length - 1 ? prev + 1 : 0));
+    setSelectedPhotoIndex((prev) => {
+      const newIndex = prev < photos.length - 1 ? prev + 1 : 0;
+      setZoomLevel(1);
+      setImagePosition({ x: 0, y: 0 });
+      return newIndex;
+    });
   };
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (!showPhotoGallery) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const photos = projectDetails?.photos || [];
+        setSelectedPhotoIndex((prev) => {
+          const newIndex = prev > 0 ? prev - 1 : photos.length - 1;
+          setZoomLevel(1);
+          setImagePosition({ x: 0, y: 0 });
+          return newIndex;
+        });
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const photos = projectDetails?.photos || [];
+        setSelectedPhotoIndex((prev) => {
+          const newIndex = prev < photos.length - 1 ? prev + 1 : 0;
+          setZoomLevel(1);
+          setImagePosition({ x: 0, y: 0 });
+          return newIndex;
+        });
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowPhotoGallery(false);
+        setZoomLevel(1);
+        setImagePosition({ x: 0, y: 0 });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showPhotoGallery, projectDetails?.photos]);
+
+  // Zoom functions
+  const handleZoomIn = () => {
+    setZoomLevel((prev) => Math.min(prev + 0.25, 3));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel((prev) => {
+      const newZoom = Math.max(prev - 0.25, 1);
+      if (newZoom === 1) {
+        setImagePosition({ x: 0, y: 0 });
+      }
+      return newZoom;
+    });
+  };
+
+  const handleResetZoom = () => {
+    setZoomLevel(1);
+    setImagePosition({ x: 0, y: 0 });
+  };
+
+  // Mouse wheel zoom
+  const handleWheel = (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      setZoomLevel((prev) => {
+        const newZoom = Math.max(1, Math.min(3, prev + delta));
+        if (newZoom === 1) {
+          setImagePosition({ x: 0, y: 0 });
+        }
+        return newZoom;
+      });
+    }
+  };
+
+  // Update ref when imagePosition changes
+  useEffect(() => {
+    imagePositionRef.current = imagePosition;
+  }, [imagePosition]);
+
+  // Image drag functionality
+  const handleMouseDown = useCallback((e) => {
+    if (zoomLevel > 1) {
+      e.preventDefault();
+      setIsDragging(true);
+      dragStartRef.current = {
+        x: e.clientX - imagePositionRef.current.x,
+        y: e.clientY - imagePositionRef.current.y,
+      };
+    }
+  }, [zoomLevel]);
+
+  const handleMouseMove = useCallback((e) => {
+    if (isDragging && zoomLevel > 1) {
+      e.preventDefault();
+      setImagePosition({
+        x: e.clientX - dragStartRef.current.x,
+        y: e.clientY - dragStartRef.current.y,
+      });
+    }
+  }, [isDragging, zoomLevel]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Prevent image drag when zoomed
+  useEffect(() => {
+    if (showPhotoGallery && isDragging && zoomLevel > 1) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'grabbing';
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = '';
+      };
+    }
+  }, [showPhotoGallery, isDragging, zoomLevel, handleMouseMove, handleMouseUp]);
 
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
@@ -219,12 +388,12 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                 
                 <div className="spec-row">
                   <span className="spec-label">Çalışma Saati:</span>
-                  <span className="spec-value">{projectDetails.hoursOperated || '-'}</span>
+                  <span className="spec-value">{formatHours(projectDetails.hoursOperated)}</span>
                 </div>
                 
                 <div className="spec-row">
                   <span className="spec-label">Devir:</span>
-                  <span className="spec-value">{projectDetails.rpm || '-'}</span>
+                  <span className="spec-value">{formatRpm(projectDetails.rpm)}</span>
                 </div>
                 
                 <div className="spec-row">
@@ -234,12 +403,12 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                 
                 <div className="spec-row">
                   <span className="spec-label">Net Ağırlık:</span>
-                  <span className="spec-value">{projectDetails.netWeight || '-'}</span>
+                  <span className="spec-value">{formatWeight(projectDetails.netWeight)}</span>
                 </div>
                 
                 <div className="spec-row">
                   <span className="spec-label">Ek Ağırlık:</span>
-                  <span className="spec-value">{projectDetails.additionalWeight || '-'}</span>
+                  <span className="spec-value">{formatWeight(projectDetails.additionalWeight)}</span>
                 </div>
                 
                 <div className="spec-row">
@@ -319,7 +488,7 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                 
                 <div className="spec-row">
                   <span className="spec-label">Maksimum Malzeme Ağırlığı:</span>
-                  <span className="spec-value">{projectDetails.maxMaterialWeight || '-'}</span>
+                  <span className="spec-value">{formatWeight(projectDetails.maxMaterialWeight)}</span>
                 </div>
                 
                 <div className="spec-row">
@@ -378,28 +547,83 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
           <div className="photo-gallery-content" onClick={(e) => e.stopPropagation()}>
             <div className="photo-gallery-header">
               <h3>Makine Fotoğrafları</h3>
-              <button className="photo-gallery-close" onClick={handleClosePhotoGallery}>
-                <AiOutlineClose />
-              </button>
+              <div className="photo-gallery-header-controls">
+                <div className="photo-gallery-zoom-controls">
+                  <button 
+                    className="photo-gallery-zoom-btn" 
+                    onClick={handleZoomOut}
+                    disabled={zoomLevel <= 1}
+                    title="Uzaklaştır"
+                  >
+                    <AiOutlineZoomOut />
+                  </button>
+                  <span className="photo-gallery-zoom-level">
+                    {Math.round(zoomLevel * 100)}%
+                  </span>
+                  <button 
+                    className="photo-gallery-zoom-btn" 
+                    onClick={handleZoomIn}
+                    disabled={zoomLevel >= 3}
+                    title="Yakınlaştır"
+                  >
+                    <AiOutlineZoomIn />
+                  </button>
+                  {zoomLevel > 1 && (
+                    <button 
+                      className="photo-gallery-zoom-btn" 
+                      onClick={handleResetZoom}
+                      title="Sıfırla"
+                    >
+                      <AiOutlineExpand />
+                    </button>
+                  )}
+                </div>
+                <button className="photo-gallery-close" onClick={handleClosePhotoGallery}>
+                  <AiOutlineClose />
+                </button>
+              </div>
             </div>
-            <div className="photo-gallery-body">
+            <div 
+              className="photo-gallery-body"
+              onWheel={handleWheel}
+            >
               <button 
                 className="photo-gallery-nav photo-gallery-prev" 
                 onClick={handlePreviousPhoto}
                 disabled={projectDetails.photos.length <= 1}
+                aria-label="Önceki fotoğraf"
               >
                 ‹
               </button>
-              <div className="photo-gallery-main-image">
-                <img 
-                  src={projectDetails.photos[selectedPhotoIndex]} 
-                  alt={`Makine Fotoğrafı ${selectedPhotoIndex + 1}`}
-                />
+              <div className="photo-gallery-main-image-container">
+                <div 
+                  className="photo-gallery-main-image"
+                  style={{
+                    cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
+                    overflow: 'hidden',
+                  }}
+                  onMouseDown={handleMouseDown}
+                >
+                  <img 
+                    src={projectDetails.photos[selectedPhotoIndex]} 
+                    alt={`Makine Fotoğrafı ${selectedPhotoIndex + 1}`}
+                    style={{
+                      transform: `scale(${zoomLevel}) translate(${imagePosition.x / zoomLevel}px, ${imagePosition.y / zoomLevel}px)`,
+                      transformOrigin: 'center center',
+                      transition: isDragging ? 'none' : 'transform 0.3s ease',
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      userSelect: 'none',
+                    }}
+                    draggable={false}
+                  />
+                </div>
               </div>
               <button 
                 className="photo-gallery-nav photo-gallery-next" 
                 onClick={handleNextPhoto}
                 disabled={projectDetails.photos.length <= 1}
+                aria-label="Sonraki fotoğraf"
               >
                 ›
               </button>
@@ -416,7 +640,11 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                       src={photo}
                       alt={`Thumbnail ${index + 1}`}
                       className={`photo-thumbnail ${selectedPhotoIndex === index ? 'active' : ''}`}
-                      onClick={() => setSelectedPhotoIndex(index)}
+                      onClick={() => {
+                        setSelectedPhotoIndex(index);
+                        setZoomLevel(1);
+                        setImagePosition({ x: 0, y: 0 });
+                      }}
                     />
                   ))}
                 </div>
