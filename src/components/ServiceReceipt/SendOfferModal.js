@@ -664,6 +664,13 @@ const SendOfferModal = ({ service, onClose }) => {
     return `€${formattedAmount}`;
   };
 
+  // Clean machine name by removing project code in parentheses (e.g., "brand (AVEMAK-097)" -> "brand")
+  const cleanMachineName = (name) => {
+    if (!name) return name;
+    // Remove project code pattern like (AVEMAK-XXX) from the end
+    return name.replace(/\s*\(AVEMAK-\d+\)\s*$/, '').trim();
+  };
+
   return (
     <div className="send-offer-modal-overlay">
       <div className="send-offer-modal">
@@ -998,7 +1005,7 @@ const SendOfferModal = ({ service, onClose }) => {
                   <tbody>
                     <tr>
                       <td className="position">1</td>
-                      <td className="machine-name">{service?.machineName || service?.title || service?.machineTitle || 'Makine Adı'}</td>
+                      <td className="machine-name">{cleanMachineName(service?.machineName || service?.title || service?.machineTitle || 'Makine Adı')}</td>
                       <td className="quantity">1</td>
                       <td className="machine-price">{formatCurrency(formData.salesPrice, 'EUR')}</td>
                     </tr>
@@ -1205,6 +1212,8 @@ const SendOfferModal = ({ service, onClose }) => {
                   Onayladığınızda müşteriye teklif e-postası gönderilecektir.
                 </p>
                 <div className="confirmation-details">
+                  <p><strong>Marka:</strong> {service?.make || service?.brand || '-'}</p>
+                  <p><strong>Model:</strong> {service?.model || '-'}</p>
                   <p><strong>Müşteri:</strong> {selectedClient?.companyName || newClientData?.companyName}</p>
                   <p><strong>Fiyat:</strong> {formatCurrency(formData.salesPrice, 'EUR')}</p>
                   <p><strong>Teslimat Şartları:</strong> {editableTexts.deliveryTerms}</p>

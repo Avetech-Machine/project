@@ -14,20 +14,45 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
     vergiNo: ''
   });
   const [loading, setLoading] = useState(false);
+  const [loadingClientDetails, setLoadingClientDetails] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (isOpen && client) {
-      setFormData({
-        companyName: client.companyName || '',
-        contactName: client.contactName || '',
-        email: client.email || '',
-        phone: client.phone || '',
-        address: client.address || '',
-        vergiDairesi: client.vergiDairesi || '',
-        vergiNo: client.vergiNo || ''
-      });
-      setError('');
+      // Fetch full client details to ensure we have all fields including address
+      const fetchClientDetails = async () => {
+        setLoadingClientDetails(true);
+        try {
+          const fullClientDetails = await clientService.getClientById(client.id);
+          setFormData({
+            companyName: fullClientDetails.companyName || client.companyName || '',
+            contactName: fullClientDetails.contactName || client.contactName || '',
+            email: fullClientDetails.email || client.email || '',
+            phone: fullClientDetails.phone || client.phone || '',
+            address: fullClientDetails.address || client.address || '',
+            // Handle both "tax Office" (from API) and "vergiDairesi" (expected format)
+            vergiDairesi: fullClientDetails.vergiDairesi || fullClientDetails['tax Office'] || client.vergiDairesi || client['tax Office'] || '',
+            vergiNo: fullClientDetails.vergiNo || client.vergiNo || ''
+          });
+          setError('');
+        } catch (err) {
+          console.error('Error fetching client details:', err);
+          // Fallback to using the client object passed as prop
+          setFormData({
+            companyName: client.companyName || '',
+            contactName: client.contactName || '',
+            email: client.email || '',
+            phone: client.phone || '',
+            address: client.address || '',
+            vergiDairesi: client.vergiDairesi || client['tax Office'] || '',
+            vergiNo: client.vergiNo || ''
+          });
+        } finally {
+          setLoadingClientDetails(false);
+        }
+      };
+
+      fetchClientDetails();
     }
   }, [isOpen, client]);
 
@@ -96,6 +121,12 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
             </div>
           )}
 
+          {loadingClientDetails && (
+            <div className="loading-message">
+              Müşteri bilgileri yükleniyor...
+            </div>
+          )}
+
           <div className="form-group">
             <label htmlFor="companyName">
               Firma Adı <span className="required">*</span>
@@ -108,7 +139,7 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
               onChange={handleChange}
               placeholder="Firma adını girin"
               required
-              disabled={loading}
+              disabled={loading || loadingClientDetails}
             />
           </div>
 
@@ -124,7 +155,7 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
               onChange={handleChange}
               placeholder="İletişim kişisini girin"
               required
-              disabled={loading}
+              disabled={loading || loadingClientDetails}
             />
           </div>
 
@@ -140,7 +171,7 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
               onChange={handleChange}
               placeholder="E-posta adresini girin"
               required
-              disabled={loading}
+              disabled={loading || loadingClientDetails}
             />
           </div>
 
@@ -153,7 +184,7 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
               value={formData.phone}
               onChange={handleChange}
               placeholder="Telefon numarasını girin"
-              disabled={loading}
+              disabled={loading || loadingClientDetails}
             />
           </div>
 
@@ -166,7 +197,7 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
               value={formData.address}
               onChange={handleChange}
               placeholder="Adresi girin"
-              disabled={loading}
+              disabled={loading || loadingClientDetails}
             />
           </div>
 
@@ -179,7 +210,7 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
               value={formData.vergiDairesi}
               onChange={handleChange}
               placeholder="Vergi dairesini girin"
-              disabled={loading}
+              disabled={loading || loadingClientDetails}
             />
           </div>
 
@@ -192,7 +223,7 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
               value={formData.vergiNo}
               onChange={handleChange}
               placeholder="Vergi numarasını girin"
-              disabled={loading}
+              disabled={loading || loadingClientDetails}
             />
           </div>
 
@@ -201,16 +232,16 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
               type="button"
               className="cancel-button"
               onClick={handleClose}
-              disabled={loading}
+              disabled={loading || loadingClientDetails}
             >
               İptal
             </button>
             <button
               type="submit"
               className="submit-button"
-              disabled={loading}
+              disabled={loading || loadingClientDetails}
             >
-              {loading ? 'Güncelleniyor...' : 'Güncelle'}
+              {loading ? 'Güncelleniyor...' : loadingClientDetails ? 'Yükleniyor...' : 'Güncelle'}
             </button>
           </div>
         </form>

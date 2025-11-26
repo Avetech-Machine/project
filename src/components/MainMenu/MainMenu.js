@@ -218,7 +218,9 @@ const MainMenu = () => {
   const serviceData = currentProjects.map(project => ({
     id: project.id || project._id,
     projectCode: project.projectCode || 'N/A',
+    machineName: project.machineName || project.title || 'N/A',
     machineTitle: cleanTitle(project.title || project.machineName || 'N/A'),
+    title: project.title || project.machineName || 'N/A',
     year: project.year || new Date(project.createdAt).getFullYear().toString(),
     operatingSystem: project.model || project.operatingSystem || project.controlUnit || 'N/A',
     serialNumber: project.serialNumber || 'N/A',
@@ -239,7 +241,8 @@ const MainMenu = () => {
     firmName: project.firmName || 'N/A',
     technician: project.technician || 'N/A',
     // Additional technical details for ServiceDetailsModal
-    brand: project.brand || 'N/A',
+    make: project.make || project.brand || 'N/A',
+    brand: project.make || project.brand || 'N/A',
     model: project.model || 'N/A',
     controlUnit: project.controlUnit || 'CNC',
     xMovements: project.xmovement || project.xMovements || 'N/A',
