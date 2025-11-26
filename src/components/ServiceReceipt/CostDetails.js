@@ -42,19 +42,38 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
         {costDetails.map((item) => (
           <div key={item.id} className="table-row">
             <div className="col-description">
-              <input
-                type="text"
-                list={`cost-items-${item.id}`}
-                value={item.description}
-                onChange={(e) => onUpdateCost(item.id, 'description', e.target.value)}
-                className="cost-item-dropdown"
-                placeholder="Maliyet Kalemi Seçin veya Girin"
-              />
-              <datalist id={`cost-items-${item.id}`}>
-                {costItemOptions.map((option) => (
-                  <option key={option} value={option} />
-                ))}
-              </datalist>
+              {item.id <= 7 ? (
+                // Fixed predefined items - use dropdown
+                <select
+                  value={item.description}
+                  onChange={(e) => onUpdateCost(item.id, 'description', e.target.value)}
+                  className="cost-item-dropdown"
+                >
+                  <option value="">Maliyet Kalemi Seçin</option>
+                  {costItemOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                // New items - allow custom text with suggestions
+                <>
+                  <input
+                    type="text"
+                    list={`cost-items-${item.id}`}
+                    value={item.description}
+                    onChange={(e) => onUpdateCost(item.id, 'description', e.target.value)}
+                    className="cost-item-dropdown"
+                    placeholder="Maliyet Kalemi Seçin veya Girin"
+                  />
+                  <datalist id={`cost-items-${item.id}`}>
+                    {costItemOptions.map((option) => (
+                      <option key={option} value={option} />
+                    ))}
+                  </datalist>
+                </>
+              )}
             </div>
             <div className="col-currency">
               <select
