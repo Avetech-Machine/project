@@ -229,9 +229,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       'machineName',
       'model',
       'serialNumber',
-      'holderType',
-      // Speed field (rpm)
-      'repairHours'
+      'holderType'
     ].includes(field);
   };
 
@@ -283,33 +281,44 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
 
   const handleRpmInput = (e) => {
     const value = e.target.value;
-    setFormData(prev => ({
-      ...prev,
-      repairHours: value
-    }));
+    // If the value already contains "Max 1/min" (formatted), keep it as is
+    if (value.includes('Max 1/min')) {
+      setFormData(prev => ({
+        ...prev,
+        repairHours: value
+      }));
+    } else {
+      // During typing: only allow numbers, remove all letters (including Turkish letters)
+      const sanitized = sanitizeNumeric(value);
+      setFormData(prev => ({
+        ...prev,
+        repairHours: sanitized
+      }));
+    }
   };
 
-  const handleRpmKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const input = e.target;
-      const value = input.value.replace(/,/g, ''); // Remove existing commas
+  const handleRpmBlur = (e) => {
+    const value = e.target.value;
+    
+    // If already formatted with "Max 1/min", don't process again
+    if (value.includes('Max 1/min')) {
+      return;
+    }
+    
+    // Remove any existing commas and get numeric value
+    const numericValue = value.replace(/,/g, '').trim();
+    
+    // Check if it's a valid number
+    if (numericValue && !isNaN(numericValue)) {
+      // Format with commas
+      const formattedValue = parseInt(numericValue).toLocaleString();
+      // Add "Max 1/min" suffix
+      const finalValue = `${formattedValue} Max 1/min`;
       
-      // Check if it's a valid number
-      if (!isNaN(value) && value !== '') {
-        // Format with commas
-        const formattedValue = parseInt(value).toLocaleString();
-        // Add "Max 1/min" suffix
-        const finalValue = `${formattedValue} Max 1/min`;
-        
-        setFormData(prev => ({
-          ...prev,
-          repairHours: finalValue
-        }));
-        
-        // Close keyboard by blurring the input
-        input.blur();
-      }
+      setFormData(prev => ({
+        ...prev,
+        repairHours: finalValue
+      }));
     }
   };
 
@@ -783,7 +792,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       type="text"
       value={formData.repairHours}
       onChange={handleRpmInput}
-      onKeyPress={handleRpmKeyPress}
+      onBlur={handleRpmBlur}
       placeholder="Devri/dakika"
     />
   </div>

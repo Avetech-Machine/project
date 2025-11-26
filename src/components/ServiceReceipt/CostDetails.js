@@ -42,18 +42,19 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
         {costDetails.map((item) => (
           <div key={item.id} className="table-row">
             <div className="col-description">
-              <select
+              <input
+                type="text"
+                list={`cost-items-${item.id}`}
                 value={item.description}
                 onChange={(e) => onUpdateCost(item.id, 'description', e.target.value)}
                 className="cost-item-dropdown"
-              >
-                <option value="">Maliyet Kalemi Seçin</option>
+                placeholder="Maliyet Kalemi Seçin veya Girin"
+              />
+              <datalist id={`cost-items-${item.id}`}>
                 {costItemOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
+                  <option key={option} value={option} />
                 ))}
-              </select>
+              </datalist>
             </div>
             <div className="col-currency">
               <select
