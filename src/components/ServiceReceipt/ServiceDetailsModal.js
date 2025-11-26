@@ -43,6 +43,88 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
     fetchProjectDetails();
   }, [service?.id]);
 
+  // Update ref when imagePosition changes
+  useEffect(() => {
+    imagePositionRef.current = imagePosition;
+  }, [imagePosition]);
+
+  // Image drag functionality handlers
+  const handleMouseDown = useCallback((e) => {
+    if (zoomLevel > 1) {
+      e.preventDefault();
+      setIsDragging(true);
+      dragStartRef.current = {
+        x: e.clientX - imagePositionRef.current.x,
+        y: e.clientY - imagePositionRef.current.y,
+      };
+    }
+  }, [zoomLevel]);
+
+  const handleMouseMove = useCallback((e) => {
+    if (isDragging && zoomLevel > 1) {
+      e.preventDefault();
+      setImagePosition({
+        x: e.clientX - dragStartRef.current.x,
+        y: e.clientY - dragStartRef.current.y,
+      });
+    }
+  }, [isDragging, zoomLevel]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Drag event listeners
+  useEffect(() => {
+    if (showPhotoGallery && isDragging && zoomLevel > 1) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'grabbing';
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = '';
+      };
+    }
+  }, [showPhotoGallery, isDragging, zoomLevel, handleMouseMove, handleMouseUp]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (!showPhotoGallery) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const photos = projectDetails?.photos || [];
+        setSelectedPhotoIndex((prev) => {
+          const newIndex = prev > 0 ? prev - 1 : photos.length - 1;
+          setZoomLevel(1);
+          setImagePosition({ x: 0, y: 0 });
+          return newIndex;
+        });
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const photos = projectDetails?.photos || [];
+        setSelectedPhotoIndex((prev) => {
+          const newIndex = prev < photos.length - 1 ? prev + 1 : 0;
+          setZoomLevel(1);
+          setImagePosition({ x: 0, y: 0 });
+          return newIndex;
+        });
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowPhotoGallery(false);
+        setZoomLevel(1);
+        setImagePosition({ x: 0, y: 0 });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showPhotoGallery, projectDetails?.photos]);
+
   if (!service) return null;
 
   // Format number with dots as thousand separators
@@ -188,43 +270,6 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
     });
   };
 
-  // Keyboard navigation
-  useEffect(() => {
-    if (!showPhotoGallery) return;
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        const photos = projectDetails?.photos || [];
-        setSelectedPhotoIndex((prev) => {
-          const newIndex = prev > 0 ? prev - 1 : photos.length - 1;
-          setZoomLevel(1);
-          setImagePosition({ x: 0, y: 0 });
-          return newIndex;
-        });
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        const photos = projectDetails?.photos || [];
-        setSelectedPhotoIndex((prev) => {
-          const newIndex = prev < photos.length - 1 ? prev + 1 : 0;
-          setZoomLevel(1);
-          setImagePosition({ x: 0, y: 0 });
-          return newIndex;
-        });
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        setShowPhotoGallery(false);
-        setZoomLevel(1);
-        setImagePosition({ x: 0, y: 0 });
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [showPhotoGallery, projectDetails?.photos]);
-
   // Zoom functions
   const handleZoomIn = () => {
     setZoomLevel((prev) => Math.min(prev + 0.25, 3));
@@ -259,51 +304,6 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
       });
     }
   };
-
-  // Update ref when imagePosition changes
-  useEffect(() => {
-    imagePositionRef.current = imagePosition;
-  }, [imagePosition]);
-
-  // Image drag functionality
-  const handleMouseDown = useCallback((e) => {
-    if (zoomLevel > 1) {
-      e.preventDefault();
-      setIsDragging(true);
-      dragStartRef.current = {
-        x: e.clientX - imagePositionRef.current.x,
-        y: e.clientY - imagePositionRef.current.y,
-      };
-    }
-  }, [zoomLevel]);
-
-  const handleMouseMove = useCallback((e) => {
-    if (isDragging && zoomLevel > 1) {
-      e.preventDefault();
-      setImagePosition({
-        x: e.clientX - dragStartRef.current.x,
-        y: e.clientY - dragStartRef.current.y,
-      });
-    }
-  }, [isDragging, zoomLevel]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  // Prevent image drag when zoomed
-  useEffect(() => {
-    if (showPhotoGallery && isDragging && zoomLevel > 1) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = 'grabbing';
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-        document.body.style.cursor = '';
-      };
-    }
-  }, [showPhotoGallery, isDragging, zoomLevel, handleMouseMove, handleMouseUp]);
 
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
