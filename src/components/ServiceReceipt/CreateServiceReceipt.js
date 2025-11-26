@@ -112,6 +112,11 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   // Populate form when editing a service
   useEffect(() => {
     if (editingService) {
+      // Check if operating system is a custom value (not one of the predefined options)
+      const predefinedOS = ['Heidenhain', 'Siemens', 'Fanuc'];
+      const osValue = editingService.operatingSystem || '';
+      const isCustomOS = osValue && !predefinedOS.includes(osValue);
+      
       setFormData({
         machineName: editingService.machineName || '',
         model: editingService.model || '',
@@ -122,7 +127,8 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
         teamCount: editingService.teamCount || '2',
         machineNetWeight: editingService.machineNetWeight || '',
         additionalWeight: editingService.additionalWeight || '',
-        operatingSystem: editingService.operatingSystem || 'Heidenhain',
+        operatingSystem: isCustomOS ? 'Other' : (editingService.operatingSystem || 'Heidenhain'),
+        customOperatingSystem: isCustomOS ? osValue : (editingService.customOperatingSystem || ''),
         teamMeasurementProbe: editingService.teamMeasurementProbe || 'Var',
         partMeasurementProbe: editingService.partMeasurementProbe || 'Var',
         insideWaterGiving: editingService.insideWaterGiving || 'Yok',
@@ -341,16 +347,55 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
         // Format with commas
         const formattedValue = parseInt(value).toLocaleString();
         // Add "saat" suffix
-        const finalValue = `${formattedValue} saat`;
+        const finalValue = `${formattedValue}`;
         
         setFormData(prev => ({
           ...prev,
           workingHours: finalValue
         }));
         
-        // Close keyboard by blurring the input
-        input.blur();
+        // Move to next field instead of blurring
+        moveToNextField(input);
+      } else {
+        // If invalid, just move to next field
+        moveToNextField(input);
       }
+    }
+  };
+
+  // Function to move focus to the next input field
+  const moveToNextField = (currentInput) => {
+    // Get all focusable inputs in the form
+    const form = currentInput.closest('.create-service-receipt');
+    if (!form) return;
+    
+    // Get all focusable elements (inputs, selects, textareas, but not buttons or hidden inputs)
+    const focusableElements = form.querySelectorAll(
+      'input:not([type="hidden"]):not([type="file"]):not([type="button"]):not([type="submit"]), select, textarea'
+    );
+    
+    // Convert NodeList to Array for easier manipulation
+    const focusableArray = Array.from(focusableElements);
+    
+    // Find current input index
+    const currentIndex = focusableArray.indexOf(currentInput);
+    
+    // If there's a next field, focus it
+    if (currentIndex < focusableArray.length - 1) {
+      const nextField = focusableArray[currentIndex + 1];
+      nextField.focus();
+      // For select elements, we might want to open them
+      if (nextField.tagName === 'SELECT') {
+        nextField.focus();
+      }
+    }
+  };
+
+  // Generic handler for Enter key to move to next field
+  const handleEnterKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      moveToNextField(e.target);
     }
   };
 
@@ -752,6 +797,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               type="text"
               value={formData.machineName}
               onChange={(e) => handleInputChange('machineName', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
               placeholder="Dmg Mori"
             />
           </div>
@@ -761,6 +807,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               type="text"
               value={formData.model}
               onChange={(e) => handleInputChange('model', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
               placeholder="Model adı"
             />
           </div>
@@ -770,6 +817,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               type="text"
               value={formData.year}
               onChange={(e) => handleRestrictedInput('year', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
             placeholder="Makine yılı"
             />
           </div>
@@ -793,6 +841,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       value={formData.repairHours}
       onChange={handleRpmInput}
       onBlur={handleRpmBlur}
+      onKeyPress={handleEnterKeyPress}
       placeholder="Devri/dakika"
     />
   </div>
@@ -805,6 +854,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               type="text"
               value={formData.serialNumber}
               onChange={(e) => handleInputChange('serialNumber', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
               placeholder="Seri numarası"
             />
           </div>
@@ -814,6 +864,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               type="text"
               value={formData.teamCount}
               onChange={(e) => handleRestrictedInput('teamCount', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
             />
           </div>
         </div>
@@ -825,6 +876,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               type="text"
               value={formData.machineNetWeight}
               onChange={(e) => handleRestrictedInput('machineNetWeight', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
               placeholder="kg"
             />
           </div>
@@ -834,6 +886,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               type="text"
               value={formData.additionalWeight}
               onChange={(e) => handleRestrictedInput('additionalWeight', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
               placeholder="kg"
             />
           </div>
@@ -848,6 +901,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               value={formData.xMovement}
               onChange={(e) => handleRestrictedInput('xMovement', e.target.value)}
               onBlur={(e) => handleMovementBlur('xMovement', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
               placeholder="1000mm"
             />
           </div>
@@ -858,6 +912,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               value={formData.yMovement}
               onChange={(e) => handleRestrictedInput('yMovement', e.target.value)}
               onBlur={(e) => handleMovementBlur('yMovement', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
               placeholder="500mm"
             />
           </div>
@@ -871,6 +926,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               value={formData.zMovement}
               onChange={(e) => handleRestrictedInput('zMovement', e.target.value)}
               onBlur={(e) => handleMovementBlur('zMovement', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
               placeholder="300mm"
             />
           </div>
@@ -881,6 +937,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               value={formData.bMovement}
               onChange={(e) => handleRestrictedInput('bMovement', e.target.value)}
               onBlur={(e) => handleMovementBlur('bMovement', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
               placeholder="360°"
             />
           </div>
@@ -894,6 +951,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               value={formData.cMovement}
               onChange={(e) => handleRestrictedInput('cMovement', e.target.value)}
               onBlur={(e) => handleMovementBlur('cMovement', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
               placeholder="360°"
             />
           </div>
@@ -903,6 +961,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               type="text"
               value={formData.holderType}
               onChange={(e) => handleInputChange('holderType', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
               placeholder="HSK-63A"
             />
           </div>
@@ -917,6 +976,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               value={formData.machineWidth}
               onChange={(e) => handleRestrictedInput('machineWidth', e.target.value)}
               onBlur={(e) => handleDimensionBlur('machineWidth', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
               placeholder="2000cm"
             />
           </div>
@@ -927,6 +987,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               value={formData.machineLength}
               onChange={(e) => handleRestrictedInput('machineLength', e.target.value)}
               onBlur={(e) => handleDimensionBlur('machineLength', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
               placeholder="3000cm"
             />
           </div>
@@ -940,6 +1001,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               value={formData.machineHeight}
               onChange={(e) => handleRestrictedInput('machineHeight', e.target.value)}
               onBlur={(e) => handleDimensionBlur('machineHeight', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
               placeholder="2500cm"
             />
           </div>
@@ -950,6 +1012,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               value={formData.maxMaterialWeight}
               onChange={(e) => handleRestrictedInput('maxMaterialWeight', e.target.value)}
               onBlur={(e) => handleWeightBlur('maxMaterialWeight', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
               placeholder="5000kg"
             />
           </div>
@@ -974,6 +1037,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
                 placeholder="İşletim sistemi adını giriniz"
                 value={formData.customOperatingSystem}
                 onChange={(e) => handleInputChange('customOperatingSystem', e.target.value)}
+                onKeyPress={handleEnterKeyPress}
                 className="form-input"
                 style={{ marginTop: '8px' }}
               />

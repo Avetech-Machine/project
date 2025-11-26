@@ -96,6 +96,17 @@
     min-width: 80px;
   }
 
+  /* Remove spinner arrows from number inputs */
+  .col-amount input[type="number"]::-webkit-inner-spin-button,
+  .col-amount input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  
+  .col-amount input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
   /* Move currency dropdown slightly to the right */
   .col-currency .currency-dropdown {
     padding-left: 15px; /* Increased left padding to move it right */

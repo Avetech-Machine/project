@@ -206,3 +206,4 @@ const AddCompanyModal = ({ isOpen, onClose, onSuccess }) => {
 
 export default AddCompanyModal;
 
+

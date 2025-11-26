@@ -20,6 +20,42 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
     'Kurulum'
   ];
 
+  // Function to move focus to the next input field
+  const moveToNextField = (currentInput) => {
+    // Get all focusable inputs in the form (including parent form)
+    const form = currentInput.closest('.create-service-receipt');
+    if (!form) return;
+    
+    // Get all focusable elements (inputs, selects, textareas, but not buttons or hidden inputs)
+    const focusableElements = form.querySelectorAll(
+      'input:not([type="hidden"]):not([type="file"]):not([type="button"]):not([type="submit"]), select, textarea'
+    );
+    
+    // Convert NodeList to Array for easier manipulation
+    const focusableArray = Array.from(focusableElements);
+    
+    // Find current input index
+    const currentIndex = focusableArray.indexOf(currentInput);
+    
+    // If there's a next field, focus it
+    if (currentIndex < focusableArray.length - 1) {
+      const nextField = focusableArray[currentIndex + 1];
+      nextField.focus();
+      // For select elements, we might want to open them
+      if (nextField.tagName === 'SELECT') {
+        nextField.focus();
+      }
+    }
+  };
+
+  // Generic handler for Enter key to move to next field
+  const handleEnterKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      moveToNextField(e.target);
+    }
+  };
+
   return (
     <div className="cost-details-section">
       <div className="section-header">
@@ -64,6 +100,7 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
                     list={`cost-items-${item.id}`}
                     value={item.description}
                     onChange={(e) => onUpdateCost(item.id, 'description', e.target.value)}
+                    onKeyPress={handleEnterKeyPress}
                     className="cost-item-dropdown"
                     placeholder="Maliyet Kalemi Seçin veya Girin"
                   />
@@ -89,7 +126,8 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
             </div>
             <div className="col-amount">
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 value={item.amount}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -98,6 +136,7 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
                     onUpdateCost(item.id, 'amount', value === '' ? '' : parseFloat(value));
                   }
                 }}
+                onKeyPress={handleEnterKeyPress}
                 placeholder="0"
               />
             </div>
