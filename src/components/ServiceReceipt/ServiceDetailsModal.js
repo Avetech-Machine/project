@@ -272,12 +272,12 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
 
   // Zoom functions
   const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 0.25, 3));
+    setZoomLevel((prev) => Math.min(prev + 0.15, 2.5));
   };
 
   const handleZoomOut = () => {
     setZoomLevel((prev) => {
-      const newZoom = Math.max(prev - 0.25, 1);
+      const newZoom = Math.max(prev - 0.15, 1);
       if (newZoom === 1) {
         setImagePosition({ x: 0, y: 0 });
       }
@@ -296,7 +296,7 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
       e.preventDefault();
       const delta = e.deltaY > 0 ? -0.1 : 0.1;
       setZoomLevel((prev) => {
-        const newZoom = Math.max(1, Math.min(3, prev + delta));
+        const newZoom = Math.max(1, Math.min(2.5, prev + delta));
         if (newZoom === 1) {
           setImagePosition({ x: 0, y: 0 });
         }
@@ -563,7 +563,7 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                   <button 
                     className="photo-gallery-zoom-btn" 
                     onClick={handleZoomIn}
-                    disabled={zoomLevel >= 3}
+                    disabled={zoomLevel >= 2.5}
                     title="Yakınlaştır"
                   >
                     <AiOutlineZoomIn />
@@ -600,7 +600,7 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                   className="photo-gallery-main-image"
                   style={{
                     cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
-                    overflow: 'hidden',
+                    overflow: 'visible',
                   }}
                   onMouseDown={handleMouseDown}
                 >
@@ -611,8 +611,11 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                       transform: `scale(${zoomLevel}) translate(${imagePosition.x / zoomLevel}px, ${imagePosition.y / zoomLevel}px)`,
                       transformOrigin: 'center center',
                       transition: isDragging ? 'none' : 'transform 0.3s ease',
-                      maxWidth: '100%',
-                      maxHeight: '100%',
+                      width: 'auto',
+                      height: 'auto',
+                      maxWidth: zoomLevel === 1 ? '90vw' : '150vw',
+                      maxHeight: zoomLevel === 1 ? '70vh' : '120vh',
+                      objectFit: 'contain',
                       userSelect: 'none',
                     }}
                     draggable={false}
