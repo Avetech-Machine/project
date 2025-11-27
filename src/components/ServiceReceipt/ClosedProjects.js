@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import ServiceDetailsModal from './ServiceDetailsModal';
 import ProfitAnalysisModal from './ProfitAnalysisModal';
 import ProposalInformationModal from './ProposalInformationModal';
+import CostInformationModal from './CostInformationModal';
 import projectService from '../../services/projectService';
-import { 
-  AiOutlineInfoCircle, 
-  AiOutlineEdit, 
+import {
+  AiOutlineInfoCircle,
+  AiOutlineEdit,
   AiOutlineCalendar,
   AiOutlineSetting,
   AiOutlineEuro,
@@ -21,6 +22,7 @@ const ClosedProjects = ({ onEditService }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfitModalOpen, setIsProfitModalOpen] = useState(false);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
+  const [isCostModalOpen, setIsCostModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ show: false, projectId: null });
@@ -32,7 +34,7 @@ const ClosedProjects = ({ onEditService }) => {
         setLoading(true);
         setError(null);
         const data = await projectService.getProjectsByStatus('SOLD');
-        
+
         // Fetch detailed information for each project to get sentToAccounting status
         const projectsWithDetails = await Promise.all(
           data.map(async (project) => {
@@ -45,7 +47,7 @@ const ClosedProjects = ({ onEditService }) => {
             }
           })
         );
-        
+
         // Transform API data to align center card fields with MainMenu
         const transformedServices = projectsWithDetails.map(project => {
           const cleanTitle = (title) => {
@@ -80,7 +82,7 @@ const ClosedProjects = ({ onEditService }) => {
             sentToAccounting: project.sentToAccounting || false
           };
         });
-        
+
         setServices(transformedServices);
       } catch (err) {
         console.error('Error fetching closed projects:', err);
@@ -109,6 +111,11 @@ const ClosedProjects = ({ onEditService }) => {
     setIsProposalModalOpen(true);
   };
 
+  const handleCostInfoClick = (service) => {
+    setSelectedService(service);
+    setIsCostModalOpen(true);
+  };
+
   const handleSeeCostAll = () => {
     // Handle "See Cost" for all projects
     console.log('See Cost for all closed projects');
@@ -124,7 +131,7 @@ const ClosedProjects = ({ onEditService }) => {
     if (service.sentToAccounting) {
       return;
     }
-    
+
     // Show confirmation dialog
     setConfirmDialog({ show: true, projectId: service.id });
   };
@@ -132,14 +139,14 @@ const ClosedProjects = ({ onEditService }) => {
   const handleConfirmAccounting = async () => {
     const projectId = confirmDialog.projectId;
     setConfirmDialog({ show: false, projectId: null });
-    
+
     try {
       await projectService.sentToAccounting(projectId);
-      
+
       // Update the service in the list to mark it as sent to accounting
-      setServices(prevServices => 
-        prevServices.map(service => 
-          service.id === projectId 
+      setServices(prevServices =>
+        prevServices.map(service =>
+          service.id === projectId
             ? { ...service, sentToAccounting: true }
             : service
         )
@@ -199,70 +206,77 @@ const ClosedProjects = ({ onEditService }) => {
         <>
           {/* Action buttons above the cards */}
           <div className="action-buttons-container">
-            
-            
+
+
           </div>
 
           <div className="services-grid">
             {services.map((service) => (
-          <div key={service.id} className="service-card">
-            <div className="card-header">
-              <h3 className="machine-name">{service.machineName}</h3>
-              <div className={`status-badge ${getStatusClass(service.status)}`}>
-                {service.status}
-              </div>
-            </div>
+              <div key={service.id} className="service-card">
+                <div className="card-header">
+                  <h3 className="machine-name">{service.machineName}</h3>
+                  <div className={`status-badge ${getStatusClass(service.status)}`}>
+                    {service.status}
+                  </div>
+                </div>
 
-            <div className="card-details">
-              <div className="detail-row">
-                <AiOutlineSetting className="detail-icon" />
-                <span className="detail-value">{service.operatingSystem}</span>
-                <span className="detail-value">{service.machineTitle}</span>
-                <AiOutlineCalendar className="detail-icon" />
-                <span className="detail-value">{service.year}</span>
-              </div>
+                <div className="card-details">
+                  <div className="detail-row">
+                    <AiOutlineSetting className="detail-icon" />
+                    <span className="detail-value">{service.operatingSystem}</span>
+                    <span className="detail-value">{service.machineTitle}</span>
+                    <AiOutlineCalendar className="detail-icon" />
+                    <span className="detail-value">{service.year}</span>
+                  </div>
 
-              <div className="accounting-toggle-row">
-                <label className="accounting-toggle-label">
-                  Muhasebe Onayı:
-                </label>
-                <div 
-                  className={`accounting-toggle ${service.sentToAccounting ? 'active' : 'inactive'} ${service.sentToAccounting ? 'disabled' : ''}`}
-                  onClick={() => handleAccountingToggle(service)}
-                >
-                  <div className="toggle-slider"></div>
+                  <div className="accounting-toggle-row">
+                    <label className="accounting-toggle-label">
+                      Muhasebe Onayı:
+                    </label>
+                    <div
+                      className={`accounting-toggle ${service.sentToAccounting ? 'active' : 'inactive'} ${service.sentToAccounting ? 'disabled' : ''}`}
+                      onClick={() => handleAccountingToggle(service)}
+                    >
+                      <div className="toggle-slider"></div>
+                    </div>
+                  </div>
+
+                  <div className="detail-row">
+                    <span className="detail-label">Seri No:</span>
+                    <span className="detail-value serial-number">{service.serialNumber}</span>
+                  </div>
+
+                  <div className="detail-row">
+                    <span className="detail-label">Oluşturma:</span>
+                    <span className="detail-value creation-date">{service.createdDate}</span>
+                  </div>
+                </div>
+
+                <div className="card-actions sold-item">
+                  <button
+                    className="btn-proposal-info"
+                    onClick={() => handleProposalInfoClick(service)}
+                  >
+                    <FaPaperPlane className="btn-icon" />
+                    Teklif
+                  </button>
+                  <button
+                    className="btn-cost-info"
+                    onClick={() => handleCostInfoClick(service)}
+                  >
+                    <AiOutlineEuro className="btn-icon" />
+                    Maliyet
+                  </button>
+                  <button
+                    className="btn-info"
+                    onClick={() => handleInfoClick(service)}
+                  >
+                    <AiOutlineInfoCircle className="btn-icon" />
+                    Bilgi
+                  </button>
                 </div>
               </div>
-
-              <div className="detail-row">
-                <span className="detail-label">Seri No:</span>
-                <span className="detail-value serial-number">{service.serialNumber}</span>
-              </div>
-
-              <div className="detail-row">
-                <span className="detail-label">Oluşturma:</span>
-                <span className="detail-value creation-date">{service.createdDate}</span>
-              </div>
-            </div>
-
-            <div className="card-actions sold-item">
-              <button 
-                className="btn-proposal-info"
-                onClick={() => handleProposalInfoClick(service)}
-              >
-                <FaPaperPlane className="btn-icon" />
-                Teklif Bilgisi
-              </button>
-              <button 
-                className="btn-info"
-                onClick={() => handleInfoClick(service)}
-              >
-                <AiOutlineInfoCircle className="btn-icon" />
-                Bilgi
-              </button>
-            </div>
-          </div>
-        ))}
+            ))}
           </div>
         </>
       )}
@@ -282,19 +296,26 @@ const ClosedProjects = ({ onEditService }) => {
         />
       )}
 
+      {isCostModalOpen && selectedService && (
+        <CostInformationModal
+          service={selectedService}
+          onClose={() => setIsCostModalOpen(false)}
+        />
+      )}
+
       {confirmDialog.show && (
         <div className="confirmation-overlay">
           <div className="confirmation-dialog">
             <h3>Muhasebe Onayı</h3>
             <p>Bu işlem geri alınamaz. Devam etmek istediğinizden emin misiniz?</p>
             <div className="confirmation-actions">
-              <button 
+              <button
                 className="btn-cancel"
                 onClick={handleCancelAccounting}
               >
                 İptal
               </button>
-              <button 
+              <button
                 className="btn-confirm"
                 onClick={handleConfirmAccounting}
               >

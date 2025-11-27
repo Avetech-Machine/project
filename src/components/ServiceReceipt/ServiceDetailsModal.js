@@ -134,7 +134,7 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
     }
     const num = typeof number === 'number' ? number : parseFloat(number);
     if (isNaN(num)) return null;
-    
+
     const numStr = Math.round(num).toString();
     return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   };
@@ -211,7 +211,7 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
 
       // Get the PDF blob
       const blob = await response.blob();
-      
+
       // Create a download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -219,7 +219,7 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
       link.download = `makine-bilgi-${service.id}.pdf`;
       document.body.appendChild(link);
       link.click();
-      
+
       // Clean up
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
@@ -256,8 +256,8 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
       const newIndex = prev > 0 ? prev - 1 : photos.length - 1;
       setZoomLevel(1);
       setImagePosition({ x: 0, y: 0 });
-      return newIndex; 
-    }); 
+      return newIndex;
+    });
   };
 
   const handleNextPhoto = () => {
@@ -314,20 +314,20 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
             <AiOutlineClose />
           </button>
         </div>
-        
+
         {!isCompletedProject && (
           <div className="edit-button-container">
             <button className="edit-button" onClick={handleEditClick}>
-                <AiOutlineEdit className="button-icon" />
-                Düzenle
+              <AiOutlineEdit className="button-icon" />
+              Düzenle
             </button>
-            <button 
-              className="download-button" 
+            <button
+              className="download-button"
               onClick={handleDownload}
               disabled={downloading}
             >
-                <AiOutlineDownload className="button-icon" />
-                {downloading ? 'İndiriliyor...' : 'İndir'}
+              <AiOutlineDownload className="button-icon" />
+              {downloading ? 'İndiriliyor...' : 'İndir'}
             </button>
           </div>
         )}
@@ -351,183 +351,183 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
               <div className="machine-specifications">
                 <div className="machine-identification">
                   <h3 className="machine-title">{projectDetails.machineName}</h3>
-                  
+
                   <div className="spec-row">
                     <span className="spec-label">Proje Kodu:</span>
                     <span className="spec-value">{projectDetails.projectCode || '-'}</span>
                   </div>
-                  
+
                   <div className="spec-row">
                     <span className="spec-label">Marka:</span>
                     <span className="spec-value">{projectDetails.make || '-'}</span>
                   </div>
-                  
+
                   <div className="spec-row">
                     <span className="spec-label">Model:</span>
                     <span className="spec-value">{projectDetails.model || '-'}</span>
                   </div>
-                  
+
                   <div className="spec-row">
                     <span className="spec-label">Üretim Yılı:</span>
                     <span className="spec-value">{projectDetails.year || '-'}</span>
                   </div>
-                  
+
                   <div className="spec-row">
                     <span className="spec-label">Seri Numarası:</span>
                     <span className="spec-value">{projectDetails.serialNumber || '-'}</span>
                   </div>
-                  
+
                   <div className="spec-row">
                     <span className="spec-label">Kontrol Ünitesi:</span>
                     <span className="spec-value">{projectDetails.operatingSystem || '-'}</span>
                   </div>
                 </div>
 
-              <div className="technical-details">
-                <h4>Teknik Detaylar</h4>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Çalışma Saati:</span>
-                  <span className="spec-value">{formatHours(projectDetails.hoursOperated)}</span>
+                <div className="technical-details">
+                  <h4>Teknik Detaylar</h4>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Çalışma Saati:</span>
+                    <span className="spec-value">{formatHours(projectDetails.hoursOperated)}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Devir:</span>
+                    <span className="spec-value">{formatRpm(projectDetails.rpm)}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Takım Sayısı:</span>
+                    <span className="spec-value">{projectDetails.takimSayisi || '-'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Net Ağırlık:</span>
+                    <span className="spec-value">{formatWeight(projectDetails.netWeight)}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Ek Ağırlık:</span>
+                    <span className="spec-value">{formatWeight(projectDetails.additionalWeight)}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Anahtar Bilgisi:</span>
+                    <span className="spec-value">{projectDetails.anahtarBilgisi || '-'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Takım Ölçme Probu:</span>
+                    <span className="spec-value">{projectDetails.takimOlcmeProbu ? 'Var' : 'Yok'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Parça Ölçme Probu:</span>
+                    <span className="spec-value">{projectDetails.parcaOlcmeProbu ? 'Var' : 'Yok'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">İçten Su Verme:</span>
+                    <span className="spec-value">{projectDetails.ictenSuVerme ? 'Var' : 'Yok'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Konveyör:</span>
+                    <span className="spec-value">{projectDetails.konveyor ? 'Var' : 'Yok'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Kağıt Filtre:</span>
+                    <span className="spec-value">{projectDetails.kagitFiltre ? 'Var' : 'Yok'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">X Hareketi:</span>
+                    <span className="spec-value">{projectDetails.xmovement || '-'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Y Hareketi:</span>
+                    <span className="spec-value">{projectDetails.ymovement || '-'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Z Hareketi:</span>
+                    <span className="spec-value">{projectDetails.zmovement || '-'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">B Hareketi:</span>
+                    <span className="spec-value">{projectDetails.bmovement || '-'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">C Hareketi:</span>
+                    <span className="spec-value">{projectDetails.cmovement || '-'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Tutucu Türü:</span>
+                    <span className="spec-value">{projectDetails.holderType || '-'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Makine Genişliği:</span>
+                    <span className="spec-value">{projectDetails.machineWidth || '-'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Makine Uzunluğu:</span>
+                    <span className="spec-value">{projectDetails.machineLength || '-'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Makine Yüksekliği:</span>
+                    <span className="spec-value">{projectDetails.machineHeight || '-'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Maksimum Malzeme Ağırlığı:</span>
+                    <span className="spec-value">{formatWeight(projectDetails.maxMaterialWeight)}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Ek Ekipman:</span>
+                    <span className="spec-value">{projectDetails.additionalEquipment || '-'}</span>
+                  </div>
+
+
                 </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Devir:</span>
-                  <span className="spec-value">{formatRpm(projectDetails.rpm)}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Takım Sayısı:</span>
-                  <span className="spec-value">{projectDetails.takimSayisi || '-'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Net Ağırlık:</span>
-                  <span className="spec-value">{formatWeight(projectDetails.netWeight)}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Ek Ağırlık:</span>
-                  <span className="spec-value">{formatWeight(projectDetails.additionalWeight)}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Anahtar Bilgisi:</span>
-                  <span className="spec-value">{projectDetails.anahtarBilgisi || '-'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Takım Ölçme Probu:</span>
-                  <span className="spec-value">{projectDetails.takimOlcmeProbu ? 'Var' : 'Yok'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Parça Ölçme Probu:</span>
-                  <span className="spec-value">{projectDetails.parcaOlcmeProbu ? 'Var' : 'Yok'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">İçten Su Verme:</span>
-                  <span className="spec-value">{projectDetails.ictenSuVerme ? 'Var' : 'Yok'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Konveyör:</span>
-                  <span className="spec-value">{projectDetails.konveyor ? 'Var' : 'Yok'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Kağıt Filtre:</span>
-                  <span className="spec-value">{projectDetails.kagitFiltre ? 'Var' : 'Yok'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">X Hareketi:</span>
-                  <span className="spec-value">{projectDetails.xmovement || '-'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Y Hareketi:</span>
-                  <span className="spec-value">{projectDetails.ymovement || '-'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Z Hareketi:</span>
-                  <span className="spec-value">{projectDetails.zmovement || '-'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">B Hareketi:</span>
-                  <span className="spec-value">{projectDetails.bmovement || '-'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">C Hareketi:</span>
-                  <span className="spec-value">{projectDetails.cmovement || '-'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Tutucu Türü:</span>
-                  <span className="spec-value">{projectDetails.holderType || '-'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Makine Genişliği:</span>
-                  <span className="spec-value">{projectDetails.machineWidth || '-'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Makine Uzunluğu:</span>
-                  <span className="spec-value">{projectDetails.machineLength || '-'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Makine Yüksekliği:</span>
-                  <span className="spec-value">{projectDetails.machineHeight || '-'}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Maksimum Malzeme Ağırlığı:</span>
-                  <span className="spec-value">{formatWeight(projectDetails.maxMaterialWeight)}</span>
-                </div>
-                
-                <div className="spec-row">
-                  <span className="spec-label">Ek Ekipman:</span>
-                  <span className="spec-value">{projectDetails.additionalEquipment || '-'}</span>
-                </div>
-                
-                
+              </div>
+
+              {/* Right side - Machine image */}
+              <div className="machine-image-section">
+                {projectDetails.photos && projectDetails.photos.length > 0 ? (
+                  <div
+                    className="machine-image-container"
+                    onClick={() => handlePhotoClick(0)}
+                  >
+                    <img
+                      src={projectDetails.photos[0]}
+                      alt={projectDetails.machineName || 'Makine Görseli'}
+                      className="machine-image"
+                    />
+                    {projectDetails.photos.length > 1 && (
+                      <div className="photo-count-badge">
+                        +{projectDetails.photos.length - 1}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="machine-image-placeholder">
+                    <div className="image-placeholder-text">
+                      <span>Makine Görseli</span>
+                      <small>{projectDetails.machineName}</small>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-
-            {/* Right side - Machine image */}
-            <div className="machine-image-section">
-              {projectDetails.photos && projectDetails.photos.length > 0 ? (
-                <div 
-                  className="machine-image-container"
-                  onClick={() => handlePhotoClick(0)}
-                >
-                  <img 
-                    src={projectDetails.photos[0]} 
-                    alt={projectDetails.machineName || 'Makine Görseli'}
-                    className="machine-image"
-                  />
-                  {projectDetails.photos.length > 1 && (
-                    <div className="photo-count-badge">
-                      +{projectDetails.photos.length - 1}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="machine-image-placeholder">
-                  <div className="image-placeholder-text">
-                    <span>Makine Görseli</span>
-                    <small>{projectDetails.machineName}</small>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
           )}
         </div>
       </div>
@@ -549,8 +549,8 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
               <h3>Makine Fotoğrafları</h3>
               <div className="photo-gallery-header-controls">
                 <div className="photo-gallery-zoom-controls">
-                  <button 
-                    className="photo-gallery-zoom-btn" 
+                  <button
+                    className="photo-gallery-zoom-btn"
                     onClick={handleZoomOut}
                     disabled={zoomLevel <= 1}
                     title="Uzaklaştır"
@@ -560,35 +560,35 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                   <span className="photo-gallery-zoom-level">
                     {Math.round(zoomLevel * 100)}%
                   </span>
-                  <button 
-                    className="photo-gallery-zoom-btn" 
+                  <button
+                    className="photo-gallery-zoom-btn"
                     onClick={handleZoomIn}
                     disabled={zoomLevel >= 2.5}
                     title="Yakınlaştır"
                   >
                     <AiOutlineZoomIn />
                   </button>
-                  {zoomLevel > 1 && (
-                    <button 
-                      className="photo-gallery-zoom-btn" 
-                      onClick={handleResetZoom}
-                      title="Sıfırla"
-                    >
-                      <AiOutlineExpand />
-                    </button>
-                  )}
                 </div>
                 <button className="photo-gallery-close" onClick={handleClosePhotoGallery}>
                   <AiOutlineClose />
                 </button>
               </div>
             </div>
-            <div 
+            <div
               className="photo-gallery-body"
               onWheel={handleWheel}
             >
-              <button 
-                className="photo-gallery-nav photo-gallery-prev" 
+              {zoomLevel > 1 && (
+                <button
+                  className="photo-gallery-reset-zoom"
+                  onClick={handleResetZoom}
+                  title="Sıfırla"
+                >
+                  <AiOutlineExpand />
+                </button>
+              )}
+              <button
+                className="photo-gallery-nav photo-gallery-prev"
                 onClick={handlePreviousPhoto}
                 disabled={projectDetails.photos.length <= 1}
                 aria-label="Önceki fotoğraf"
@@ -596,7 +596,7 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                 ‹
               </button>
               <div className="photo-gallery-main-image-container">
-                <div 
+                <div
                   className="photo-gallery-main-image"
                   style={{
                     cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
@@ -604,8 +604,8 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                   }}
                   onMouseDown={handleMouseDown}
                 >
-                  <img 
-                    src={projectDetails.photos[selectedPhotoIndex]} 
+                  <img
+                    src={projectDetails.photos[selectedPhotoIndex]}
                     alt={`Makine Fotoğrafı ${selectedPhotoIndex + 1}`}
                     style={{
                       transform: `scale(${zoomLevel}) translate(${imagePosition.x / zoomLevel}px, ${imagePosition.y / zoomLevel}px)`,
@@ -622,8 +622,8 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                   />
                 </div>
               </div>
-              <button 
-                className="photo-gallery-nav photo-gallery-next" 
+              <button
+                className="photo-gallery-nav photo-gallery-next"
                 onClick={handleNextPhoto}
                 disabled={projectDetails.photos.length <= 1}
                 aria-label="Sonraki fotoğraf"

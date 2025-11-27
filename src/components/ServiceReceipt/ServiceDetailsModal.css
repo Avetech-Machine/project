@@ -35,7 +35,8 @@
 
 .modal-content .edit-button-container {
   display: flex;
-  justify-content: flex-start; /* Align to the left */
+  justify-content: flex-start;
+  /* Align to the left */
   gap: 10px;
   padding: 16px 24px;
   background: #f8f9fa;
@@ -149,7 +150,8 @@
 }
 
 .machine-specifications {
-  flex: 2; /* Bu satır, sol sütunu sağ sütunun iki katı genişliğinde yapar */
+  flex: 2;
+  /* Bu satır, sol sütunu sağ sütunun iki katı genişliğinde yapar */
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -322,6 +324,7 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  position: relative;
 }
 
 .photo-gallery-header {
@@ -415,7 +418,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 80px;
+  padding: 40px 70px;
   min-height: 400px;
   flex: 1;
   overflow: auto;
@@ -455,7 +458,7 @@
 
 .photo-gallery-nav {
   position: absolute;
-  top: 50%;
+  top: 55%;
   transform: translateY(-50%);
   background: rgba(255, 255, 255, 0.95);
   border: 2px solid #e9ecef;
@@ -469,14 +472,17 @@
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  z-index: 10;
+  z-index: 100;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  line-height: 1;
+  padding-bottom: 4px;
 }
 
 .photo-gallery-nav:hover:not(:disabled) {
   background: white;
   border-color: #007bff;
   color: #007bff;
+
   transform: translateY(-50%) scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
 }
@@ -487,11 +493,39 @@
 }
 
 .photo-gallery-prev {
-  left: 10px;
+  left: 20px;
 }
 
 .photo-gallery-next {
-  right: 10px;
+  right: 20px;
+}
+
+.photo-gallery-reset-zoom {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  font-size: 20px;
+  color: #007bff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.photo-gallery-reset-zoom:hover {
+  background: white;
+  border-color: #0056b3;
+  color: #0056b3;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.5);
 }
 
 .photo-gallery-footer {
@@ -549,43 +583,43 @@
   .modal-overlay {
     padding: 10px;
   }
-  
+
   .modal-content {
     max-width: 95vw;
     min-width: auto;
   }
-  
+
   .modal-header {
     padding: 16px 20px 12px 20px;
   }
-  
+
   .modal-header h2 {
     font-size: 18px;
   }
-  
+
   .modal-content .edit-button-container {
     padding: 12px 20px;
   }
-  
+
   .modal-content .edit-button-container .edit-button,
   .modal-content .edit-button-container .download-button {
     padding: 6px 12px;
     font-size: 13px;
   }
-  
+
   .edit-icon {
     font-size: 14px;
   }
-  
+
   .modal-body {
     padding: 16px;
   }
-  
+
   .machine-info-container {
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .machine-image-placeholder {
     height: 250px;
   }
@@ -599,7 +633,7 @@
   }
 
   .photo-gallery-body {
-    padding: 20px 60px;
+    padding: 20px 50px;
     min-height: 300px;
   }
 
@@ -644,6 +678,14 @@
     right: 5px;
   }
 
+  .photo-gallery-reset-zoom {
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+    left: 10px;
+    top: 15px;
+  }
+
   .photo-gallery-thumbnails {
     max-height: 100px;
   }
@@ -652,13 +694,13 @@
     width: 60px;
     height: 60px;
   }
-  
+
   .spec-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
-  
+
   .spec-value {
     text-align: left;
     padding-left: 0;
@@ -669,20 +711,20 @@
   .modal-header h2 {
     font-size: 16px;
   }
-  
+
   .machine-title {
     font-size: 16px;
   }
-  
+
   .technical-details h4 {
     font-size: 14px;
   }
-  
+
   .spec-label,
   .spec-value {
     font-size: 13px;
   }
-  
+
   .machine-image-placeholder {
     height: 200px;
   }
@@ -700,7 +742,7 @@
   }
 
   .photo-gallery-body {
-    padding: 15px 50px;
+    padding: 15px 45px;
     min-height: 250px;
   }
 
@@ -747,6 +789,14 @@
     right: 5px;
   }
 
+  .photo-gallery-reset-zoom {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+    left: 8px;
+    top: 12px;
+  }
+
   .photo-gallery-footer {
     padding: 16px 20px;
   }
@@ -760,13 +810,13 @@
     width: 50px;
     height: 50px;
   }
-  
+
   .modal-content .edit-button-container .edit-button,
   .modal-content .edit-button-container .download-button {
     padding: 5px 10px;
     font-size: 12px;
   }
-  
+
   .edit-icon {
     font-size: 13px;
   }

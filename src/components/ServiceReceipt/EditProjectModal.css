@@ -254,11 +254,31 @@
   border-radius: 8px;
   border: 2px solid #dee2e6;
   transition: all 0.2s ease;
+  cursor: grab;
+  user-select: none;
+}
+
+.customer-photo-item:active {
+  cursor: grabbing;
 }
 
 .customer-photo-item:hover {
   border-color: #007bff;
   box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+}
+
+.customer-photo-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+  cursor: grabbing;
+  z-index: 1000;
+}
+
+.customer-photo-item.drag-over {
+  border-color: #3b82f6;
+  border-style: dashed;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  transform: scale(1.02);
 }
 
 .customer-photo-number {
@@ -359,7 +379,7 @@
   .form-section-with-photos {
     flex-direction: column;
   }
-  
+
   .photo-display-section {
     position: static;
     max-width: 100%;
@@ -370,12 +390,12 @@
   .photo-gallery-modal-content {
     max-width: 95vw;
   }
-  
+
   .photo-gallery-modal-body {
     padding: 16px;
     gap: 24px;
   }
-  
+
   .all-photos-grid {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 12px;
@@ -384,19 +404,19 @@
   .edit-project-modal-overlay {
     padding: 10px;
   }
-  
+
   .edit-project-modal {
     max-height: 95vh;
   }
-  
+
   .modal-header {
     padding: 15px 20px;
   }
-  
+
   .modal-header h2 {
     font-size: 20px;
   }
-  
+
   .modal-content .create-service-receipt {
     padding: 20px;
   }
@@ -406,15 +426,15 @@
   .edit-project-modal-overlay {
     padding: 5px;
   }
-  
+
   .modal-header {
     padding: 12px 15px;
   }
-  
+
   .modal-header h2 {
     font-size: 18px;
   }
-  
+
   .modal-content .create-service-receipt {
     padding: 15px;
   }

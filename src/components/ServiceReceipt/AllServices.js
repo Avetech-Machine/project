@@ -10,9 +10,9 @@ import SearchBar from './SearchBar';
 import FilterPanel from './FilterPanel';
 import projectService from '../../services/projectService';
 import { useAuth } from '../../contexts/AuthContext';
-import { 
-  AiOutlineInfoCircle, 
-  AiOutlineEdit, 
+import {
+  AiOutlineInfoCircle,
+  AiOutlineEdit,
   AiOutlineCalendar,
   AiOutlineSetting,
   AiOutlineEuro,
@@ -77,7 +77,7 @@ const AllServices = ({ onEditService }) => {
     setSearchTerm(query);
     setIsSearching(true);
     setError('');
-    
+
     try {
       if (query.trim()) {
         const searchResults = await projectService.searchProjects(query);
@@ -103,11 +103,11 @@ const AllServices = ({ onEditService }) => {
     setActiveFilters(filters);
     setIsFiltering(true);
     setError('');
-    
+
     try {
       // Check if any filter has a value
       const hasActiveFilters = Object.values(filters).some(value => value !== '');
-      
+
       if (hasActiveFilters) {
         const filterResults = await projectService.filterProjects(filters);
         const filteredResults = filterOutSoldProjects(filterResults);
@@ -162,7 +162,7 @@ const AllServices = ({ onEditService }) => {
 
   const handleSellProposal = (service) => {
     // Update the project status to 'Satıldı' (Sold)
-    const updatedProjects = projects.map(p => 
+    const updatedProjects = projects.map(p =>
       p.id === service.id ? { ...p, status: 'Satıldı' } : p
     );
     setProjects(updatedProjects);
@@ -274,7 +274,7 @@ const AllServices = ({ onEditService }) => {
       if (!tableContainer) return;
 
       const containerMaxWidth = tableContainer.offsetWidth || 1400;
-      
+
       // Define max widths for each column (in pixels)
       const maxWidths = {
         'PROJE KODU': 200,
@@ -298,7 +298,7 @@ const AllServices = ({ onEditService }) => {
       measureElement.style.whiteSpace = 'nowrap';
       measureElement.style.top = '-9999px';
       measureElement.style.left = '-9999px';
-      
+
       const sampleTh = headerCells[0];
       const thStyle = window.getComputedStyle(sampleTh);
       measureElement.style.fontSize = thStyle.fontSize;
@@ -306,7 +306,7 @@ const AllServices = ({ onEditService }) => {
       measureElement.style.fontWeight = thStyle.fontWeight;
       measureElement.style.padding = '16px 20px';
       measureElement.style.boxSizing = 'border-box';
-      
+
       document.body.appendChild(measureElement);
 
       // Calculate width for each column
@@ -359,7 +359,7 @@ const AllServices = ({ onEditService }) => {
 
       // Check if total width exceeds container and scale down proportionally if needed
       const totalWidth = columnWidths.reduce((sum, width) => sum + width, 0);
-      
+
       // Minimum widths to ensure usability (especially for operations column)
       const minWidths = {
         'PROJE KODU': 100,
@@ -369,9 +369,9 @@ const AllServices = ({ onEditService }) => {
         'İŞLEMLER': 300,
         'SİL': 100
       };
-      
+
       let finalColumnWidths = [...columnWidths];
-      
+
       if (totalWidth > containerMaxWidth) {
         // Scale down, but ensure minimum widths are maintained
         const headerNames = Array.from(headerCells).map(th => th.textContent.trim());
@@ -382,9 +382,9 @@ const AllServices = ({ onEditService }) => {
         const otherColumnsWidth = columnWidths
           .map((width, idx) => (idx === operationsIndex || idx === deleteIndex) ? 0 : width)
           .reduce((sum, width) => sum + width, 0);
-        
+
         const availableWidthForOthers = containerMaxWidth - operationsMinWidth - deleteMinWidth;
-        
+
         if (availableWidthForOthers > 0 && otherColumnsWidth > 0) {
           const scaleFactor = availableWidthForOthers / otherColumnsWidth;
           finalColumnWidths = columnWidths.map((width, index) => {
@@ -410,7 +410,7 @@ const AllServices = ({ onEditService }) => {
           });
         }
       }
-      
+
       // Apply calculated widths to header and body cells
       headerCells.forEach((th, index) => {
         const finalWidth = finalColumnWidths[index];
@@ -453,16 +453,16 @@ const AllServices = ({ onEditService }) => {
             <h1>Aktif Projeler</h1>
             <p>Tüm makine servis projelerinizi buradan görüntüleyebilir ve yönetebilirsiniz.</p>
           </div>
-         
+
         </div>
       </div>
 
-      <SearchBar 
+      <SearchBar
         onSearch={handleSearch}
         placeholder="Projelerde ara... (proje kodu, makine adı, model, marka, yıl, seri numarası)"
       />
 
-      <FilterPanel 
+      <FilterPanel
         onFilter={handleFilter}
         onClear={handleClearFilters}
       />
@@ -481,16 +481,16 @@ const AllServices = ({ onEditService }) => {
           <div className="loading-container">
             <div className="loading-spinner"></div>
             <p>
-              {isSearching ? 'Aranıyor...' : 
-               isFiltering ? 'Filtreleniyor...' : 
-               'Projeler yükleniyor...'}
+              {isSearching ? 'Aranıyor...' :
+                isFiltering ? 'Filtreleniyor...' :
+                  'Projeler yükleniyor...'}
             </p>
           </div>
         ) : projects.length === 0 ? (
           <div className="empty-state">
             <p>
-              {searchTerm || Object.values(activeFilters).some(v => v !== '') 
-                ? 'Arama kriterlerinize uygun proje bulunamadı.' 
+              {searchTerm || Object.values(activeFilters).some(v => v !== '')
+                ? 'Arama kriterlerinize uygun proje bulunamadı.'
                 : 'Henüz proje bulunmuyor.'}
             </p>
           </div>
@@ -515,39 +515,39 @@ const AllServices = ({ onEditService }) => {
                   <td className="start-date">{project.year}</td>
                   <td className="operations">
                     <div className="operation-buttons">
-                      <button 
-                        className="operation-btn info-btn-enhanced" 
+                      <button
+                        className="operation-btn info-btn-enhanced"
                         onClick={() => handleInfoClick(project)}
                         title="Bilgi"
                       >
                         <AiOutlineInfoCircle />
                       </button>
-                      <button 
-                        className="operation-btn view-btn-enhanced" 
+                      <button
+                        className="operation-btn view-btn-enhanced"
                         onClick={() => handleViewOffersClick(project)}
                         title="Teklifleri Görüntüle"
                       >
                         <AiOutlineEye />
                       </button>
-                      <button 
-                        className="operation-btn cost-btn-enhanced" 
+                      <button
+                        className="operation-btn cost-btn-enhanced"
                         onClick={() => handleCostDetailClick(project)}
                         title="Maliyet"
                       >
                         <AiOutlineEuro />
                       </button>
                       {canSubmitOffer() && (
-                        <button 
-                          className="operation-btn submit-btn-enhanced" 
+                        <button
+                          className="operation-btn submit-btn-enhanced"
                           onClick={() => handleSubmitOffer(project)}
                           title="Teklif Gönder"
                         >
-                          <FaPaperPlane /> 
+                          <FaPaperPlane />
                         </button>
                       )}
                       {canEdit() && (
-                        <button 
-                          className="operation-btn edit-btn" 
+                        <button
+                          className="operation-btn edit-btn"
                           onClick={() => handleEditClick(project)}
                           title="Düzenle"
                           disabled={editingProjectId === project.id}
@@ -564,8 +564,8 @@ const AllServices = ({ onEditService }) => {
                   {canDelete() && (
                     <td className="delete-column">
                       <div className="delete-button-wrapper">
-                        <button 
-                          className="operation-btn delete-btn" 
+                        <button
+                          className="operation-btn delete-btn"
                           onClick={() => handleDeleteProject(project.id)}
                           title="Sil"
                         >

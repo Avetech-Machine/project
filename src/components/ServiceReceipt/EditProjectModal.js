@@ -19,41 +19,41 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
     teamCount: '2',
     machineNetWeight: '', // New field
     additionalWeight: '', // New field
-    
+
     // Operating System
     operatingSystem: 'Heidenhain',
     customOperatingSystem: '', // Custom OS input when "Other" is selected
-    
+
     // Measurement Probes
     teamMeasurementProbe: 'Var',
-    partMeasurementProbe: 'Var', 
+    partMeasurementProbe: 'Var',
     insideWaterGiving: 'Yok',
-    
+
     // New Features
     conveyor: 'Yok',
     paperFilter: 'Yok',
-    
+
     // Movement Fields
     xMovement: '',
     yMovement: '',
     zMovement: '',
     bMovement: '',
     cMovement: '',
-    
+
     // Gripper Type
     holderType: '',
-    
+
     // Machine Dimensions
     machineWidth: '',
     machineLength: '',
     machineHeight: '',
-    
+
     // Max Material Weight
     maxMaterialWeight: '',
-    
+
     // Accessory Data
     accessoryData: '',
-    
+
     // Photos
     photos: []
   });
@@ -67,6 +67,14 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
   const [customerPhotoOrder, setCustomerPhotoOrder] = useState([]); // Track order of first 10 photos for customer
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
+
+  // Drag-and-drop state for main photos
+  const [draggedPhotoIndex, setDraggedPhotoIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+
+  // Drag-and-drop state for customer photos in gallery
+  const [draggedCustomerPhotoIndex, setDraggedCustomerPhotoIndex] = useState(null);
+  const [dragOverCustomerIndex, setDragOverCustomerIndex] = useState(null);
 
   const [costDetails, setCostDetails] = useState([
     { id: 1, description: 'Otel', currency: 'EUR', amount: 200 },
@@ -97,10 +105,10 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
     };
 
     fetchExchangeRates();
-    
+
     // Refresh rates every 10 minutes
     const intervalId = setInterval(fetchExchangeRates, 10 * 60 * 1000);
-    
+
     return () => clearInterval(intervalId);
   }, []);
 
@@ -134,7 +142,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       console.log('Cost Details:', project.costDetails);
       console.log('Price Details:', project.priceDetails);
       console.log('================================');
-      
+
       setFormData({
         machineName: project.machineName || project.title || '',
         model: project.model || '',
@@ -192,12 +200,12 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
           return photoUrl; // Already in correct format
         })
       });
-      
+
       // Initialize customer photo order will be set in useEffect after formData is populated
-      
+
       // Reset deleted photos when loading a new project
       setDeletedExistingPhotos([]);
-      
+
       console.log('=== FORM DATA SET ===');
       console.log('Form Data after setting:', {
         machineName: project.machineName || project.title || '',
@@ -212,11 +220,11 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
         paperFilter: project.kagitFiltre ? 'Var' : (project.paperFilter || 'Yok')
       });
       console.log('=====================');
-      
+
       // Set key information if it exists, otherwise default to 1
       const keyInfo = project.keyInfo || project.anahtarBilgisi || project.keyInformation || 1;
       setKeyInformation(typeof keyInfo === 'string' ? parseInt(keyInfo) : keyInfo);
-      
+
       // Set project code if it exists, otherwise get next available code
       if (project.projectCode) {
         // If it's already in AVEMAK format, use it directly
@@ -234,7 +242,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
           }
         }
       }
-      
+
       // Parse cost details from string format
       if (project.costDetails && typeof project.costDetails === 'string') {
         try {
@@ -249,9 +257,9 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
               const currencyAmount = parts[1].split(' ');
               const currency = currencyAmount[0] || 'EUR';
               const amount = parseFloat(currencyAmount[1]) || 0;
-              
+
               console.log(`Parsed: description=${description}, currency=${currency}, amount=${amount}`);
-              
+
               return {
                 id: index + 1,
                 description: description || '',
@@ -279,7 +287,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
         console.log('Using array cost details:', project.costDetails);
         setCostDetails(project.costDetails);
       }
-      
+
       // Parse sales price from price details
       if (project.priceDetails && typeof project.priceDetails === 'string') {
         try {
@@ -307,7 +315,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
 
   const handleMovementBlur = (field, value) => {
     let processedValue = value;
-    
+
     // Auto-add units for movement fields on blur
     if (['xMovement', 'yMovement', 'zMovement'].includes(field)) {
       // Remove existing 'mm' if present to avoid duplication
@@ -324,7 +332,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
         processedValue = processedValue + '°';
       }
     }
-    
+
     setFormData(prev => ({
       ...prev,
       [field]: processedValue
@@ -344,19 +352,19 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       e.preventDefault();
       const input = e.target;
       const value = input.value.replace(/,/g, ''); // Remove existing commas
-      
+
       // Check if it's a valid number
       if (!isNaN(value) && value !== '') {
         // Format with commas
         const formattedValue = parseInt(value).toLocaleString();
         // Add "Max 1/min" suffix
         const finalValue = `${formattedValue} Max 1/min`;
-        
+
         setFormData(prev => ({
           ...prev,
           repairHours: finalValue
         }));
-        
+
         // Close keyboard by blurring the input
         input.blur();
       }
@@ -376,19 +384,19 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       e.preventDefault();
       const input = e.target;
       const value = input.value.replace(/,/g, ''); // Remove existing commas
-      
+
       // Check if it's a valid number
       if (!isNaN(value) && value !== '') {
         // Format with commas
         const formattedValue = parseInt(value).toLocaleString();
         // Add "saat" suffix
         const finalValue = `${formattedValue} saat`;
-        
+
         setFormData(prev => ({
           ...prev,
           workingHours: finalValue
         }));
-        
+
         // Close keyboard by blurring the input
         input.blur();
       }
@@ -404,7 +412,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
     console.log('Photo upload triggered:', source);
     const files = event.target.files;
     console.log('Selected files:', files);
-    
+
     if (files && files.length > 0) {
       const newPhotos = Array.from(files).map(file => ({
         id: Date.now() + Math.random(),
@@ -412,15 +420,15 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
         url: URL.createObjectURL(file),
         name: file.name
       }));
-      
+
       console.log('New photos to add:', newPhotos);
-      
+
       setFormData(prev => ({
         ...prev,
         photos: [...prev.photos, ...newPhotos]
       }));
     }
-    
+
     // Reset input
     event.target.value = '';
   };
@@ -470,11 +478,116 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
     return firstPhoto.url || firstPhoto;
   };
 
-  // Reorder customer photos (first 10)
+  // Drag-and-drop handlers for main photo section
+  const handleDragStart = (e, index) => {
+    setDraggedPhotoIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => {
+      e.target.classList.add('dragging');
+    }, 0);
+  };
+
+  const handleDragEnter = (e, index) => {
+    e.preventDefault();
+    if (draggedPhotoIndex !== null && draggedPhotoIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragLeave = (e, index) => {
+    if (e.currentTarget === e.target) {
+      if (dragOverIndex === index) {
+        setDragOverIndex(null);
+      }
+    }
+  };
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault();
+
+    if (draggedPhotoIndex === null || draggedPhotoIndex === dropIndex) {
+      return;
+    }
+
+    setFormData(prev => {
+      const newPhotos = [...prev.photos];
+      const draggedPhoto = newPhotos[draggedPhotoIndex];
+
+      // Remove the dragged photo from its original position
+      newPhotos.splice(draggedPhotoIndex, 1);
+
+      // Insert it at the drop position
+      newPhotos.splice(dropIndex, 0, draggedPhoto);
+
+      return {
+        ...prev,
+        photos: newPhotos
+      };
+    });
+
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = (e) => {
+    e.target.classList.remove('dragging');
+    setDraggedPhotoIndex(null);
+    setDragOverIndex(null);
+  };
+
+  // Drag-and-drop handlers for customer photo gallery
+  const handleCustomerPhotoDragStart = (e, index) => {
+    setDraggedCustomerPhotoIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => {
+      e.target.classList.add('dragging');
+    }, 0);
+  };
+
+  const handleCustomerPhotoDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (draggedCustomerPhotoIndex !== null && draggedCustomerPhotoIndex !== index) {
+      setDragOverCustomerIndex(index);
+    }
+  };
+
+  const handleCustomerPhotoDrop = (e, dropIndex) => {
+    e.preventDefault();
+
+    if (draggedCustomerPhotoIndex === null || draggedCustomerPhotoIndex === dropIndex) {
+      setDragOverCustomerIndex(null);
+      return;
+    }
+
+    const newOrder = [...customerPhotoOrder];
+    const draggedItem = newOrder[draggedCustomerPhotoIndex];
+
+    // Remove from original position
+    newOrder.splice(draggedCustomerPhotoIndex, 1);
+
+    // Insert at drop position
+    newOrder.splice(dropIndex, 0, draggedItem);
+
+    setCustomerPhotoOrder(newOrder);
+    setDragOverCustomerIndex(null);
+  };
+
+  const handleCustomerPhotoDragEnd = (e) => {
+    e.target.classList.remove('dragging');
+    setDraggedCustomerPhotoIndex(null);
+    setDragOverCustomerIndex(null);
+  };
+
+  // Reorder customer photos (first 10) - Keep for backward compatibility
   const handleReorderCustomerPhoto = (index, direction) => {
     if (index === 0 && direction === 'up') return; // Can't move cover photo up
     if (index >= customerPhotoOrder.length - 1 && direction === 'down') return;
-    
+
     const newOrder = [...customerPhotoOrder];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     [newOrder[index], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[index]];
@@ -499,14 +612,14 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
         const currentOrderIds = customerPhotoOrder.map(item => item.photoId);
         const allPhotoIds = formData.photos.map(p => p.id || (typeof p === 'string' ? p : `photo-${formData.photos.indexOf(p)}`));
         const validOrder = customerPhotoOrder.filter(item => allPhotoIds.includes(item.photoId));
-        
+
         // Add new photos if we have less than 10
         if (validOrder.length < 10) {
           const missingPhotos = formData.photos.filter(p => {
             const photoId = p.id || (typeof p === 'string' ? p : `photo-${formData.photos.indexOf(p)}`);
             return !validOrder.some(item => item.photoId === photoId);
           });
-          
+
           const newOrder = [
             ...validOrder,
             ...missingPhotos.slice(0, 10 - validOrder.length).map((photo, idx) => {
@@ -547,8 +660,8 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
   };
 
   const updateCostDetail = (id, field, value) => {
-    setCostDetails(prev => 
-      prev.map(item => 
+    setCostDetails(prev =>
+      prev.map(item =>
         item.id === id ? { ...item, [field]: value } : item
       )
     );
@@ -626,7 +739,7 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       status: "TEMPLATE"
       // Note: photos are now sent separately as files, not as URLs
     };
-    
+
     console.log('=== VALIDATION CHECK ===');
     console.log('id:', apiData.id, 'Type:', typeof apiData.id);
     console.log('projectCode:', apiData.projectCode, 'Type:', typeof apiData.projectCode);
@@ -646,26 +759,26 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
     console.log('conveyor:', apiData.conveyor, 'Type:', typeof apiData.conveyor);
     console.log('paperFilter:', apiData.paperFilter, 'Type:', typeof apiData.paperFilter);
     console.log('=======================');
-    
+
     return validateAndCleanData(apiData);
   };
 
   const handleSave = async () => {
     if (isSaving) return; // Prevent multiple submissions
-    
+
     setIsSaving(true);
     try {
       // Map form data to API format
       const apiData = mapFormDataToAPI();
-      
+
       // Filter photos to only include new ones (those with file property)
       // Existing photos don't have a file property, so they won't be sent
       const newPhotos = formData.photos.filter(photo => photo.file);
-      
+
       // Add customer photo order to API data
       const customerPhotoIds = customerPhotoOrder.slice(0, 10).map(item => item.photoId);
       apiData.customerPhotoOrder = customerPhotoIds;
-      
+
       // Log the data being sent to API
       console.log('=== API UPDATE REQUEST DATA ===');
       console.log('Raw API Data:', apiData);
@@ -675,17 +788,17 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       console.log('Deleted Existing Photos:', deletedExistingPhotos);
       console.log('Customer Photo Order:', customerPhotoIds);
       console.log('==============================');
-      
+
       // Call API to update project with photo files
       // Note: The API will need to handle deletion of photos based on deletedExistingPhotos
       // For now, we're only sending new photos. The API should handle existing photos that aren't in the list
       const response = await projectService.updateProject(project.id, apiData, newPhotos);
-      
+
       // Call the callback if provided
       if (onSaveComplete) {
         onSaveComplete(response);
       }
-      
+
       // Close modal
       onClose();
 
@@ -710,522 +823,533 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
 
         <div className="modal-content">
           <div className="create-service-receipt">
-            
+
             {/* Machine Information Section */}
             <div className="form-section-with-photos">
               <div className="form-section-main">
                 <h2 className="section-title">Makine Bilgileri</h2>
-              
-              {/* Photo Upload Section */}
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <label>Fotoğraf Ekle</label>
-                  <div className="photo-upload-container">
-                    <div className="photo-upload-buttons">
-                      <button 
-                        type="button" 
-                        className="photo-upload-btn"
-                        onClick={openFileUpload}
-                      >
-                        <FaPlus className="upload-icon" />
-                        Dosyadan Ekle
-                      </button>
-                      <button 
-                        type="button" 
-                        className="photo-upload-btn camera-btn"
-                        onClick={openCamera}
-                      >
-                        <FaCamera className="upload-icon" />
-                        Kamera ile Çek
-                      </button>
-                    </div>
-                    
-                    {/* Hidden file inputs */}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={(e) => handlePhotoUpload(e, 'file')}
-                      style={{ display: 'none' }}
-                    />
-                    <input
-                      ref={cameraInputRef}
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={(e) => handlePhotoUpload(e, 'camera')}
-                      style={{ display: 'none' }}
-                    />
-                    
-                    {/* Photo previews */}
-                    {formData.photos.length > 0 && (
-                      <div className="photo-previews">
-                        {formData.photos.map((photo, index) => {
-                          // Handle both existing photos (with url property) and new photos
-                          const photoUrl = photo.url || photo;
-                          const photoId = photo.id || `photo-${index}`;
-                          return (
-                            <div key={photoId} className="photo-preview-container">
-                              <img
-                                src={photoUrl}
-                                alt={`Photo ${index + 1}`}
-                                className="photo-preview"
-                                onClick={() => handlePhotoClick(index)}
-                              />
-                              <button
-                                type="button"
-                                className="photo-delete-btn"
-                                onClick={() => handlePhotoDelete(photoId)}
-                                title="Fotoğrafı Sil"
-                              >
-                                <FaTimes />
-                              </button>
-                            </div>
-                          );
-                        })}
+
+                {/* Photo Upload Section */}
+                <div className="form-row">
+                  <div className="form-group full-width">
+                    <label>Fotoğraf Ekle</label>
+                    <div className="photo-upload-container">
+                      <div className="photo-upload-buttons">
+                        <button
+                          type="button"
+                          className="photo-upload-btn"
+                          onClick={openFileUpload}
+                        >
+                          <FaPlus className="upload-icon" />
+                          Dosyadan Ekle
+                        </button>
+                        <button
+                          type="button"
+                          className="photo-upload-btn camera-btn"
+                          onClick={openCamera}
+                        >
+                          <FaCamera className="upload-icon" />
+                          Kamera ile Çek
+                        </button>
                       </div>
+
+                      {/* Hidden file inputs */}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={(e) => handlePhotoUpload(e, 'file')}
+                        style={{ display: 'none' }}
+                      />
+                      <input
+                        ref={cameraInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={(e) => handlePhotoUpload(e, 'camera')}
+                        style={{ display: 'none' }}
+                      />
+
+                      {/* Photo previews */}
+                      {formData.photos.length > 0 && (
+                        <div className="photo-previews">
+                          {formData.photos.map((photo, index) => {
+                            // Handle both existing photos (with url property) and new photos
+                            const photoUrl = photo.url || photo;
+                            const photoId = photo.id || `photo-${index}`;
+                            return (
+                              <div
+                                key={photoId}
+                                className={`photo-preview-container ${draggedPhotoIndex === index ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
+                                draggable="true"
+                                onDragStart={(e) => handleDragStart(e, index)}
+                                onDragEnter={(e) => handleDragEnter(e, index)}
+                                onDragOver={handleDragOver}
+                                onDragLeave={(e) => handleDragLeave(e, index)}
+                                onDrop={(e) => handleDrop(e, index)}
+                                onDragEnd={handleDragEnd}
+                              >
+                                <div className="photo-order-number">{index + 1}</div>
+                                <img
+                                  src={photoUrl}
+                                  alt={`Photo ${index + 1}`}
+                                  className="photo-preview"
+                                  onClick={() => handlePhotoClick(index)}
+                                />
+                                <button
+                                  type="button"
+                                  className="photo-delete-btn"
+                                  onClick={() => handlePhotoDelete(photoId)}
+                                  title="Fotoğrafı Sil"
+                                >
+                                  <FaTimes />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Project Code Display */}
+                <div className="project-code-display">
+                  Proje Kodu: {projectCode}
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Makine Adı</label>
+                    <input
+                      type="text"
+                      value={formData.machineName}
+                      onChange={(e) => handleInputChange('machineName', e.target.value)}
+                      placeholder="Dmg Mori"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Makine Modeli</label>
+                    <input
+                      type="text"
+                      value={formData.model}
+                      onChange={(e) => handleInputChange('model', e.target.value)}
+                      placeholder="Model adı"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Yılı</label>
+                    <input
+                      type="text"
+                      value={formData.year}
+                      onChange={(e) => handleInputChange('year', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Saati</label>
+                    <input
+                      type="text"
+                      value={formData.workingHours}
+                      onChange={handleWorkingHoursInput}
+                      onKeyPress={handleWorkingHoursKeyPress}
+                      placeholder="Çalışma saati"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Devri</label>
+                    <input
+                      type="text"
+                      value={formData.repairHours}
+                      onChange={handleRpmInput}
+                      onKeyPress={handleRpmKeyPress}
+                      placeholder="Devri/dakika"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Seri No</label>
+                    <input
+                      type="text"
+                      value={formData.serialNumber}
+                      onChange={(e) => handleInputChange('serialNumber', e.target.value)}
+                      placeholder="Seri numarası"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Takım Sayısı</label>
+                    <input
+                      type="text"
+                      value={formData.teamCount}
+                      onChange={(e) => handleInputChange('teamCount', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Makine Net Kilo</label>
+                    <input
+                      type="text"
+                      value={formData.machineNetWeight}
+                      onChange={(e) => handleInputChange('machineNetWeight', e.target.value)}
+                      placeholder="kg"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Ek Kilo</label>
+                    <input
+                      type="text"
+                      value={formData.additionalWeight}
+                      onChange={(e) => handleInputChange('additionalWeight', e.target.value)}
+                      placeholder="kg"
+                    />
+                  </div>
+                </div>
+
+                {/* Movement Fields Section */}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>X Hareketi</label>
+                    <input
+                      type="text"
+                      value={formData.xMovement}
+                      onChange={(e) => handleInputChange('xMovement', e.target.value)}
+                      onBlur={(e) => handleMovementBlur('xMovement', e.target.value)}
+                      placeholder="1000mm"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Y Hareketi</label>
+                    <input
+                      type="text"
+                      value={formData.yMovement}
+                      onChange={(e) => handleInputChange('yMovement', e.target.value)}
+                      onBlur={(e) => handleMovementBlur('yMovement', e.target.value)}
+                      placeholder="500mm"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Z Hareketi</label>
+                    <input
+                      type="text"
+                      value={formData.zMovement}
+                      onChange={(e) => handleInputChange('zMovement', e.target.value)}
+                      onBlur={(e) => handleMovementBlur('zMovement', e.target.value)}
+                      placeholder="300mm"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>B Hareketi</label>
+                    <input
+                      type="text"
+                      value={formData.bMovement}
+                      onChange={(e) => handleInputChange('bMovement', e.target.value)}
+                      onBlur={(e) => handleMovementBlur('bMovement', e.target.value)}
+                      placeholder="360°"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>C Hareketi</label>
+                    <input
+                      type="text"
+                      value={formData.cMovement}
+                      onChange={(e) => handleInputChange('cMovement', e.target.value)}
+                      onBlur={(e) => handleMovementBlur('cMovement', e.target.value)}
+                      placeholder="360°"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Gripper Tipi</label>
+                    <input
+                      type="text"
+                      value={formData.holderType}
+                      onChange={(e) => handleInputChange('holderType', e.target.value)}
+                      placeholder="HSK-63A"
+                    />
+                  </div>
+                </div>
+
+                {/* Machine Dimensions Section */}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Makine Genişliği</label>
+                    <input
+                      type="text"
+                      value={formData.machineWidth}
+                      onChange={(e) => handleInputChange('machineWidth', e.target.value)}
+                      placeholder="2000"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Makine Uzunluğu</label>
+                    <input
+                      type="text"
+                      value={formData.machineLength}
+                      onChange={(e) => handleInputChange('machineLength', e.target.value)}
+                      placeholder="3000"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Makine Yüksekliği</label>
+                    <input
+                      type="text"
+                      value={formData.machineHeight}
+                      onChange={(e) => handleInputChange('machineHeight', e.target.value)}
+                      placeholder="2500"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Maksimum Malzeme Ağırlığı</label>
+                    <input
+                      type="text"
+                      value={formData.maxMaterialWeight}
+                      onChange={(e) => handleInputChange('maxMaterialWeight', e.target.value)}
+                      placeholder="5000"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>İşletim Sistemi</label>
+                    <select
+                      value={formData.operatingSystem}
+                      onChange={(e) => handleInputChange('operatingSystem', e.target.value)}
+                      className="form-select"
+                    >
+                      <option value="Heidenhain">Heidenhain</option>
+                      <option value="Siemens">Siemens</option>
+                      <option value="Fanuc">Fanuc</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    {formData.operatingSystem === 'Other' && (
+                      <input
+                        type="text"
+                        placeholder="İşletim sistemi adını giriniz"
+                        value={formData.customOperatingSystem}
+                        onChange={(e) => handleInputChange('customOperatingSystem', e.target.value)}
+                        className="form-input"
+                        style={{ marginTop: '8px' }}
+                      />
                     )}
                   </div>
-                </div>
-              </div>
-              
-              {/* Project Code Display */}
-              <div className="project-code-display">
-                Proje Kodu: {projectCode}
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Makine Adı</label>
-                  <input
-                    type="text"
-                    value={formData.machineName}
-                    onChange={(e) => handleInputChange('machineName', e.target.value)}
-                    placeholder="Dmg Mori"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Makine Modeli</label>
-                  <input
-                    type="text"
-                    value={formData.model}
-                    onChange={(e) => handleInputChange('model', e.target.value)}
-                    placeholder="Model adı"
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Yılı</label>
-                  <input
-                    type="text"
-                    value={formData.year}
-                    onChange={(e) => handleInputChange('year', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Saati</label>
-                  <input
-                    type="text"
-                    value={formData.workingHours}
-                    onChange={handleWorkingHoursInput}
-                    onKeyPress={handleWorkingHoursKeyPress}
-                    placeholder="Çalışma saati"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Devri</label>
-                  <input
-                    type="text"
-                    value={formData.repairHours}
-                    onChange={handleRpmInput}
-                    onKeyPress={handleRpmKeyPress}
-                    placeholder="Devri/dakika"
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Seri No</label>
-                  <input
-                    type="text"
-                    value={formData.serialNumber}
-                    onChange={(e) => handleInputChange('serialNumber', e.target.value)}
-                    placeholder="Seri numarası"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Takım Sayısı</label>
-                  <input
-                    type="text"
-                    value={formData.teamCount}
-                    onChange={(e) => handleInputChange('teamCount', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Makine Net Kilo</label>
-                  <input
-                    type="text"
-                    value={formData.machineNetWeight}
-                    onChange={(e) => handleInputChange('machineNetWeight', e.target.value)}
-                    placeholder="kg"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Ek Kilo</label>
-                  <input
-                    type="text"
-                    value={formData.additionalWeight}
-                    onChange={(e) => handleInputChange('additionalWeight', e.target.value)}
-                    placeholder="kg"
-                  />
-                </div>
-              </div>
-
-              {/* Movement Fields Section */}
-              <div className="form-row">
-                <div className="form-group">
-                  <label>X Hareketi</label>
-                  <input
-                    type="text"
-                    value={formData.xMovement}
-                    onChange={(e) => handleInputChange('xMovement', e.target.value)}
-                    onBlur={(e) => handleMovementBlur('xMovement', e.target.value)}
-                    placeholder="1000mm"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Y Hareketi</label>
-                  <input
-                    type="text"
-                    value={formData.yMovement}
-                    onChange={(e) => handleInputChange('yMovement', e.target.value)}
-                    onBlur={(e) => handleMovementBlur('yMovement', e.target.value)}
-                    placeholder="500mm"
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Z Hareketi</label>
-                  <input
-                    type="text"
-                    value={formData.zMovement}
-                    onChange={(e) => handleInputChange('zMovement', e.target.value)}
-                    onBlur={(e) => handleMovementBlur('zMovement', e.target.value)}
-                    placeholder="300mm"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>B Hareketi</label>
-                  <input
-                    type="text"
-                    value={formData.bMovement}
-                    onChange={(e) => handleInputChange('bMovement', e.target.value)}
-                    onBlur={(e) => handleMovementBlur('bMovement', e.target.value)}
-                    placeholder="360°"
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>C Hareketi</label>
-                  <input
-                    type="text"
-                    value={formData.cMovement}
-                    onChange={(e) => handleInputChange('cMovement', e.target.value)}
-                    onBlur={(e) => handleMovementBlur('cMovement', e.target.value)}
-                    placeholder="360°"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Gripper Tipi</label>
-                  <input
-                    type="text"
-                    value={formData.holderType}
-                    onChange={(e) => handleInputChange('holderType', e.target.value)}
-                    placeholder="HSK-63A"
-                  />
-                </div>
-              </div>
-
-              {/* Machine Dimensions Section */}
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Makine Genişliği</label>
-                  <input
-                    type="text"
-                    value={formData.machineWidth}
-                    onChange={(e) => handleInputChange('machineWidth', e.target.value)}
-                    placeholder="2000"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Makine Uzunluğu</label>
-                  <input
-                    type="text"
-                    value={formData.machineLength}
-                    onChange={(e) => handleInputChange('machineLength', e.target.value)}
-                    placeholder="3000"
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Makine Yüksekliği</label>
-                  <input
-                    type="text"
-                    value={formData.machineHeight}
-                    onChange={(e) => handleInputChange('machineHeight', e.target.value)}
-                    placeholder="2500"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Maksimum Malzeme Ağırlığı</label>
-                  <input
-                    type="text"
-                    value={formData.maxMaterialWeight}
-                    onChange={(e) => handleInputChange('maxMaterialWeight', e.target.value)}
-                    placeholder="5000"
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-              <div className="form-group">
-                <label>İşletim Sistemi</label>
-                <select
-                  value={formData.operatingSystem}
-                  onChange={(e) => handleInputChange('operatingSystem', e.target.value)}
-                  className="form-select"
-                >
-                  <option value="Heidenhain">Heidenhain</option>
-                  <option value="Siemens">Siemens</option>
-                  <option value="Fanuc">Fanuc</option>
-                  <option value="Other">Other</option>
-                </select>
-                {formData.operatingSystem === 'Other' && (
-                  <input
-                    type="text"
-                    placeholder="İşletim sistemi adını giriniz"
-                    value={formData.customOperatingSystem}
-                    onChange={(e) => handleInputChange('customOperatingSystem', e.target.value)}
-                    className="form-input"
-                    style={{ marginTop: '8px' }}
-                  />
-                )}
-              </div>
-                <div className="form-group justify-end">
-                  <label>Anahtar Bilgisi</label>
-                  <div className="tab-indicators">
-                    <span 
-                      className={`tab-number ${keyInformation === 1 ? 'active' : ''}`}
-                      onClick={() => handleKeyInformationChange(1)}
-                    >
-                      1
-                    </span>
-                    <span 
-                      className={`tab-number ${keyInformation === 2 ? 'active' : ''}`}
-                      onClick={() => handleKeyInformationChange(2)}
-                    >
-                      2
-                    </span>
-                    <span 
-                      className={`tab-number ${keyInformation === 3 ? 'active' : ''}`}
-                      onClick={() => handleKeyInformationChange(3)}
-                    >
-                      3
-                    </span>
-                    <span 
-                      className={`tab-number ${keyInformation === 4 ? 'active' : ''}`}
-                      onClick={() => handleKeyInformationChange(4)}
-                    >
-                      4
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Measurement Probes Section */}
-              <div className="measurement-section">
-                <div className="measurement-row">
-                  <div className="measurement-group">
-                    <span className="measurement-label">Takım Ölçme Probu</span>
-                    <div className="radio-group-vertical">
-                      <label className="radio-option">
-                        <input
-                          type="radio"
-                          name="teamMeasurementProbe"
-                          value="Var"
-                          checked={formData.teamMeasurementProbe === 'Var'}
-                          onChange={(e) => handleInputChange('teamMeasurementProbe', e.target.value)}
-                        />
-                        <span className="radio-dot"></span>
-                        Var
-                      </label>
-                      <label className="radio-option">
-                        <input
-                          type="radio"
-                          name="teamMeasurementProbe"
-                          value="Yok"
-                          checked={formData.teamMeasurementProbe === 'Yok'}
-                          onChange={(e) => handleInputChange('teamMeasurementProbe', e.target.value)}
-                        />
-                        <span className="radio-dot"></span>
-                        Yok
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="measurement-group">
-                    <span className="measurement-label">Parça Ölçme Probu</span>
-                    <div className="radio-group-vertical">
-                      <label className="radio-option">
-                        <input
-                          type="radio"
-                          name="partMeasurementProbe"
-                          value="Var"
-                          checked={formData.partMeasurementProbe === 'Var'}
-                          onChange={(e) => handleInputChange('partMeasurementProbe', e.target.value)}
-                        />
-                        <span className="radio-dot"></span>
-                        Var
-                      </label>
-                      <label className="radio-option">
-                        <input
-                          type="radio"
-                          name="partMeasurementProbe"
-                          value="Yok"
-                          checked={formData.partMeasurementProbe === 'Yok'}
-                          onChange={(e) => handleInputChange('partMeasurementProbe', e.target.value)}
-                        />
-                        <span className="radio-dot"></span>
-                        Yok
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="measurement-group">
-                    <span className="measurement-label">İçten Su Verme</span>
-                    <div className="radio-group-vertical">
-                      <label className="radio-option">
-                        <input
-                          type="radio"
-                          name="insideWaterGiving"
-                          value="Var"
-                          checked={formData.insideWaterGiving === 'Var'}
-                          onChange={(e) => handleInputChange('insideWaterGiving', e.target.value)}
-                        />
-                        <span className="radio-dot"></span>
-                        Var
-                      </label>
-                      <label className="radio-option">
-                        <input
-                          type="radio"
-                          name="insideWaterGiving"
-                          value="Yok"
-                          checked={formData.insideWaterGiving === 'Yok'}
-                          onChange={(e) => handleInputChange('insideWaterGiving', e.target.value)}
-                        />
-                        <span className="radio-dot"></span>
-                        Yok
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="measurement-group">
-                    <span className="measurement-label">Konveyör</span>
-                    <div className="radio-group-vertical">
-                      <label className="radio-option">
-                        <input
-                          type="radio"
-                          name="conveyor"
-                          value="Var"
-                          checked={formData.conveyor === 'Var'}
-                          onChange={(e) => handleInputChange('conveyor', e.target.value)}
-                        />
-                        <span className="radio-dot"></span>
-                        Var
-                      </label>
-                      <label className="radio-option">
-                        <input
-                          type="radio"
-                          name="conveyor"
-                          value="Yok"
-                          checked={formData.conveyor === 'Yok'}
-                          onChange={(e) => handleInputChange('conveyor', e.target.value)}
-                        />
-                        <span className="radio-dot"></span>
-                        Yok
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="measurement-group">
-                    <span className="measurement-label">Kağıt Filtre</span>
-                    <div className="radio-group-vertical">
-                      <label className="radio-option">
-                        <input
-                          type="radio"
-                          name="paperFilter"
-                          value="Var"
-                          checked={formData.paperFilter === 'Var'}
-                          onChange={(e) => handleInputChange('paperFilter', e.target.value)}
-                        />
-                        <span className="radio-dot"></span>
-                        Var
-                      </label>
-                      <label className="radio-option">
-                        <input
-                          type="radio"
-                          name="paperFilter"
-                          value="Yok"
-                          checked={formData.paperFilter === 'Yok'}
-                          onChange={(e) => handleInputChange('paperFilter', e.target.value)}
-                        />
-                        <span className="radio-dot"></span>
-                        Yok
-                      </label>
+                  <div className="form-group justify-end">
+                    <label>Anahtar Bilgisi</label>
+                    <div className="tab-indicators">
+                      <span
+                        className={`tab-number ${keyInformation === 1 ? 'active' : ''}`}
+                        onClick={() => handleKeyInformationChange(1)}
+                      >
+                        1
+                      </span>
+                      <span
+                        className={`tab-number ${keyInformation === 2 ? 'active' : ''}`}
+                        onClick={() => handleKeyInformationChange(2)}
+                      >
+                        2
+                      </span>
+                      <span
+                        className={`tab-number ${keyInformation === 3 ? 'active' : ''}`}
+                        onClick={() => handleKeyInformationChange(3)}
+                      >
+                        3
+                      </span>
+                      <span
+                        className={`tab-number ${keyInformation === 4 ? 'active' : ''}`}
+                        onClick={() => handleKeyInformationChange(4)}
+                      >
+                        4
+                      </span>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <label>Yanında Verilecek Ek Aksesuar</label>
-                  <textarea
-                    value={formData.accessoryData}
-                    onChange={(e) => handleInputChange('accessoryData', e.target.value)}
-                    placeholder="Takım Çantası"
-                    className="accessory-textarea"
-                    rows="3"
-                  />
+                {/* Measurement Probes Section */}
+                <div className="measurement-section">
+                  <div className="measurement-row">
+                    <div className="measurement-group">
+                      <span className="measurement-label">Takım Ölçme Probu</span>
+                      <div className="radio-group-vertical">
+                        <label className="radio-option">
+                          <input
+                            type="radio"
+                            name="teamMeasurementProbe"
+                            value="Var"
+                            checked={formData.teamMeasurementProbe === 'Var'}
+                            onChange={(e) => handleInputChange('teamMeasurementProbe', e.target.value)}
+                          />
+                          <span className="radio-dot"></span>
+                          Var
+                        </label>
+                        <label className="radio-option">
+                          <input
+                            type="radio"
+                            name="teamMeasurementProbe"
+                            value="Yok"
+                            checked={formData.teamMeasurementProbe === 'Yok'}
+                            onChange={(e) => handleInputChange('teamMeasurementProbe', e.target.value)}
+                          />
+                          <span className="radio-dot"></span>
+                          Yok
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="measurement-group">
+                      <span className="measurement-label">Parça Ölçme Probu</span>
+                      <div className="radio-group-vertical">
+                        <label className="radio-option">
+                          <input
+                            type="radio"
+                            name="partMeasurementProbe"
+                            value="Var"
+                            checked={formData.partMeasurementProbe === 'Var'}
+                            onChange={(e) => handleInputChange('partMeasurementProbe', e.target.value)}
+                          />
+                          <span className="radio-dot"></span>
+                          Var
+                        </label>
+                        <label className="radio-option">
+                          <input
+                            type="radio"
+                            name="partMeasurementProbe"
+                            value="Yok"
+                            checked={formData.partMeasurementProbe === 'Yok'}
+                            onChange={(e) => handleInputChange('partMeasurementProbe', e.target.value)}
+                          />
+                          <span className="radio-dot"></span>
+                          Yok
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="measurement-group">
+                      <span className="measurement-label">İçten Su Verme</span>
+                      <div className="radio-group-vertical">
+                        <label className="radio-option">
+                          <input
+                            type="radio"
+                            name="insideWaterGiving"
+                            value="Var"
+                            checked={formData.insideWaterGiving === 'Var'}
+                            onChange={(e) => handleInputChange('insideWaterGiving', e.target.value)}
+                          />
+                          <span className="radio-dot"></span>
+                          Var
+                        </label>
+                        <label className="radio-option">
+                          <input
+                            type="radio"
+                            name="insideWaterGiving"
+                            value="Yok"
+                            checked={formData.insideWaterGiving === 'Yok'}
+                            onChange={(e) => handleInputChange('insideWaterGiving', e.target.value)}
+                          />
+                          <span className="radio-dot"></span>
+                          Yok
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="measurement-group">
+                      <span className="measurement-label">Konveyör</span>
+                      <div className="radio-group-vertical">
+                        <label className="radio-option">
+                          <input
+                            type="radio"
+                            name="conveyor"
+                            value="Var"
+                            checked={formData.conveyor === 'Var'}
+                            onChange={(e) => handleInputChange('conveyor', e.target.value)}
+                          />
+                          <span className="radio-dot"></span>
+                          Var
+                        </label>
+                        <label className="radio-option">
+                          <input
+                            type="radio"
+                            name="conveyor"
+                            value="Yok"
+                            checked={formData.conveyor === 'Yok'}
+                            onChange={(e) => handleInputChange('conveyor', e.target.value)}
+                          />
+                          <span className="radio-dot"></span>
+                          Yok
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="measurement-group">
+                      <span className="measurement-label">Kağıt Filtre</span>
+                      <div className="radio-group-vertical">
+                        <label className="radio-option">
+                          <input
+                            type="radio"
+                            name="paperFilter"
+                            value="Var"
+                            checked={formData.paperFilter === 'Var'}
+                            onChange={(e) => handleInputChange('paperFilter', e.target.value)}
+                          />
+                          <span className="radio-dot"></span>
+                          Var
+                        </label>
+                        <label className="radio-option">
+                          <input
+                            type="radio"
+                            name="paperFilter"
+                            value="Yok"
+                            checked={formData.paperFilter === 'Yok'}
+                            onChange={(e) => handleInputChange('paperFilter', e.target.value)}
+                          />
+                          <span className="radio-dot"></span>
+                          Yok
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group full-width">
+                    <label>Yanında Verilecek Ek Aksesuar</label>
+                    <textarea
+                      value={formData.accessoryData}
+                      onChange={(e) => handleInputChange('accessoryData', e.target.value)}
+                      placeholder="Takım Çantası"
+                      className="accessory-textarea"
+                      rows="3"
+                    />
+                  </div>
                 </div>
               </div>
-              </div>
-              
+
               {/* Photo Display Section (Right Side) */}
               <div className="photo-display-section">
                 <h3 className="photo-section-title">Fotolar</h3>
                 {getCoverPhoto() ? (
-                  <div 
+                  <div
                     className="cover-photo-container"
                     onClick={handlePhotoGalleryClick}
                   >
-                    <img 
-                      src={getCoverPhoto()} 
+                    <img
+                      src={getCoverPhoto()}
                       alt="Kapak Fotoğrafı"
                       className="cover-photo"
                     />
@@ -1267,9 +1391,9 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
             {/* Action Buttons */}
             <div className="form-actions">
               <button type="button" className="btn-cancel" onClick={onClose}>İptal</button>
-              <button 
-                type="button" 
-                className="btn-save" 
+              <button
+                type="button"
+                className="btn-save"
                 onClick={handleSave}
                 disabled={isSaving}
               >
@@ -1338,48 +1462,38 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
                       <FaTimes />
                     </button>
                   </div>
-                  
+
                   <div className="photo-gallery-modal-body">
                     <div className="customer-photos-section">
                       <h4>Müşteriye Gönderilecek Fotoğraflar (İlk 10)</h4>
-                      <p className="photo-help-text">İlk fotoğraf kapak fotoğrafıdır. Fotoğrafları yeniden sıralamak için yukarı/aşağı butonlarını kullanın.</p>
+                      <p className="photo-help-text">İlk fotoğraf kapak fotoğrafıdır. Fotoğrafları yeniden sıralamak için sürükleyip bırakın.</p>
                       <div className="customer-photos-list">
                         {customerPhotoOrder.slice(0, 10).map((orderItem, index) => {
                           const photo = formData.photos.find(p => (p.id || p) === orderItem.photoId);
                           if (!photo) return null;
                           const photoUrl = photo.url || photo;
                           return (
-                            <div key={orderItem.photoId} className="customer-photo-item">
+                            <div
+                              key={orderItem.photoId}
+                              className={`customer-photo-item ${draggedCustomerPhotoIndex === index ? 'dragging' : ''} ${dragOverCustomerIndex === index ? 'drag-over' : ''}`}
+                              draggable="true"
+                              onDragStart={(e) => handleCustomerPhotoDragStart(e, index)}
+                              onDragOver={(e) => handleCustomerPhotoDragOver(e, index)}
+                              onDrop={(e) => handleCustomerPhotoDrop(e, index)}
+                              onDragEnd={handleCustomerPhotoDragEnd}
+                            >
                               <div className="customer-photo-number">{index === 0 ? 'Kapak' : index + 1}</div>
-                              <img 
-                                src={photoUrl} 
+                              <img
+                                src={photoUrl}
                                 alt={`Customer photo ${index + 1}`}
                                 className="customer-photo-thumb"
                               />
-                              <div className="customer-photo-actions">
-                                <button
-                                  className="reorder-btn"
-                                  onClick={() => handleReorderCustomerPhoto(index, 'up')}
-                                  disabled={index === 0}
-                                  title="Yukarı"
-                                >
-                                  <FaChevronUp />
-                                </button>
-                                <button
-                                  className="reorder-btn"
-                                  onClick={() => handleReorderCustomerPhoto(index, 'down')}
-                                  disabled={index >= Math.min(customerPhotoOrder.length, 10) - 1}
-                                  title="Aşağı"
-                                >
-                                  <FaChevronDown />
-                                </button>
-                              </div>
                             </div>
                           );
                         })}
                       </div>
                     </div>
-                    
+
                     <div className="all-photos-section">
                       <h4>Tüm Fotoğraflar</h4>
                       <div className="all-photos-grid">
@@ -1388,19 +1502,19 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
                           const photoId = photo.id || `photo-${index}`;
                           const isCustomerPhoto = customerPhotoOrder.slice(0, 10).some(item => item.photoId === photoId);
                           return (
-                            <div 
-                              key={photoId} 
+                            <div
+                              key={photoId}
                               className={`all-photo-item ${isCustomerPhoto ? 'customer-photo' : ''}`}
                             >
-                              <img 
-                                src={photoUrl} 
+                              <img
+                                src={photoUrl}
                                 alt={`Photo ${index + 1}`}
                                 className="all-photo-thumb"
                               />
                               {isCustomerPhoto && (
                                 <div className="customer-photo-badge">
-                                  {customerPhotoOrder.findIndex(item => item.photoId === photoId) === 0 
-                                    ? 'Kapak' 
+                                  {customerPhotoOrder.findIndex(item => item.photoId === photoId) === 0
+                                    ? 'Kapak'
                                     : customerPhotoOrder.findIndex(item => item.photoId === photoId) + 1}
                                 </div>
                               )}

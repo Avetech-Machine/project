@@ -155,43 +155,44 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
           <div className="col-actions"></div>
         </div>
 
-        {costDetails.map((item) => (
-          <div key={item.id} className="table-row">
-            <div className="col-description">
-              {item.id <= 7 ? (
-                // Fixed predefined items - use dropdown
-                <select
-                  value={item.description}
-                  onChange={(e) => onUpdateCost(item.id, 'description', e.target.value)}
-                  className="cost-item-dropdown"
-                >
-                  <option value="">Maliyet Kalemi Seçin</option>
-                  {costItemOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                // New items - allow custom text with suggestions
-                <>
+        {costDetails.map((item) => {
+          // Items with id <= 7 are initial predefined items - they can use dropdown/datalist
+          // Items with id > 7 are newly added - they should only have plain text input
+          const isNewlyAdded = item.id > 7;
+          
+          return (
+            <div key={item.id} className="table-row">
+              <div className="col-description">
+                {isNewlyAdded ? (
+                  // Newly added items - plain text input only (no dropdown)
                   <input
                     type="text"
-                    list={`cost-items-${item.id}`}
                     value={item.description}
                     onChange={(e) => onUpdateCost(item.id, 'description', e.target.value)}
                     onKeyPress={handleEnterKeyPress}
                     className="cost-item-dropdown"
-                    placeholder="Maliyet Kalemi Seçin veya Girin"
+                    placeholder="Maliyet Kalemi Yazın"
                   />
-                  <datalist id={`cost-items-${item.id}`}>
-                    {costItemOptions.map((option) => (
-                      <option key={option} value={option} />
-                    ))}
-                  </datalist>
-                </>
-              )}
-            </div>
+                ) : (
+                  // Initial predefined items - use text input with datalist
+                  <>
+                    <input
+                      type="text"
+                      list={`cost-items-${item.id}`}
+                      value={item.description}
+                      onChange={(e) => onUpdateCost(item.id, 'description', e.target.value)}
+                      onKeyPress={handleEnterKeyPress}
+                      className="cost-item-dropdown"
+                      placeholder="Maliyet Kalemi Seçin veya Girin"
+                    />
+                    <datalist id={`cost-items-${item.id}`}>
+                      {costItemOptions.map((option) => (
+                        <option key={option} value={option} />
+                      ))}
+                    </datalist>
+                  </>
+                )}
+              </div>
             <div className="col-currency">
               <select
                 value={item.currency}
@@ -261,7 +262,8 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
               </button>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Ana Değişiklik: "cost-summary" yapısı güncellendi */}

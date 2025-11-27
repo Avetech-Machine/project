@@ -262,6 +262,7 @@
 .btn-cost-detail,
 .btn-info,
 .btn-proposal-info,
+.btn-cost-info,
 .btn-download {
   flex: 1;
   padding: 6px 12px;
@@ -274,11 +275,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  position: relative;
 }
 
 .btn-offer {
@@ -325,11 +327,83 @@
   transform: translateY(-1px);
 }
 
+.btn-cost-info {
+  background-color: #6c757d;
+  color: white;
+  flex: 1;
+}
+
+.btn-cost-info .btn-icon {
+  color: white !important;
+  font-size: 18px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  flex-shrink: 0;
+  line-height: 1;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin: 0;
+  padding: 0;
+}
+
+.btn-cost-info .btn-icon svg {
+  width: 100% !important;
+  height: 100% !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.btn-cost-info:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+}
+
+.btn-proposal-info .btn-icon {
+  color: white !important;
+  font-size: 18px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  flex-shrink: 0;
+  line-height: 1;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin: 0;
+  padding: 0;
+}
+
+.btn-proposal-info .btn-icon svg {
+  width: 100% !important;
+  height: 100% !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
 .btn-info {
   background-color: transparent;
   color: #000000;
   border: 1px solid #dee2e6;
   flex: 1;
+}
+
+.btn-info .btn-icon {
+  color: #000000;
+  font-size: 18px;
 }
 
 .btn-info:hover {
@@ -350,7 +424,31 @@
 }
 
 .btn-icon {
-  font-size: 12px;
+  font-size: 16px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0 !important;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  line-height: 1;
+  vertical-align: middle;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin: 0;
+  padding: 0;
+}
+
+.btn-icon svg {
+  width: 100% !important;
+  height: 100% !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* When offer button is hidden (for sold items), adjust remaining buttons */
@@ -374,39 +472,40 @@
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
+
   .service-card {
     padding: 20px;
   }
-  
+
   .card-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .detail-row {
     gap: 6px;
   }
-  
+
   .detail-label,
   .detail-value {
     font-size: 13px;
   }
-  
+
   .status-badge {
     margin-left: 0;
   }
-  
+
   .card-actions {
     flex-direction: column;
   }
-  
+
   .btn-offer,
   .btn-view-proposals,
   .btn-cost-detail,
   .btn-info,
   .btn-proposal-info,
+  .btn-cost-info,
   .btn-download {
     flex: 1;
     padding: 8px 12px;
@@ -414,7 +513,7 @@
     width: 100%;
     min-width: 0;
   }
-  
+
   .card-actions-secondary {
     margin-top: 12px;
   }
@@ -435,11 +534,11 @@
   .all-services {
     padding: 16px;
   }
-  
+
   .services-header h1 {
     font-size: 24px;
   }
-  
+
   .machine-name {
     font-size: 18px;
   }
@@ -530,6 +629,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -550,6 +650,7 @@
     transform: translateY(20px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -593,7 +694,7 @@
   background-color: #e9ecef;
   color: #495057;
 }
- 
+
 .btn-cancel:hover {
   background-color: #dee2e6;
   transform: translateY(-1px);

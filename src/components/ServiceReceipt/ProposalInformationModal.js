@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { AiOutlineClose, AiOutlineEuro, AiOutlineUser, AiOutlineMail, AiOutlineCalendar } from 'react-icons/ai';
-import { FaPaperPlane, FaChartLine } from 'react-icons/fa';
+import { AiOutlineClose, AiOutlineEuro, AiOutlineUser, AiOutlineMail, AiOutlineCalendar, AiOutlineFileText } from 'react-icons/ai';
+import { FaPaperPlane, FaFileAlt } from 'react-icons/fa';
 import offerService from '../../services/offerService';
-import projectService from '../../services/projectService';
 import './ProposalInformationModal.css';
 
 const ProposalInformationModal = ({ service, onClose }) => {
   const [offerDetails, setOfferDetails] = useState(null);
-  const [costDetails, setCostDetails] = useState(null);
-  const [priceDetails, setPriceDetails] = useState(null);
-  const [offerPrice, setOfferPrice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showProposalForm, setShowProposalForm] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState(null);
 
   useEffect(() => {
     const fetchProposalData = async () => {
@@ -24,24 +22,10 @@ const ProposalInformationModal = ({ service, onClose }) => {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Fetch offer details
         const offerData = await offerService.getOffersByProject(service.id);
         setOfferDetails(offerData);
-        
-        // Extract price from the first available offer
-        if (offerData && offerData.length > 0) {
-          // Find the first offer with a price, preferring SENT status offers
-          const sentOffer = offerData.find(offer => offer.status === 'SENT' && offer.price);
-          const anyOfferWithPrice = offerData.find(offer => offer.price);
-          const priceToUse = sentOffer?.price || anyOfferWithPrice?.price || null;
-          setOfferPrice(priceToUse);
-        }
-        
-        // Fetch cost details
-        const costData = await projectService.getProjectCostDetails(service.id);
-        setCostDetails(costData.costDetails);
-        setPriceDetails(costData.priceDetails);
       } catch (err) {
         console.error('Error fetching proposal data:', err);
         setError(err.message || 'Teklif bilgileri yüklenirken bir hata oluştu');
@@ -71,56 +55,6 @@ const ProposalInformationModal = ({ service, onClose }) => {
     });
   };
 
-  // Parse cost details from API response
-  const parseCostDetails = (costDetailsString) => {
-    if (!costDetailsString) return [];
-    
-    const items = costDetailsString.split(',').map(item => {
-      const [description, currencyAmount] = item.trim().split(':');
-      const [currency, amount] = currencyAmount.trim().split(' ');
-      return {
-        id: Math.random(),
-        description: description.trim(),
-        currency: currency.trim(),
-        amount: isNaN(parseFloat(amount)) ? 0 : parseFloat(amount)
-      };
-    });
-    
-    return items;
-  };
-
-  // Parse price details from API response
-  const parsePriceDetails = (priceDetailsString) => {
-    if (!priceDetailsString) return {};
-    
-    const details = {};
-    const items = priceDetailsString.split(',').map(item => {
-      const [key, value] = item.trim().split(':');
-      return { key: key.trim(), value: value.trim() };
-    });
-    
-    items.forEach(item => {
-      const numericValue = parseFloat(item.value) || 0;
-      if (item.key.includes('Base price') || item.key.includes('Satış Fiyatı')) {
-        details.salesPrice = numericValue;
-      } else if (item.key.includes('Total cost') || item.key.includes('Toplam Maliyet')) {
-        details.totalCost = numericValue;
-      } else if (item.key.includes('Net profit') || item.key.includes('Net Kâr')) {
-        details.netProfit = numericValue;
-      }
-    });
-    
-    return details;
-  };
-
-  const parsedCostDetails = parseCostDetails(costDetails);
-  const parsedPriceDetails = parsePriceDetails(priceDetails);
-  
-  const totalCost = parsedPriceDetails.totalCost || parsedCostDetails.reduce((sum, item) => sum + item.amount, 0);
-  // Use price from offer if available, otherwise fallback to parsed price details or service data
-  const salesPrice = offerPrice ?? parsedPriceDetails.salesPrice ?? service.salesPrice ?? 0;
-  const netProfit = parsedPriceDetails.netProfit || (salesPrice - totalCost);
-  const profitMargin = totalCost > 0 ? ((netProfit / totalCost) * 100) : 0;
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -156,6 +90,39 @@ const ProposalInformationModal = ({ service, onClose }) => {
     }
   };
 
+  // Clean machine name by removing project code in parentheses
+  const cleanMachineName = (name) => {
+    if (!name) return name;
+    return name.replace(/\s*\(AVEMAK-\d+\)\s*$/, '').trim();
+  };
+
+  // Format number with dots
+  const formatNumberWithDots = (number) => {
+    if (number === null || number === undefined || isNaN(number)) {
+      return '0.00';
+    }
+    const numStr = Math.abs(number).toString();
+    const parts = numStr.split('.');
+    const integerPart = parts[0];
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const decimalPart = parts.length > 1 ? parts[1].padEnd(2, '0').substring(0, 2) : '00';
+    return `${formattedInteger}.${decimalPart}`;
+  };
+
+  const formatCurrencyDetailed = (amount) => {
+    return `€${formatNumberWithDots(amount)}`;
+  };
+
+  const handleViewForm = (offer) => {
+    setSelectedOffer(offer);
+    setShowProposalForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowProposalForm(false);
+    setSelectedOffer(null);
+  };
+
   return (
     <div className="proposal-modal-overlay" onClick={onClose}>
       <div className="proposal-modal" onClick={(e) => e.stopPropagation()}>
@@ -166,7 +133,7 @@ const ProposalInformationModal = ({ service, onClose }) => {
               <AiOutlineClose />
             </button>
           </div>
-          
+
           <div className="service-info">
             <h3>{service.machineName}</h3>
             <p className="service-id">Proje Kodu: {service.machineName}</p>
@@ -195,50 +162,48 @@ const ProposalInformationModal = ({ service, onClose }) => {
                   <FaPaperPlane className="section-icon" />
                   <h4>Teklif Detayları</h4>
                 </div>
-                
+
                 {offerDetails && offerDetails.length > 0 ? (
                   <div className="offer-list">
                     {offerDetails.map((offer, index) => {
-                      const isUsedForPrice = offer.price && offer.price === offerPrice;
                       return (
-                        <div key={offer.id || index} className={`offer-card ${isUsedForPrice ? 'price-source' : ''}`}>
+                        <div key={offer.id || index} className="offer-card">
                           <div className="offer-header">
                             <div className="offer-info">
                               <span className="offer-id">Teklif</span>
-                              <span 
-                                className={`offer-status ${
-                                  offer.status === 'CLOSED' ? 'status-closed' : 
+                              <span
+                                className={`offer-status ${offer.status === 'CLOSED' ? 'status-closed' :
                                   offer.status === 'COMPLETED' ? 'status-completed' : ''
-                                }`}
+                                  }`}
                                 style={{ color: getStatusColor(offer.status) }}
                               >
                                 {getStatusText(offer.status)}
                               </span>
-                              
+
                             </div>
                             <span className="offer-date">
                               {formatDate(offer.sentAt)}
                             </span>
                           </div>
-                          
+
                           <div className="offer-details">
                             <div className="detail-row">
                               <AiOutlineUser className="detail-icon" />
                               <span className="detail-label">Gönderen:</span>
                               <span className="detail-value">{offer.senderUserName}</span>
                             </div>
-                            
+
                             <div className="detail-row">
                               <AiOutlineUser className="detail-icon" />
                               <span className="detail-label">Müşteri:</span>
                               <span className="detail-value">{offer.clientCompanyName}</span>
                             </div>
-                            
+
                             <div className="detail-row">
                               <span className="detail-label">Proje Kodu:</span>
                               <span className="detail-value">{offer.projectCode}</span>
                             </div>
-                            
+
                             {offer.price && (
                               <div className="detail-row">
                                 <AiOutlineEuro className="detail-icon" />
@@ -246,7 +211,7 @@ const ProposalInformationModal = ({ service, onClose }) => {
                                 <span className="detail-value highlight-price">{formatCurrency(offer.price)}</span>
                               </div>
                             )}
-                            
+
                             {offer.ccEmails && offer.ccEmails.length > 0 && (
                               <div className="detail-row">
                                 <AiOutlineMail className="detail-icon" />
@@ -255,6 +220,29 @@ const ProposalInformationModal = ({ service, onClose }) => {
                               </div>
                             )}
                           </div>
+
+                          {/* View Form Button */}
+                          <div className="offer-actions">
+                            <button
+                              className="btn-view-form"
+                              onClick={() => handleViewForm(offer)}
+                              title="Teklif formunu görüntüle"
+                            >
+                              <FaFileAlt /> Teklif Formunu Görüntüle
+                            </button>
+                          </div>
+
+                          {offer.description && (
+                            <div className="offer-description">
+                              <div className="description-header">
+                                <AiOutlineFileText className="detail-icon" />
+                                <span className="description-label">Açıklama:</span>
+                              </div>
+                              <div className="description-content">
+                                {offer.description}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -265,63 +253,103 @@ const ProposalInformationModal = ({ service, onClose }) => {
                   </div>
                 )}
               </div>
+            </div>
+          )}
 
-              {/* Cost Information Section */}
-              <div className="cost-section">
-                <div className="section-header">
-                  <AiOutlineEuro className="section-icon" />
-                  <h4>Maliyet Detayları</h4>
-                </div>
-                <div className="cost-list">
-                  {parsedCostDetails.map((item) => (
-                    <div key={item.id} className="cost-item">
-                      <span className="cost-description">{item.description}</span>
-                      <span className="cost-amount">{formatCurrency(item.amount, item.currency)}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="total-cost">
-                  <span>Toplam Maliyet:</span>
-                  <span className="total-amount">{formatCurrency(totalCost)}</span>
-                </div>
-              </div>
-
-              {/* Sales and Profit Information */}
-              <div className="sales-profit-section">
-                <div className="sales-section">
-                  <div className="section-header">
-                    <FaChartLine className="section-icon" />
-                    <h4>Satış Bilgileri</h4>
-                  </div>
-                  <div className="sales-info">
-                    <div className="sales-item">
-                      <span>Net Satış Fiyatı:</span>
-                      <span className="sales-price">{formatCurrency(salesPrice)}</span>
-                    </div>
-                    <div className="sales-item">
-                      <span>Durum:</span>
-                      <span className="sales-status">{service.status}</span>
-                    </div>
-                  </div>
+          {/* Proposal Form Modal */}
+          {showProposalForm && selectedOffer && (
+            <div className="proposal-form-overlay" onClick={handleCloseForm}>
+              <div className="proposal-form-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="form-modal-header">
+                  <h2>Teklif Formu</h2>
+                  <button className="close-button" onClick={handleCloseForm}>
+                    <AiOutlineClose />
+                  </button>
                 </div>
 
-                <div className="profit-section">
-                  <div className="section-header">
-                    <FaChartLine className="section-icon" />
-                    <h4>Kâr Analizi</h4>
-                  </div>
-                  <div className="profit-info">
-                    <div className="profit-item">
-                      <span>Net Kâr:</span>
-                      <span className={`profit-amount ${netProfit >= 0 ? 'positive' : 'negative'}`}>
-                        {formatCurrency(netProfit)}
-                      </span>
+                <div className="form-modal-content">
+                  <div className="offer-document">
+                    {/* Document Header */}
+                    <div className="document-header">
+                      <div className="left-column">
+                        <div className="info-row">
+                          <strong>Şirket Adı:</strong>
+                          <span className="info-value">{selectedOffer.clientCompanyName || 'N/A'}</span>
+                        </div>
+                        <div className="info-row">
+                          <strong>Proje Kodu:</strong>
+                          <span className="info-value">{selectedOffer.projectCode || 'N/A'}</span>
+                        </div>
+                        <div className="info-row">
+                          <strong>Belge Tarihi:</strong>
+                          <span className="info-value">{formatDate(selectedOffer.sentAt)}</span>
+                        </div>
+                      </div>
+
+                      <div className="right-column">
+                        <div className="company-name">Avitech Metal Teknolojileri Anonim Şirketi</div>
+                        <div className="info-row">
+                          <strong>Adres:</strong> Saray Mahallesi Çamlık Sokak Zengo İş Merkezi No:10/10 Ümraniye, İstanbul, Turkey
+                        </div>
+                        <div className="info-row">
+                          <strong>Telefon:</strong> +90 541 563 49 90
+                        </div>
+                        <div className="info-row">
+                          <strong>İletişim Kişisi:</strong> Bora Urçar
+                        </div>
+                        <div className="info-row">
+                          <strong>E-Mail:</strong> bora.urcar@avitech.com.tr
+                        </div>
+                      </div>
                     </div>
-                    <div className="profit-item">
-                      <span>Net Kâr Marjı:</span>
-                      <span className={`profit-margin ${profitMargin >= 0 ? 'positive' : 'negative'}`}>
-                        {profitMargin.toFixed(1)}%
-                      </span>
+
+                    {/* Offer Title */}
+                    <div className="offer-title">
+                      <h3>TEKLİF</h3>
+                    </div>
+
+                    {/* Machine Details */}
+                    <div className="machine-details">
+                      <table className="machine-table">
+                        <thead>
+                          <tr>
+                            <th>Pos.</th>
+                            <th>Item Description</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td className="position">1</td>
+                            <td className="machine-name">{cleanMachineName(service?.machineTitle || 'Makine Adı')}</td>
+                            <td className="quantity">1</td>
+                            <td className="machine-price">{formatCurrencyDetailed(selectedOffer.price || 0)}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Offer Footer */}
+                    <div className="offer-footer">
+                      <div className="total-section">
+                        <div className="total-row">
+                          <span>TOPLAM:</span>
+                          <span className="total-price">{formatCurrencyDetailed(selectedOffer.price || 0)}</span>
+                        </div>
+                      </div>
+
+                      {/* Description Section */}
+                      {selectedOffer.description && (
+                        <div className="description-section">
+                          <div className="description-header">
+                            <strong>Açıklama:</strong>
+                          </div>
+                          <div className="description-content">
+                            {selectedOffer.description}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

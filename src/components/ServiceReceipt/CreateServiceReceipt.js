@@ -22,41 +22,41 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     teamCount: '2',
     machineNetWeight: '', // New field
     additionalWeight: '', // New field
-    
+
     // Operating System
     operatingSystem: 'Heidenhain',
     customOperatingSystem: '', // Custom OS input when "Other" is selected
-    
+
     // Measurement Probes
     teamMeasurementProbe: 'Var',
-    partMeasurementProbe: 'Var', 
+    partMeasurementProbe: 'Var',
     insideWaterGiving: 'Yok',
-    
+
     // New Features
     conveyor: 'Yok',
     paperFilter: 'Yok',
-    
+
     // Movement Fields
     xMovement: '',
     yMovement: '',
     zMovement: '',
     bMovement: '',
     cMovement: '',
-    
+
     // Gripper Type
     holderType: '',
-    
+
     // Machine Dimensions
     machineWidth: '',
     machineLength: '',
     machineHeight: '',
-    
+
     // Max Material Weight
     maxMaterialWeight: '',
-    
+
     // Accessory Data
     accessoryData: '',
-    
+
     // Photos
     photos: []
   });
@@ -67,6 +67,10 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
+
+  // Drag-and-drop state
+  const [draggedPhotoIndex, setDraggedPhotoIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
 
   const [costDetails, setCostDetails] = useState([
     { id: 1, description: 'Makine Alım Bedeli', currency: 'EUR', amount: '' },
@@ -90,10 +94,10 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   // Parse formatted input (remove thousand separators, keep decimal point)
   const parseFormattedInput = (value) => {
     if (value === '' || value === '.') return value;
-    
+
     // Remove all dots to get clean number
     const withoutDots = value.replace(/\./g, '');
-    
+
     // If original had dots, try to determine if last part was decimal
     const parts = value.split('.');
     if (parts.length > 1) {
@@ -105,7 +109,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
         return `${integerPart}.${lastPart}`;
       }
     }
-    
+
     // No decimal detected, return without dots
     return withoutDots;
   };
@@ -113,23 +117,23 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   // Format input value with dots as thousand separators
   const formatInputValue = (value) => {
     if (value === '' || value === '.' || value === null || value === undefined) return value === null || value === undefined ? '' : value;
-    
+
     // Convert to string if it's a number
     const strValue = String(value);
     if (strValue === '' || strValue === '.') return strValue;
-    
+
     // Parse to get clean numeric string
     const cleaned = parseFormattedInput(strValue);
     if (cleaned === '' || cleaned === '.') return cleaned;
-    
+
     // Split by decimal point
     const parts = cleaned.split('.');
     const integerPart = parts[0].replace(/\D/g, ''); // Remove non-digits
     const decimalPart = parts[1] || '';
-    
+
     // Format integer part with dots
     const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    
+
     // Combine with decimal part
     if (decimalPart) {
       return `${formattedInteger}.${decimalPart}`;
@@ -152,10 +156,10 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     };
 
     fetchExchangeRates();
-    
+
     // Refresh rates every 10 minutes
     const intervalId = setInterval(fetchExchangeRates, 10 * 60 * 1000);
-    
+
     return () => clearInterval(intervalId);
   }, []);
 
@@ -166,7 +170,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       const predefinedOS = ['Heidenhain', 'Siemens', 'Fanuc'];
       const osValue = editingService.operatingSystem || '';
       const isCustomOS = osValue && !predefinedOS.includes(osValue);
-      
+
       // Helper to format numeric value with dots and unit
       const formatWithUnit = (value, unit) => {
         if (!value && value !== 0) return '';
@@ -210,10 +214,10 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
         accessoryData: editingService.accessoryData || '',
         photos: editingService.photos || []
       });
-      
+
       // Set key information if it exists, otherwise default to 1
       setKeyInformation(editingService.keyInformation || 1);
-      
+
       // Set project code if it exists, otherwise get next available code
       if (editingService.projectCode) {
         // If it's already in AVEMAK format, use it directly
@@ -231,11 +235,11 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
           }
         }
       }
-      
+
       if (editingService.costDetails) {
         setCostDetails(editingService.costDetails);
       }
-      
+
       if (editingService.salesPrice) {
         setSalesPrice(editingService.salesPrice);
       }
@@ -254,7 +258,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
           setProjectCode('AVEMAK-001');
         }
       };
-      
+
       getNextProjectCode();
     }
   }, [editingService]);
@@ -268,24 +272,24 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
 
   const handleMovementBlur = (field, value) => {
     let processedValue = value;
-    
+
     // Auto-add units for movement fields on blur
     if (['xMovement', 'yMovement', 'zMovement'].includes(field)) {
-      // Remove existing 'mm' if present to avoid duplication
-      processedValue = value.replace(/mm$/, '').trim();
-      // Add 'mm' if there's a value and it doesn't already end with 'mm'
-      if (processedValue && !processedValue.endsWith('mm')) {
-        processedValue = processedValue + 'mm';
+      // Remove existing 'mm' or ' mm' if present to avoid duplication
+      processedValue = value.replace(/\s*mm$/, '').trim();
+      // Add ' mm' if there's a value and it doesn't already end with 'mm' or ' mm'
+      if (processedValue && !processedValue.endsWith('mm') && !processedValue.endsWith(' mm')) {
+        processedValue = processedValue + ' mm';
       }
     } else if (['bMovement', 'cMovement'].includes(field)) {
-      // Remove existing '°' if present to avoid duplication
-      processedValue = value.replace(/°$/, '').trim();
-      // Add '°' if there's a value and it doesn't already end with '°'
-      if (processedValue && !processedValue.endsWith('°')) {
-        processedValue = processedValue + '°';
+      // Remove existing '°' or ' °' if present to avoid duplication
+      processedValue = value.replace(/\s*°$/, '').trim();
+      // Add ' °' if there's a value and it doesn't already end with '°' or ' °'
+      if (processedValue && !processedValue.endsWith('°') && !processedValue.endsWith(' °')) {
+        processedValue = processedValue + ' °';
       }
     }
-    
+
     setFormData(prev => ({
       ...prev,
       [field]: processedValue
@@ -318,8 +322,10 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
 
   // Round dimension fields to nearest cm and append unit on blur
   const handleDimensionBlur = (field, value) => {
-    const numeric = parseFloat(String(value).replace(/[^\d.,-]/g, '').replace(',', '.'));
-    const processedValue = isNaN(numeric) ? '' : `${Math.round(numeric)}cm`;
+    // Remove existing 'cm' or ' cm' if present
+    const cleanedValue = String(value).replace(/\s*cm$/, '').trim();
+    const numeric = parseFloat(cleanedValue.replace(/[^\d.,-]/g, '').replace(',', '.'));
+    const processedValue = isNaN(numeric) ? '' : `${Math.round(numeric)} cm`;
     setFormData(prev => ({
       ...prev,
       [field]: processedValue
@@ -330,7 +336,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   const handleWeightInput = (field, value) => {
     // Remove "kg" if present
     const cleanedValue = value.replace(/kg$/, '').trim();
-    
+
     // Allow empty string, numbers, dots, and decimal points
     if (cleanedValue === '' || cleanedValue === '.' || /^-?[\d.]*$/.test(cleanedValue)) {
       // Format the input value with dots
@@ -346,11 +352,11 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   const handleWeightBlur = (field, value) => {
     // Remove "kg" if present
     let cleanedValue = value.replace(/kg$/, '').trim();
-    
+
     // Parse to get numeric value (remove dots, keep decimal)
     cleanedValue = parseFormattedInput(cleanedValue);
     const numeric = parseFloat(cleanedValue);
-    
+
     if (isNaN(numeric) || cleanedValue === '' || cleanedValue === '.') {
       setFormData(prev => ({
         ...prev,
@@ -358,12 +364,12 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       }));
       return;
     }
-    
+
     // Round to nearest integer and format with dots
     const rounded = Math.round(numeric);
     const formatted = formatInputValue(String(rounded));
     const processedValue = `${formatted} kg`;
-    
+
     setFormData(prev => ({
       ...prev,
       [field]: processedValue
@@ -393,7 +399,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     } else {
       // Remove "Max 1/min" if present
       const cleanedValue = value.replace(/Max 1\/min$/, '').trim();
-      
+
       // Allow empty string, numbers, commas, dots, and decimal points
       if (cleanedValue === '' || /^-?[\d.,]*$/.test(cleanedValue)) {
         // Format with dots as thousand separators (consistent with other fields)
@@ -408,16 +414,16 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
 
   const handleRpmBlur = (e) => {
     const value = e.target.value;
-    
+
     // If already formatted with "Max 1/min", don't process again
     if (value.includes('Max 1/min')) {
       return;
     }
-    
+
     // Parse to get numeric value (remove commas, dots, and any formatting)
     const cleanedValue = parseFormattedInput(value.replace(/,/g, ''));
     const numericValue = parseFloat(cleanedValue);
-    
+
     // Check if it's a valid number
     if (cleanedValue !== '' && cleanedValue !== '.' && !isNaN(numericValue)) {
       // Round to integer and format with dots
@@ -425,7 +431,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       const formattedValue = formatInputValue(String(rounded));
       // Add "Max 1/min" suffix
       const finalValue = `${formattedValue} Max 1/min`;
-      
+
       setFormData(prev => ({
         ...prev,
         repairHours: finalValue
@@ -437,7 +443,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     const value = e.target.value;
     // Remove "saat" if present
     const cleanedValue = value.replace(/saat$/, '').trim();
-    
+
     // Allow empty string, numbers, dots, and decimal points
     if (cleanedValue === '' || cleanedValue === '.' || /^-?[\d.]*$/.test(cleanedValue)) {
       // Format the input value with dots
@@ -453,11 +459,11 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     const value = e.target.value;
     // Remove "saat" if present
     let cleanedValue = value.replace(/saat$/, '').trim();
-    
+
     // Parse to get numeric value (remove dots, keep decimal)
     cleanedValue = parseFormattedInput(cleanedValue);
     const numeric = parseFloat(cleanedValue);
-    
+
     if (isNaN(numeric) || cleanedValue === '' || cleanedValue === '.') {
       setFormData(prev => ({
         ...prev,
@@ -465,12 +471,12 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       }));
       return;
     }
-    
+
     // Round to nearest integer and format with dots
     const rounded = Math.round(numeric);
     const formatted = formatInputValue(String(rounded));
     const processedValue = `${formatted} saat`;
-    
+
     setFormData(prev => ({
       ...prev,
       workingHours: processedValue
@@ -493,18 +499,18 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     // Get all focusable inputs in the form
     const form = currentInput.closest('.create-service-receipt');
     if (!form) return;
-    
+
     // Get all focusable elements (inputs, selects, textareas, but not buttons or hidden inputs)
     const focusableElements = form.querySelectorAll(
       'input:not([type="hidden"]):not([type="file"]):not([type="button"]):not([type="submit"]), select, textarea'
     );
-    
+
     // Convert NodeList to Array for easier manipulation
     const focusableArray = Array.from(focusableElements);
-    
+
     // Find current input index
     const currentIndex = focusableArray.indexOf(currentInput);
-    
+
     // If there's a next field, focus it
     if (currentIndex < focusableArray.length - 1) {
       const nextField = focusableArray[currentIndex + 1];
@@ -533,7 +539,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     console.log('Photo upload triggered:', source);
     const files = event.target.files;
     console.log('Selected files:', files);
-    
+
     if (files && files.length > 0) {
       const newPhotos = Array.from(files).map(file => ({
         id: Date.now() + Math.random(),
@@ -541,15 +547,15 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
         url: URL.createObjectURL(file),
         name: file.name
       }));
-      
+
       console.log('New photos to add:', newPhotos);
-      
+
       setFormData(prev => ({
         ...prev,
         photos: [...prev.photos, ...newPhotos]
       }));
     }
-    
+
     // Reset input
     event.target.value = '';
   };
@@ -561,22 +567,66 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     }));
   };
 
-  // Photo reordering functions
-  const handlePhotoReorder = (index, direction) => {
-    if (direction === 'left' && index === 0) return; // Can't move first photo left
-    if (direction === 'right' && index >= formData.photos.length - 1) return; // Can't move last photo right
-    
+  // Drag-and-drop handlers for photo reordering
+  const handleDragStart = (e, index) => {
+    setDraggedPhotoIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    // Add a slight delay to allow the drag image to render
+    setTimeout(() => {
+      e.target.classList.add('dragging');
+    }, 0);
+  };
+
+  const handleDragEnter = (e, index) => {
+    e.preventDefault();
+    if (draggedPhotoIndex !== null && draggedPhotoIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragLeave = (e, index) => {
+    if (e.currentTarget === e.target) {
+      if (dragOverIndex === index) {
+        setDragOverIndex(null);
+      }
+    }
+  };
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault();
+
+    if (draggedPhotoIndex === null || draggedPhotoIndex === dropIndex) {
+      return;
+    }
+
     setFormData(prev => {
       const newPhotos = [...prev.photos];
-      const targetIndex = direction === 'left' ? index - 1 : index + 1;
-      // Swap photos
-      [newPhotos[index], newPhotos[targetIndex]] = [newPhotos[targetIndex], newPhotos[index]];
-      
+      const draggedPhoto = newPhotos[draggedPhotoIndex];
+
+      // Remove the dragged photo from its original position
+      newPhotos.splice(draggedPhotoIndex, 1);
+
+      // Insert it at the drop position
+      newPhotos.splice(dropIndex, 0, draggedPhoto);
+
       return {
         ...prev,
         photos: newPhotos
       };
     });
+
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = (e) => {
+    e.target.classList.remove('dragging');
+    setDraggedPhotoIndex(null);
+    setDragOverIndex(null);
   };
 
   const handlePhotoClick = (index) => {
@@ -611,8 +661,8 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   };
 
   const updateCostDetail = (id, field, value) => {
-    setCostDetails(prev => 
-      prev.map(item => 
+    setCostDetails(prev =>
+      prev.map(item =>
         item.id === id ? { ...item, [field]: value } : item
       )
     );
@@ -716,28 +766,28 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       status: "TEMPLATE"
       // Note: photos are now sent separately as files, not as URLs
     };
-    
+
     return validateAndCleanData(apiData);
   };
 
   const handleSave = async () => {
     if (isSaving) return; // Prevent multiple submissions
-    
+
     setIsSaving(true);
     try {
       // Map form data to API format
       const apiData = mapFormDataToAPI();
-      
+
       // Log the data being sent to API
       console.log('=== API REQUEST DATA ===');
       console.log('Raw API Data:', apiData);
       console.log('Photo Files to Upload:', formData.photos);
       console.log('Number of photos:', formData.photos.length);
       console.log('========================');
-      
+
       // Call API to create project with photo files
       const response = await projectService.createProject(apiData, formData.photos);
-      
+
       // Create service object for local storage (for backward compatibility)
       const serviceData = {
         id: response.id || generateServiceId(),
@@ -756,10 +806,10 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
 
       // Get existing services from localStorage
       const existingServices = JSON.parse(localStorage.getItem('serviceReceipts') || '[]');
-      
+
       if (editingService) {
         // Update existing service
-        const updatedServices = existingServices.map(service => 
+        const updatedServices = existingServices.map(service =>
           service.id === editingService.id ? serviceData : service
         );
         localStorage.setItem('serviceReceipts', JSON.stringify(updatedServices));
@@ -773,7 +823,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       if (onSaveComplete) {
         onSaveComplete(serviceData);
       }
-      
+
       // Navigate to all services page
       navigate('/allServices');
 
@@ -831,27 +881,27 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
 
   return (
     <div className="create-service-receipt">
-      
+
       {/* Machine Information Section */}
       <div className="form-section">
         <h2 className="section-title">Makine Bilgileri</h2>
-        
+
         {/* Photo Upload Section */}
         <div className="form-row">
           <div className="form-group full-width">
             <label>Fotoğraf Ekle</label>
             <div className="photo-upload-container">
               <div className="photo-upload-buttons">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="photo-upload-btn"
                   onClick={openFileUpload}
                 >
                   <FaPlus className="upload-icon" />
                   Dosyadan Ekle
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="photo-upload-btn camera-btn"
                   onClick={openCamera}
                 >
@@ -859,7 +909,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
                   Kamera ile Çek
                 </button>
               </div>
-              
+
               {/* Hidden file inputs */}
               <input
                 ref={fileInputRef}
@@ -877,14 +927,21 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
                 onChange={(e) => handlePhotoUpload(e, 'camera')}
                 style={{ display: 'none' }}
               />
-              
+
               {/* Photo previews */}
               {formData.photos.length > 0 && (
                 <div className="photo-previews">
                   {formData.photos.map((photo, index) => (
-                    <div 
-                      key={photo.id} 
-                      className="photo-preview-container"
+                    <div
+                      key={photo.id}
+                      className={`photo-preview-container ${draggedPhotoIndex === index ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
+                      draggable="true"
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragEnter={(e) => handleDragEnter(e, index)}
+                      onDragOver={handleDragOver}
+                      onDragLeave={(e) => handleDragLeave(e, index)}
+                      onDrop={(e) => handleDrop(e, index)}
+                      onDragEnd={handleDragEnd}
                     >
                       <div className="photo-order-number">{index + 1}</div>
                       <img
@@ -893,32 +950,6 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
                         className="photo-preview"
                         onClick={() => handlePhotoClick(index)}
                       />
-                      <div className="photo-reorder-buttons">
-                        <button
-                          type="button"
-                          className="photo-reorder-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePhotoReorder(index, 'left');
-                          }}
-                          disabled={index === 0}
-                          title="Sola"
-                        >
-                          <FaChevronLeft />
-                        </button>
-                        <button
-                          type="button"
-                          className="photo-reorder-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePhotoReorder(index, 'right');
-                          }}
-                          disabled={index >= formData.photos.length - 1}
-                          title="Sağa"
-                        >
-                          <FaChevronRight />
-                        </button>
-                      </div>
                       <button
                         type="button"
                         className="photo-delete-btn"
@@ -933,11 +964,11 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             </div>
           </div>
         </div>
-        
+
         {/* Project Code Display */}
         <div className="project-code-display">
           Proje Kodu: {projectCode}
-          
+
         </div>
         <div className="form-row machine-info-row">
           <div className="form-group machine-brand">
@@ -967,35 +998,35 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               value={formData.year}
               onChange={(e) => handleRestrictedInput('year', e.target.value)}
               onKeyPress={handleEnterKeyPress}
-            placeholder="Makine yılı"
+              placeholder="Makine yılı"
             />
           </div>
         </div>
 
         <div className="form-row">
-  <div className="form-group">
-    <label>Saati</label>
-    <input
-      type="text"
-      value={formData.workingHours}
-      onChange={handleWorkingHoursInput}
-      onBlur={handleWorkingHoursBlur}
-      onKeyPress={handleWorkingHoursKeyPress}
-      placeholder="Çalışma saati"
-    />
-  </div>
-  <div className="form-group">
-    <label>Devri</label>
-    <input
-      type="text"
-      value={formData.repairHours}
-      onChange={handleRpmInput}
-      onBlur={handleRpmBlur}
-      onKeyPress={handleEnterKeyPress}
-      placeholder="Devri/dakika"
-    />
-  </div>
-</div>
+          <div className="form-group">
+            <label>Saati</label>
+            <input
+              type="text"
+              value={formData.workingHours}
+              onChange={handleWorkingHoursInput}
+              onBlur={handleWorkingHoursBlur}
+              onKeyPress={handleWorkingHoursKeyPress}
+              placeholder="Çalışma saati"
+            />
+          </div>
+          <div className="form-group">
+            <label>Devri</label>
+            <input
+              type="text"
+              value={formData.repairHours}
+              onChange={handleRpmInput}
+              onBlur={handleRpmBlur}
+              onKeyPress={handleEnterKeyPress}
+              placeholder="Devri/dakika"
+            />
+          </div>
+        </div>
 
         <div className="form-row">
           <div className="form-group">
@@ -1198,25 +1229,25 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
           <div className="form-group justify-end">
             <label>Anahtar Bilgisi</label>
             <div className="tab-indicators">
-              <span 
+              <span
                 className={`tab-number ${keyInformation === 1 ? 'active' : ''}`}
                 onClick={() => handleKeyInformationChange(1)}
               >
                 1
               </span>
-              <span 
+              <span
                 className={`tab-number ${keyInformation === 2 ? 'active' : ''}`}
                 onClick={() => handleKeyInformationChange(2)}
               >
                 2
               </span>
-              <span 
+              <span
                 className={`tab-number ${keyInformation === 3 ? 'active' : ''}`}
                 onClick={() => handleKeyInformationChange(3)}
               >
                 3
               </span>
-              <span 
+              <span
                 className={`tab-number ${keyInformation === 4 ? 'active' : ''}`}
                 onClick={() => handleKeyInformationChange(4)}
               >
@@ -1383,7 +1414,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
             />
           </div>
         </div>
-      </div> 
+      </div>
 
       {/* Cost Details Section */}
       <CostDetails
@@ -1409,9 +1440,9 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       {/* Action Buttons */}
       <div className="form-actions">
         <button type="button" className="btn-cancel">İptal</button>
-        <button 
-          type="button" 
-          className="btn-save" 
+        <button
+          type="button"
+          className="btn-save"
           onClick={handleSave}
           disabled={isSaving}
         >
