@@ -236,7 +236,7 @@ const ProposalInformationModal = ({ service, onClose }) => {
                             <div className="offer-description">
                               <div className="description-header">
                                 <AiOutlineFileText className="detail-icon" />
-                                <span className="description-label">Açıklama:</span>
+                                <span className="description-label">Satış Notu:</span>
                               </div>
                               <div className="description-content">
                                 {offer.description}
@@ -289,7 +289,7 @@ const ProposalInformationModal = ({ service, onClose }) => {
                       <div className="right-column">
                         <div className="company-name">Avitech Metal Teknolojileri Anonim Şirketi</div>
                         <div className="info-row">
-                          <strong>Adres:</strong> Saray Mahallesi Çamlık Sokak Zengo İş Merkezi No:10/10 Ümraniye, İstanbul, Turkey
+                          <strong>Adres:</strong> Rüzgarlıbahçe, K Plaza 34805 Beykoz/Istanbul, Turkey
                         </div>
                         <div className="info-row">
                           <strong>Telefon:</strong> +90 541 563 49 90

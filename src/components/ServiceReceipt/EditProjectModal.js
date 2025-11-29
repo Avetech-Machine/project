@@ -771,8 +771,12 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       // Map form data to API format
       const apiData = mapFormDataToAPI();
 
+      // Separate existing photos (URLs) from new photos (files)
+      const existingPhotoUrls = formData.photos
+        .filter(photo => photo.existing && photo.url)
+        .map(photo => photo.url);
+
       // Filter photos to only include new ones (those with file property)
-      // Existing photos don't have a file property, so they won't be sent
       const newPhotos = formData.photos.filter(photo => photo.file);
 
       // Add customer photo order to API data
@@ -783,16 +787,21 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       console.log('=== API UPDATE REQUEST DATA ===');
       console.log('Raw API Data:', apiData);
       console.log('All Photos:', formData.photos);
+      console.log('Existing Photo URLs to Keep:', existingPhotoUrls);
       console.log('New Photo Files to Upload:', newPhotos);
+      console.log('Number of existing photos:', existingPhotoUrls.length);
       console.log('Number of new photos:', newPhotos.length);
       console.log('Deleted Existing Photos:', deletedExistingPhotos);
       console.log('Customer Photo Order:', customerPhotoIds);
       console.log('==============================');
 
-      // Call API to update project with photo files
-      // Note: The API will need to handle deletion of photos based on deletedExistingPhotos
-      // For now, we're only sending new photos. The API should handle existing photos that aren't in the list
-      const response = await projectService.updateProject(project.id, apiData, newPhotos);
+      // Call API to update project with both existing photo URLs and new photo files
+      const response = await projectService.updateProject(
+        project.id,
+        apiData,
+        newPhotos,
+        existingPhotoUrls
+      );
 
       // Call the callback if provided
       if (onSaveComplete) {

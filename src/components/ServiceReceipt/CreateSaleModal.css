@@ -29,6 +29,7 @@
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -200,6 +201,13 @@
   font-family: inherit;
 }
 
+.field-hint {
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-style: italic;
+  margin-top: -4px;
+}
+
 .error-message {
   background-color: #fef2f2;
   border: 1px solid #fecaca;
@@ -300,6 +308,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -320,6 +329,7 @@
     opacity: 0;
     transform: scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -344,9 +354,11 @@
   0% {
     transform: scale(0);
   }
+
   50% {
     transform: scale(1.1);
   }
+
   100% {
     transform: scale(1);
   }
@@ -382,21 +394,21 @@
     margin: 10px;
     max-width: calc(100% - 20px);
   }
-  
+
   .modal-header,
   .modal-body {
     padding-left: 16px;
     padding-right: 16px;
   }
-  
+
   .offer-details {
     grid-template-columns: 1fr;
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
-  
+
   .cancel-btn,
   .submit-btn {
     width: 100%;

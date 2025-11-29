@@ -5,17 +5,20 @@ import SendOfferModal from './SendOfferModal';
 import ViewOfferModal from './ViewOfferModal';
 import projectService from '../../services/projectService';
 import authService from '../../services/authService';
-import { 
-  AiOutlineInfoCircle, 
-  AiOutlineEdit, 
+import {
+  AiOutlineInfoCircle,
+  AiOutlineEdit,
   AiOutlineCalendar,
   AiOutlineSetting,
   AiOutlineEuro,
   AiOutlineEye,
-  AiOutlineDownload
+  AiOutlineDownload,
+  AiOutlineClose
 } from 'react-icons/ai';
 import { FaChartLine, FaPaperPlane } from 'react-icons/fa';
+import offerService from '../../services/offerService';
 import './AllServices.css';
+import './ProposalInformationModal.css'; // For offer form styles
 
 const QuotesSent = ({ onEditService }) => {
   const [services, setServices] = useState([]);
@@ -26,6 +29,8 @@ const QuotesSent = ({ onEditService }) => {
   const [isViewOfferModalOpen, setIsViewOfferModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showOfferForm, setShowOfferForm] = useState(false);
+  const [selectedOfferData, setSelectedOfferData] = useState(null);
 
   // Map API status to Turkish display text
   const getStatusDisplayText = (status) => {
@@ -48,7 +53,7 @@ const QuotesSent = ({ onEditService }) => {
         setLoading(true);
         setError(null);
         const offersData = await projectService.getOffers();
-        
+
         // Transform offers data to match the expected format
         const transformedServices = await Promise.all(offersData.map(async (offer) => {
           try {
@@ -62,7 +67,7 @@ const QuotesSent = ({ onEditService }) => {
             const derivedMachineTitle = cleanTitle(projectDetails.title || projectDetails.machineName || offer.projectCode);
             const derivedOperatingSystem = projectDetails.model || projectDetails.operatingSystem || projectDetails.controlUnit || '-';
             const derivedYear = projectDetails.year || (projectDetails.createdAt ? new Date(projectDetails.createdAt).getFullYear().toString() : '-');
-            
+
             return {
               id: offer.projectId, // Use projectId as the main ID for modals
               offerId: offer.id, // Keep offer ID for reference
@@ -99,7 +104,7 @@ const QuotesSent = ({ onEditService }) => {
               if (!title || title === 'N/A') return title;
               return title.replace(/\s*\([^)]*\)\s*/g, '').trim();
             };
-            
+
             return {
               id: offer.projectId, // Use projectId as the main ID for modals
               offerId: offer.id, // Keep offer ID for reference
@@ -131,7 +136,7 @@ const QuotesSent = ({ onEditService }) => {
             };
           }
         }));
-        
+
         setServices(transformedServices);
       } catch (err) {
         console.error('Error fetching quotes sent projects:', err);
@@ -184,7 +189,7 @@ const QuotesSent = ({ onEditService }) => {
 
       // Get the PDF blob
       const blob = await response.blob();
-      
+
       // Create a download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -192,7 +197,7 @@ const QuotesSent = ({ onEditService }) => {
       link.download = `teklif-${service.offerId}.pdf`;
       document.body.appendChild(link);
       link.click();
-      
+
       // Clean up
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
@@ -228,6 +233,60 @@ const QuotesSent = ({ onEditService }) => {
     return `€${amount.toLocaleString('de-DE')}`;
   };
 
+  // Clean machine name by removing project code
+  const cleanMachineName = (name) => {
+    if (!name) return name;
+    return name.replace(/\s*\(AVEMAK-\d+\)\s*$/, '').trim();
+  };
+
+  // Format number with dots
+  const formatNumberWithDots = (number) => {
+    if (number === null || number === undefined || isNaN(number)) {
+      return '0.00';
+    }
+    const numStr = Math.abs(number).toString();
+    const parts = numStr.split('.');
+    const integerPart = parts[0];
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const decimalPart = parts.length > 1 ? parts[1].padEnd(2, '0').substring(0, 2) : '00';
+    return `${formattedInteger}.${decimalPart}`;
+  };
+
+  const formatCurrencyDetailed = (amount) => {
+    return `€${formatNumberWithDots(amount)}`;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('tr-TR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const handleCardClick = async (service) => {
+    try {
+      // Fetch offer details
+      const offers = await offerService.getOffersByProject(service.projectId);
+      if (offers && offers.length > 0) {
+        setSelectedOfferData(offers[0]); // Use the first offer
+        setSelectedService(service);
+        setShowOfferForm(true);
+      }
+    } catch (err) {
+      console.error('Error fetching offer details:', err);
+      alert('Teklif bilgileri yüklenirken bir hata oluştu');
+    }
+  };
+
+  const handleCloseForm = () => {
+    setShowOfferForm(false);
+    setSelectedOfferData(null);
+  };
+
   return (
     <div className="all-services">
       <div className="services-header">
@@ -250,71 +309,85 @@ const QuotesSent = ({ onEditService }) => {
       {!loading && !error && (
         <div className="services-grid">
           {services.map((service) => (
-          <div key={service.id} className="service-card">
-            <div className="card-header">
-              <h3 className="machine-name">{service.projectCode}</h3>
-              <div className={`status-badge ${getStatusClass(service.status)}`}>
-                {service.status}
+            <div
+              key={service.id}
+              className="service-card clickable-card"
+              onClick={() => handleCardClick(service)}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="card-header">
+                <h3 className="machine-name">{service.projectCode}</h3>
+                <div className={`status-badge ${getStatusClass(service.status)}`}>
+                  {service.status}
+                </div>
+              </div>
+
+              <div className="sender-info">
+                <span className="sender-label">Gönderen:</span>
+                <span className="sender-name">{service.senderUserName || 'Bilinmiyor'}</span>
+              </div>
+
+              <div className="card-details">
+                <div className="detail-row">
+                  <AiOutlineSetting className="detail-icon" />
+                  <span className="detail-value">{service.operatingSystem}</span>
+                  <span className="detail-value">{service.machineTitle}</span>
+                  <AiOutlineCalendar className="detail-icon" />
+                  <span className="detail-value">{service.year}</span>
+                </div>
+
+                <div className="detail-row">
+                  <span className="detail-label">Seri No:</span>
+                  <span className="detail-value serial-number">{service.serialNumber}</span>
+                </div>
+
+                <div className="detail-row">
+                  <span className="detail-label">Müşteri:</span>
+                  <span className="detail-value client-company-name">{service.clientCompanyName || '-'}</span>
+                </div>
+
+                <div className="detail-row">
+                  <span className="detail-label">Oluşturma:</span>
+                  <span className="detail-value creation-date">{service.createdDate}</span>
+                </div>
+              </div>
+
+              <div className="card-actions">
+                <button
+                  className="btn-info"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleInfoClick(service);
+                  }}
+                >
+                  <AiOutlineInfoCircle className="btn-icon" />
+                  Bilgi
+                </button>
+                <button
+                  className="btn-cost-detail"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCostDetailClick(service);
+                  }}
+                >
+                  <AiOutlineEuro className="btn-icon" />
+                  Maliyet
+                </button>
+                <button
+                  className="btn-download"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownloadOffer(service);
+                  }}
+                  title="Teklif PDF İndir"
+                >
+                  <AiOutlineDownload className="btn-icon" />
+                  İndir
+                </button>
+
               </div>
             </div>
-
-            <div className="sender-info">
-              <span className="sender-label">Gönderen:</span>
-              <span className="sender-name">{service.senderUserName || 'Bilinmiyor'}</span>
-            </div>
-
-            <div className="card-details">
-              <div className="detail-row">
-                <AiOutlineSetting className="detail-icon" />
-                <span className="detail-value">{service.operatingSystem}</span>
-                <span className="detail-value">{service.machineTitle}</span>
-                <AiOutlineCalendar className="detail-icon" />
-                <span className="detail-value">{service.year}</span>
-              </div>
-
-              <div className="detail-row">
-                <span className="detail-label">Seri No:</span>
-                <span className="detail-value serial-number">{service.serialNumber}</span>
-              </div>
-
-              <div className="detail-row">
-                <span className="detail-label">Müşteri:</span>
-                <span className="detail-value client-company-name">{service.clientCompanyName || '-'}</span>
-              </div>
-
-              <div className="detail-row">
-                <span className="detail-label">Oluşturma:</span>
-                <span className="detail-value creation-date">{service.createdDate}</span>
-              </div>
-            </div>
-
-            <div className="card-actions">
-            <button 
-                className="btn-info"
-                onClick={() => handleInfoClick(service)}
-              >
-                <AiOutlineInfoCircle className="btn-icon" />
-                Bilgi
-              </button>
-              <button 
-                className="btn-cost-detail"
-                onClick={() => handleCostDetailClick(service)}
-              >
-                <AiOutlineEuro className="btn-icon" />
-                Maliyet
-              </button>
-              <button 
-                className="btn-download"
-                onClick={() => handleDownloadOffer(service)}
-                title="Teklif PDF İndir"
-              >
-                <AiOutlineDownload className="btn-icon" />
-                İndir
-              </button>
-              
-            </div>
-          </div>
-        ))}
+          ))}
         </div>
       )}
 
@@ -346,6 +419,107 @@ const QuotesSent = ({ onEditService }) => {
           projectId={selectedService.projectId}
           projectCode={selectedService.projectCode}
         />
+      )}
+
+      {/* Offer Form Modal */}
+      {showOfferForm && selectedOfferData && selectedService && (
+        <div className="proposal-form-overlay" onClick={handleCloseForm}>
+          <div className="proposal-form-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="form-modal-header">
+              <h2>Teklif Formu</h2>
+              <button className="close-button" onClick={handleCloseForm}>
+                <AiOutlineClose />
+              </button>
+            </div>
+
+            <div className="form-modal-content">
+              <div className="offer-document">
+                {/* Document Header */}
+                <div className="document-header">
+                  <div className="left-column">
+                    <div className="info-row">
+                      <strong>Şirket Adı:</strong>
+                      <span className="info-value">{selectedOfferData.clientCompanyName || 'N/A'}</span>
+                    </div>
+                    <div className="info-row">
+                      <strong>Proje Kodu:</strong>
+                      <span className="info-value">{selectedOfferData.projectCode || 'N/A'}</span>
+                    </div>
+                    <div className="info-row">
+                      <strong>Belge Tarihi:</strong>
+                      <span className="info-value">{formatDate(selectedOfferData.sentAt)}</span>
+                    </div>
+                  </div>
+
+                  <div className="right-column">
+                    <div className="company-name">Avitech Metal Teknolojileri Anonim Şirketi</div>
+                    <div className="info-row">
+                      <strong>Adres:</strong> Rüzgarlıbahçe, K Plaza 34805 Beykoz/Istanbul, Turkey
+                    </div>
+                    <div className="info-row">
+                      <strong>Telefon:</strong> +90 541 563 49 90
+                    </div>
+                    <div className="info-row">
+                      <strong>İletişim Kişisi:</strong> Bora Urçar
+                    </div>
+                    <div className="info-row">
+                      <strong>E-Mail:</strong> bora.urcar@avitech.com.tr
+                    </div>
+                  </div>
+                </div>
+
+                {/* Offer Title */}
+                <div className="offer-title">
+                  <h3>TEKLİF</h3>
+                </div>
+
+                {/* Machine Details */}
+                <div className="machine-details">
+                  <table className="machine-table">
+                    <thead>
+                      <tr>
+                        <th>Pos.</th>
+                        <th>Item Description</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="position">1</td>
+                        <td className="machine-name">{cleanMachineName(selectedService?.machineTitle || 'Makine Adı')}</td>
+                        <td className="quantity">1</td>
+                        <td className="machine-price">{formatCurrencyDetailed(selectedOfferData.price || 0)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Offer Footer */}
+                <div className="offer-footer">
+                  <div className="total-section">
+                    <div className="total-row">
+                      <span>TOPLAM:</span>
+                      <span className="total-price">{formatCurrencyDetailed(selectedOfferData.price || 0)}</span>
+                    </div>
+                  </div>
+
+                  {/* Description Section */}
+                  {selectedOfferData.description && (
+                    <div className="description-section">
+                      <div className="description-header">
+                        <strong>Açıklama:</strong>
+                      </div>
+                      <div className="description-content">
+                        {selectedOfferData.description}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  FaFileInvoice, 
-  FaPaperPlane, 
-  FaClock, 
+import {
+  FaFileInvoice,
+  FaPaperPlane,
+  FaClock,
   FaExchangeAlt,
   FaSearch,
   FaEye,
   FaLock,
   FaChevronDown
 } from 'react-icons/fa';
-import { 
-  AiOutlineInfoCircle, 
-  AiOutlineEdit, 
+import {
+  AiOutlineInfoCircle,
+  AiOutlineEdit,
   AiOutlineCalendar,
   AiOutlineSetting,
   AiOutlineClose
@@ -111,7 +111,7 @@ const MainMenu = () => {
     setSearchTerm(query);
     setIsSearching(true);
     setError(null);
-    
+
     try {
       if (query.trim()) {
         const searchResults = await projectService.searchProjects(query);
@@ -138,11 +138,11 @@ const MainMenu = () => {
     setActiveFilters(filters);
     setIsFiltering(true);
     setError(null);
-    
+
     try {
       // Check if any filter has a value
       const hasActiveFilters = Object.values(filters).some(value => value !== '');
-      
+
       if (hasActiveFilters) {
         const filterResults = await projectService.filterProjects(filters);
         setProjects(filterResults);
@@ -458,12 +458,12 @@ const MainMenu = () => {
           </div>
         </div>
 
-        <SearchBar 
+        <SearchBar
           onSearch={handleSearch}
           placeholder="Projelerde ara... (proje kodu, makine adı, model, marka, yıl, seri numarası)"
         />
 
-        <FilterPanel 
+        <FilterPanel
           onFilter={handleFilter}
           onClear={handleClearFilters}
         />
@@ -471,9 +471,9 @@ const MainMenu = () => {
         {(loading || isSearching || isFiltering) && (
           <div className="loading-state">
             <p>
-              {isSearching ? 'Aranıyor...' : 
-               isFiltering ? 'Filtreleniyor...' : 
-               'Projeler yükleniyor...'}
+              {isSearching ? 'Aranıyor...' :
+                isFiltering ? 'Filtreleniyor...' :
+                  'Projeler yükleniyor...'}
             </p>
           </div>
         )}
@@ -487,8 +487,8 @@ const MainMenu = () => {
         {!loading && !isSearching && !isFiltering && !error && serviceData.length === 0 && (
           <div className="empty-state">
             <p>
-              {searchTerm || Object.values(activeFilters).some(v => v !== '') 
-                ? 'Arama kriterlerinize uygun proje bulunamadı.' 
+              {searchTerm || Object.values(activeFilters).some(v => v !== '')
+                ? 'Arama kriterlerinize uygun proje bulunamadı.'
                 : 'Henüz proje bulunmuyor.'}
             </p>
           </div>
@@ -498,98 +498,98 @@ const MainMenu = () => {
           <>
             <div className="services-grid">
               {serviceData.map((service) => (
-            <div
-              key={service.id}
-              className={`service-card ${isSelectMode && isSelectable(service.status) ? 'select-mode' : ''} ${isSelectMode && selectedIds.has(service.id) ? 'selected' : ''} ${isSelectMode && !isSelectable(service.status) ? 'non-selectable' : ''}`}
-              onClick={(e) => {
-                if (isSelectMode && isSelectable(service.status)) {
-                  // Allow clicks on checkbox to handle selection via onChange
-                  if (e.target.type === 'checkbox') {
-                    return;
-                  }
-                  toggleSelectItem(service.id);
-                }
-              }}
-              style={isSelectMode && isSelectable(service.status) ? { cursor: 'pointer' } : isSelectMode && !isSelectable(service.status) ? { cursor: 'not-allowed', opacity: 0.6 } : {}}
-            >
-              <div className="card-header">
-                <h3 className="machine-name">{service.projectCode}</h3>
-                <div className={`status-badge ${getStatusClass(service.status)}`}>
-                  {getDisplayStatus(service.status)}
-                </div>
-              </div>
-
-              <div className="card-details">
-                {isSelectMode && isSelectable(service.status) && (
-                  <div className="select-indicator">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(service.id)}
-                      onChange={() => toggleSelectItem(service.id)}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    <span>Seç</span>
+                <div
+                  key={service.id}
+                  className={`service-card ${isSelectMode && isSelectable(service.status) ? 'select-mode' : ''} ${isSelectMode && selectedIds.has(service.id) ? 'selected' : ''} ${isSelectMode && !isSelectable(service.status) ? 'non-selectable' : ''}`}
+                  onClick={(e) => {
+                    if (isSelectMode && isSelectable(service.status)) {
+                      // Allow clicks on checkbox to handle selection via onChange
+                      if (e.target.type === 'checkbox') {
+                        return;
+                      }
+                      toggleSelectItem(service.id);
+                    }
+                  }}
+                  style={isSelectMode && isSelectable(service.status) ? { cursor: 'pointer' } : isSelectMode && !isSelectable(service.status) ? { cursor: 'not-allowed', opacity: 0.6 } : {}}
+                >
+                  <div className="card-header">
+                    <h3 className="machine-name">{service.projectCode}</h3>
+                    <div className={`status-badge ${getStatusClass(service.status)}`}>
+                      {getDisplayStatus(service.status)}
+                    </div>
                   </div>
-                )}
-                <div className="detail-row single-line">
-                  <AiOutlineSetting className="detail-icon" />
-                  <span className="detail-value">{service.operatingSystem}</span>
 
-                  <span className="detail-value">{service.machineTitle}</span>
-                  <AiOutlineCalendar className="detail-icon" />
+                  <div className="card-details">
+                    {isSelectMode && isSelectable(service.status) && (
+                      <div className="select-indicator">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(service.id)}
+                          onChange={() => toggleSelectItem(service.id)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <span>Seç</span>
+                      </div>
+                    )}
+                    <div className="detail-row single-line">
+                      <AiOutlineSetting className="detail-icon" />
+                      <span className="detail-value">{service.operatingSystem}</span>
 
-                  <span className="detail-value">{service.year}</span>
-                </div>
+                      <span className="detail-value">{service.machineTitle}</span>
+                      <AiOutlineCalendar className="detail-icon" />
 
-                <div className="detail-row">
-                  <span className="detail-label">Seri No:</span>
-                  <span className="detail-value serial-number">{service.serialNumber}</span>
-                </div>
+                      <span className="detail-value">{service.year}</span>
+                    </div>
 
-                <div className="detail-row">
-                  <span className="detail-label">Oluşturma:</span>
-                  <span className="detail-value creation-date">{service.createdDate}</span>
-                </div>
-              </div>
+                    <div className="detail-row">
+                      <span className="detail-label">Seri No:</span>
+                      <span className="detail-value serial-number">{service.serialNumber}</span>
+                    </div>
 
-              {!isSelectMode && (
-                <div className="card-actions">
-                  {canSubmitOffer() && (
-                    <button 
-                      className="btn-offer"
-                      onClick={() => handleEditClick(service)}
-                    >
-                      <FaPaperPlane className="btn-icon" />
-                      Teklif Gönder
-                    </button>
+                    <div className="detail-row">
+                      <span className="detail-label">Oluşturma:</span>
+                      <span className="detail-value creation-date">{service.createdDate}</span>
+                    </div>
+                  </div>
+
+                  {!isSelectMode && (
+                    <div className="card-actions">
+                      {canSubmitOffer() && (
+                        <button
+                          className="btn-offer"
+                          onClick={() => handleEditClick(service)}
+                        >
+                          <FaPaperPlane className="btn-icon" />
+                          Teklif Gönder
+                        </button>
+                      )}
+                      <button
+                        className="btn-info"
+                        onClick={() => handleInfoClick(service)}
+                      >
+                        <AiOutlineInfoCircle className="btn-icon" />
+                        Bilgi
+                      </button>
+                    </div>
                   )}
-                  <button 
-                    className="btn-info"
-                    onClick={() => handleInfoClick(service)}
-                  >
-                    <AiOutlineInfoCircle className="btn-icon" />
-                    Bilgi
-                  </button>
                 </div>
-              )}
-            </div>
-          ))}
+              ))}
             </div>
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
               <div className="pagination-controls">
-                <button 
+                <button
                   className="pagination-btn"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
-                  Önceki 
+                  Önceki
                 </button>
                 <span className="pagination-info">
                   Sayfa {currentPage} / {totalPages}
                 </span>
-                <button 
+                <button
                   className="pagination-btn"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
@@ -604,9 +604,9 @@ const MainMenu = () => {
 
       {/* Service Details Modal */}
       {showInfoModal && selectedService && (
-        <ServiceDetailsModal 
-          service={selectedService} 
-          onClose={handleCloseModal} 
+        <ServiceDetailsModal
+          service={selectedService}
+          onClose={handleCloseModal}
         />
       )}
 

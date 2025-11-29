@@ -19,7 +19,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     workingHours: '',
     repairHours: '', // This now represents "Devri/dakika"
     serialNumber: '',
-    teamCount: '2',
+    teamCount: '',
     machineNetWeight: '', // New field
     additionalWeight: '', // New field
 
@@ -191,7 +191,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
         workingHours: formatWithUnit(editingService.workingHours, ' saat'),
         repairHours: editingService.repairHours || '',
         serialNumber: editingService.serialNumber || '',
-        teamCount: editingService.teamCount || '2',
+        teamCount: editingService.teamCount || '',
         machineNetWeight: formatWithUnit(editingService.machineNetWeight, 'kg'),
         additionalWeight: formatWithUnit(editingService.additionalWeight, 'kg'),
         operatingSystem: isCustomOS ? 'Other' : (editingService.operatingSystem || 'Heidenhain'),
@@ -836,7 +836,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
           workingHours: '',
           repairHours: '',
           serialNumber: '',
-          teamCount: '2',
+          teamCount: '',
           machineNetWeight: '',
           additionalWeight: '',
           operatingSystem: 'Heidenhain',
@@ -1046,6 +1046,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               value={formData.teamCount}
               onChange={(e) => handleRestrictedInput('teamCount', e.target.value)}
               onKeyPress={handleEnterKeyPress}
+              placeholder="Takım sayısı"
             />
           </div>
         </div>

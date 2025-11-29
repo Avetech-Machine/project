@@ -99,6 +99,12 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
+.service-card.clickable-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.25);
+  border-color: #007bff;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
