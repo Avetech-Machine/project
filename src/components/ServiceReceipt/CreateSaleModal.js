@@ -214,14 +214,23 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
           }
 
           // Update project with new costDetails and priceDetails
-          await projectService.updateProject(offer.projectId, {
-            ...currentProject,
-            costDetails: updatedCostDetails,
-            priceDetails: updatedPriceDetails
-          }, []);
+          // IMPORTANT: Include existing photos to prevent them from being deleted
+          const existingPhotoUrls = currentProject.photos || [];
+
+          await projectService.updateProject(
+            offer.projectId,
+            {
+              ...currentProject,
+              costDetails: updatedCostDetails,
+              priceDetails: updatedPriceDetails
+            },
+            [], // No new photo files
+            existingPhotoUrls // Keep existing photos
+          );
 
           console.log('Project costDetails updated:', updatedCostDetails);
           console.log('Project priceDetails updated:', updatedPriceDetails);
+          console.log('Existing photos preserved:', existingPhotoUrls.length);
         } catch (updateError) {
           console.error('Error updating project costDetails/priceDetails:', updateError);
           // Don't fail the entire sale creation if costDetails update fails

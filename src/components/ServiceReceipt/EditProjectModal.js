@@ -319,17 +319,17 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
     // Auto-add units for movement fields on blur
     if (['xMovement', 'yMovement', 'zMovement'].includes(field)) {
       // Remove existing 'mm' if present to avoid duplication
-      processedValue = value.replace(/mm$/, '').trim();
-      // Add 'mm' if there's a value and it doesn't already end with 'mm'
+      processedValue = value.replace(/\s*mm$/, '').trim();
+      // Add 'mm' with a space if there's a value and it doesn't already end with 'mm'
       if (processedValue && !processedValue.endsWith('mm')) {
-        processedValue = processedValue + 'mm';
+        processedValue = processedValue + ' mm';
       }
     } else if (['bMovement', 'cMovement'].includes(field)) {
       // Remove existing '°' if present to avoid duplication
-      processedValue = value.replace(/°$/, '').trim();
-      // Add '°' if there's a value and it doesn't already end with '°'
+      processedValue = value.replace(/\s*°$/, '').trim();
+      // Add '°' with a space if there's a value and it doesn't already end with '°'
       if (processedValue && !processedValue.endsWith('°')) {
-        processedValue = processedValue + '°';
+        processedValue = processedValue + ' °';
       }
     }
 
