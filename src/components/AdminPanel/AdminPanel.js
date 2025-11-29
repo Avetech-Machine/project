@@ -30,7 +30,7 @@ const AdminPanel = () => {
   const fetchAdminData = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // Fetch all projects
       const projects = await projectService.getProjects();
@@ -179,29 +179,32 @@ const AdminPanel = () => {
     }
     const num = typeof number === 'number' ? number : parseFloat(number);
     if (isNaN(num)) return null;
-    
-    const numStr = Math.round(num).toString();
-    return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    const isNegative = num < 0;
+    const absNum = Math.abs(num);
+    const numStr = Math.round(absNum).toString();
+    const formatted = numStr.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return isNegative ? '-' + formatted : formatted;
   };
 
   const formatCurrency = (value) => {
     if (!value || value === 'N/A') return 'N/A';
-    
-    // Extract numeric value from string like "EUR 18000" or "18000"
+
+    // Extract numeric value from string like "EUR 18000" or "18000" or "EUR -5000"
     const valueStr = String(value);
-    const currencyMatch = valueStr.match(/(EUR|TRY|USD)?\s*([\d.,]+)/i);
-    
+    const currencyMatch = valueStr.match(/(EUR|TRY|USD)?\s*([-\d.,]+)/i);
+
     if (currencyMatch) {
       const currency = currencyMatch[1] || 'EUR';
       const numericStr = currencyMatch[2].replace(/,/g, '').replace(/\./g, '');
       const numericValue = parseFloat(numericStr);
-      
+
       if (!isNaN(numericValue)) {
         const formatted = formatNumberWithDots(numericValue);
         return formatted ? `${currency} ${formatted}` : value;
       }
     }
-    
+
     return value;
   };
 

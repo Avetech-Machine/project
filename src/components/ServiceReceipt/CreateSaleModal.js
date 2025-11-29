@@ -182,7 +182,7 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
           // Build new costDetails string
           let updatedCostDetails = currentProject.costDetails || '';
           const financingCostValue = parseInt(financingCost, 10);
-          const financingCostText = `Finansal Maliyet: EUR ${formatNumberWithPeriods(financingCostValue)}`;
+          const financingCostText = `Finansman Maliyeti: EUR ${financingCostValue}`;
 
           // Append financing cost to existing costDetails
           if (updatedCostDetails.trim()) {
