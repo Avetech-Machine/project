@@ -9,6 +9,7 @@ const AddCompanyModal = ({ isOpen, onClose, onSuccess }) => {
     contactName: '',
     email: '',
     phone: '',
+    businessPhone: '',
     address: '',
     vergiDairesi: '',
     vergiNo: ''
@@ -26,7 +27,7 @@ const AddCompanyModal = ({ isOpen, onClose, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.companyName.trim() || !formData.contactName.trim() || !formData.email.trim()) {
       setError('Firma adı, iletişim kişisi ve e-posta alanları zorunludur');
       return;
@@ -54,6 +55,7 @@ const AddCompanyModal = ({ isOpen, onClose, onSuccess }) => {
       contactName: '',
       email: '',
       phone: '',
+      businessPhone: '',
       address: '',
       vergiDairesi: '',
       vergiNo: ''
@@ -138,6 +140,19 @@ const AddCompanyModal = ({ isOpen, onClose, onSuccess }) => {
               value={formData.phone}
               onChange={handleChange}
               placeholder="Telefon numarasını girin"
+              disabled={loading}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="businessPhone">İş Telefonu</label>
+            <input
+              type="tel"
+              id="businessPhone"
+              name="businessPhone"
+              value={formData.businessPhone}
+              onChange={handleChange}
+              placeholder="+902125555555"
               disabled={loading}
             />
           </div>

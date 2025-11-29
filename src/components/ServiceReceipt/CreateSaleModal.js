@@ -342,7 +342,7 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
             <div className="form-group">
               <label htmlFor="financingCost">
                 <AiOutlineDollar className="label-icon" />
-                Finansman Maliyeti
+                Finansman Maliyeti (EUR)
               </label>
               <div className="price-input-wrapper">
                 <input

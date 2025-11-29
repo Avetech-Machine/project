@@ -71,14 +71,23 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
   // Drag-and-drop state for main photos
   const [draggedPhotoIndex, setDraggedPhotoIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [dragOverSide, setDragOverSide] = useState(null); // 'left' or 'right'
+
 
   // Drag-and-drop state for customer photos in gallery
   const [draggedCustomerPhotoIndex, setDraggedCustomerPhotoIndex] = useState(null);
   const [dragOverCustomerIndex, setDragOverCustomerIndex] = useState(null);
 
   const [costDetails, setCostDetails] = useState([
-    { id: 1, description: 'Otel', currency: 'EUR', amount: 200 },
-    { id: 2, description: 'Lojistik', currency: 'EUR', amount: 10000 }
+    { id: 1, description: 'Makine Alım Bedeli', currency: 'EUR', amount: '' },
+    { id: 2, description: 'Dış Firma Komisyonu', currency: 'EUR', amount: '' },
+    { id: 3, description: 'Lojistik', currency: 'EUR', amount: '' },
+    { id: 4, description: 'Uçak', currency: 'EUR', amount: '' },
+    { id: 5, description: 'Araç Kirası', currency: 'EUR', amount: '' },
+    { id: 6, description: 'Ek Masraf', currency: 'EUR', amount: '' },
+    { id: 7, description: 'Gümrük', currency: 'EUR', amount: '' },
+    { id: 8, description: 'Ardiye Depolama', currency: 'EUR', amount: '' },
+    { id: 9, description: 'Kurulum', currency: 'EUR', amount: '' }
   ]);
 
   const [salesPrice, setSalesPrice] = useState(20000);
@@ -279,8 +288,15 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
         } catch (error) {
           console.error('Error parsing cost details:', error);
           setCostDetails([
-            { id: 1, description: 'Otel', currency: 'EUR', amount: 200 },
-            { id: 2, description: 'Lojistik', currency: 'EUR', amount: 10000 }
+            { id: 1, description: 'Makine Alım Bedeli', currency: 'EUR', amount: '' },
+            { id: 2, description: 'Dış Firma Komisyonu', currency: 'EUR', amount: '' },
+            { id: 3, description: 'Lojistik', currency: 'EUR', amount: '' },
+            { id: 4, description: 'Uçak', currency: 'EUR', amount: '' },
+            { id: 5, description: 'Araç Kirası', currency: 'EUR', amount: '' },
+            { id: 6, description: 'Ek Masraf', currency: 'EUR', amount: '' },
+            { id: 7, description: 'Gümrük', currency: 'EUR', amount: '' },
+            { id: 8, description: 'Ardiye Depolama', currency: 'EUR', amount: '' },
+            { id: 9, description: 'Kurulum', currency: 'EUR', amount: '' }
           ]);
         }
       } else if (project.costDetails && Array.isArray(project.costDetails)) {
@@ -482,27 +498,55 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
   const handleDragStart = (e, index) => {
     setDraggedPhotoIndex(index);
     e.dataTransfer.effectAllowed = 'move';
-    setTimeout(() => {
-      e.target.classList.add('dragging');
-    }, 0);
+
+    // Safari requires setData to be called for drag to work
+    e.dataTransfer.setData('text/plain', index.toString());
+
+    // Apply dragging class immediately (no setTimeout to avoid bugs)
+    e.currentTarget.classList.add('dragging');
   };
 
   const handleDragEnter = (e, index) => {
     e.preventDefault();
     if (draggedPhotoIndex !== null && draggedPhotoIndex !== index) {
       setDragOverIndex(index);
+
+      // Immediately set the side on enter
+      const rect = e.currentTarget.getBoundingClientRect();
+      const mouseX = e.clientX;
+      const photoCenter = rect.left + rect.width / 2;
+      const insertBefore = mouseX < photoCenter;
+      setDragOverSide(insertBefore ? 'left' : 'right');
     }
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e, index) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+
+    // Always update the side indicator as mouse moves for smoother feedback
+    if (draggedPhotoIndex !== null && draggedPhotoIndex !== index) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const mouseX = e.clientX;
+      const photoCenter = rect.left + rect.width / 2;
+      const insertBefore = mouseX < photoCenter;
+      const newSide = insertBefore ? 'left' : 'right';
+
+      // Update side and make sure index is set
+      if (dragOverIndex !== index) {
+        setDragOverIndex(index);
+      }
+      if (dragOverSide !== newSide) {
+        setDragOverSide(newSide);
+      }
+    }
   };
 
   const handleDragLeave = (e, index) => {
     if (e.currentTarget === e.target) {
       if (dragOverIndex === index) {
         setDragOverIndex(null);
+        setDragOverSide(null);
       }
     }
   };
@@ -510,7 +554,30 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
   const handleDrop = (e, dropIndex) => {
     e.preventDefault();
 
-    if (draggedPhotoIndex === null || draggedPhotoIndex === dropIndex) {
+    if (draggedPhotoIndex === null) {
+      return;
+    }
+
+    // Determine the actual insert position based on which side was indicated
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.clientX;
+    const photoCenter = rect.left + rect.width / 2;
+    const insertBefore = mouseX < photoCenter;
+
+    // Calculate target index
+    let targetIndex = dropIndex;
+    if (!insertBefore) {
+      targetIndex = dropIndex + 1;
+    }
+
+    // Calculate what the position will be after removal
+    const finalPosition = draggedPhotoIndex < targetIndex ? targetIndex - 1 : targetIndex;
+
+    // Only skip if we're dropping at the exact same position
+    // (where the photo is currently located)
+    if (finalPosition === draggedPhotoIndex) {
+      setDragOverIndex(null);
+      setDragOverSide(null);
       return;
     }
 
@@ -521,8 +588,11 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       // Remove the dragged photo from its original position
       newPhotos.splice(draggedPhotoIndex, 1);
 
-      // Insert it at the drop position
-      newPhotos.splice(dropIndex, 0, draggedPhoto);
+      // Adjust target index if necessary
+      const adjustedIndex = draggedPhotoIndex < targetIndex ? targetIndex - 1 : targetIndex;
+
+      // Insert it at the target position
+      newPhotos.splice(adjustedIndex, 0, draggedPhoto);
 
       return {
         ...prev,
@@ -531,12 +601,22 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
     });
 
     setDragOverIndex(null);
+    setDragOverSide(null);
   };
 
   const handleDragEnd = (e) => {
-    e.target.classList.remove('dragging');
+    // Remove dragging class from the element
+    e.currentTarget.classList.remove('dragging');
+
+    // Also remove from all elements as a safety measure (in case of bugs)
+    document.querySelectorAll('.photo-preview-container.dragging').forEach(el => {
+      el.classList.remove('dragging');
+    });
+
+    // Reset all drag states
     setDraggedPhotoIndex(null);
     setDragOverIndex(null);
+    setDragOverSide(null);
   };
 
   // Drag-and-drop handlers for customer photo gallery
@@ -890,11 +970,11 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
                             return (
                               <div
                                 key={photoId}
-                                className={`photo-preview-container ${draggedPhotoIndex === index ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
+                                className={`photo-preview-container ${draggedPhotoIndex === index ? 'dragging' : ''} ${dragOverIndex === index && dragOverSide === 'left' ? 'drag-over-left' : ''} ${dragOverIndex === index && dragOverSide === 'right' ? 'drag-over-right' : ''}`}
                                 draggable="true"
                                 onDragStart={(e) => handleDragStart(e, index)}
                                 onDragEnter={(e) => handleDragEnter(e, index)}
-                                onDragOver={handleDragOver}
+                                onDragOver={(e) => handleDragOver(e, index)}
                                 onDragLeave={(e) => handleDragLeave(e, index)}
                                 onDrop={(e) => handleDrop(e, index)}
                                 onDragEnd={handleDragEnd}

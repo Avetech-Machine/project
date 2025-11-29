@@ -71,15 +71,19 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   // Drag-and-drop state
   const [draggedPhotoIndex, setDraggedPhotoIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [dragOverSide, setDragOverSide] = useState(null); // 'left' or 'right'
+
 
   const [costDetails, setCostDetails] = useState([
     { id: 1, description: 'Makine Alım Bedeli', currency: 'EUR', amount: '' },
-    { id: 2, description: 'Uçak', currency: 'EUR', amount: '' },
-    { id: 3, description: 'Otel', currency: 'EUR', amount: '' },
-    { id: 4, description: 'Ek Giderler (Yemek vb.)', currency: 'EUR', amount: '' },
-    { id: 5, description: 'Lojistik', currency: 'EUR', amount: '' },
-    { id: 6, description: 'Dış Firma Komisyonu', currency: 'EUR', amount: '' },
-    { id: 7, description: 'Kurulum', currency: 'EUR', amount: '' }
+    { id: 2, description: 'Dış Firma Komisyonu', currency: 'EUR', amount: '' },
+    { id: 3, description: 'Lojistik', currency: 'EUR', amount: '' },
+    { id: 4, description: 'Uçak', currency: 'EUR', amount: '' },
+    { id: 5, description: 'Araç Kirası', currency: 'EUR', amount: '' },
+    { id: 6, description: 'Ek Masraf', currency: 'EUR', amount: '' },
+    { id: 7, description: 'Gümrük', currency: 'EUR', amount: '' },
+    { id: 8, description: 'Ardiye Depolama', currency: 'EUR', amount: '' },
+    { id: 9, description: 'Kurulum', currency: 'EUR', amount: '' }
   ]);
 
   const [salesPrice, setSalesPrice] = useState(0);
@@ -569,30 +573,68 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
 
   // Drag-and-drop handlers for photo reordering
   const handleDragStart = (e, index) => {
-    setDraggedPhotoIndex(index);
+    // Event'in yukarı (forma) sıçramasını engelle
+    e.stopPropagation();
+
+    // Safari için veri seti
     e.dataTransfer.effectAllowed = 'move';
-    // Add a slight delay to allow the drag image to render
-    setTimeout(() => {
-      e.target.classList.add('dragging');
-    }, 0);
+    e.dataTransfer.setData('text/plain', index.toString());
+
+    // Use the image itself as the drag image to avoid "ghost" elements
+    // This fixes the issue where elements below or the container background might be dragged
+    const imgElement = e.currentTarget.querySelector('img');
+    if (e.dataTransfer.setDragImage && imgElement) {
+      // Center the drag image on the cursor (assuming 100x100 image)
+      e.dataTransfer.setDragImage(imgElement, 50, 50);
+    }
+
+    // Use requestAnimationFrame for smoother state update, avoiding "hangs"
+    requestAnimationFrame(() => {
+      setDraggedPhotoIndex(index);
+    });
   };
 
   const handleDragEnter = (e, index) => {
     e.preventDefault();
     if (draggedPhotoIndex !== null && draggedPhotoIndex !== index) {
       setDragOverIndex(index);
+
+      // Immediately set the side on enter
+      const rect = e.currentTarget.getBoundingClientRect();
+      const mouseX = e.clientX;
+      const photoCenter = rect.left + rect.width / 2;
+      const insertBefore = mouseX < photoCenter;
+      setDragOverSide(insertBefore ? 'left' : 'right');
     }
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e, index) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+
+    // Always update the side indicator as mouse moves for smoother feedback
+    if (draggedPhotoIndex !== null && draggedPhotoIndex !== index) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const mouseX = e.clientX;
+      const photoCenter = rect.left + rect.width / 2;
+      const insertBefore = mouseX < photoCenter;
+      const newSide = insertBefore ? 'left' : 'right';
+
+      // Update side and make sure index is set
+      if (dragOverIndex !== index) {
+        setDragOverIndex(index);
+      }
+      if (dragOverSide !== newSide) {
+        setDragOverSide(newSide);
+      }
+    }
   };
 
   const handleDragLeave = (e, index) => {
     if (e.currentTarget === e.target) {
       if (dragOverIndex === index) {
         setDragOverIndex(null);
+        setDragOverSide(null);
       }
     }
   };
@@ -600,19 +642,59 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   const handleDrop = (e, dropIndex) => {
     e.preventDefault();
 
-    if (draggedPhotoIndex === null || draggedPhotoIndex === dropIndex) {
+    if (draggedPhotoIndex === null) {
+      return;
+    }
+
+    // Determine the actual insert position based on which side was indicated
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.clientX;
+    const photoCenter = rect.left + rect.width / 2;
+    const insertBefore = mouseX < photoCenter;
+
+    // Calculate target index
+    let targetIndex = dropIndex;
+    if (!insertBefore) {
+      targetIndex = dropIndex + 1;
+    }
+
+    console.log('=== PHOTO DROP DEBUG ===');
+    console.log('Dragged photo index:', draggedPhotoIndex);
+    console.log('Drop photo index:', dropIndex);
+    console.log('Insert before?', insertBefore);
+    console.log('Target index:', targetIndex);
+
+    // Calculate what the position will be after removal
+    const finalPosition = draggedPhotoIndex < targetIndex ? targetIndex - 1 : targetIndex;
+
+    // Only skip if we're dropping at the exact same position
+    // (where the photo is currently located)
+    if (finalPosition === draggedPhotoIndex) {
+      console.log('Same position, skipping');
+      console.log('=======================');
+      setDragOverIndex(null);
+      setDragOverSide(null);
       return;
     }
 
     setFormData(prev => {
       const newPhotos = [...prev.photos];
+      console.log('Before:', newPhotos.map((p, i) => `${i}: ${p.name || p.id}`));
+
       const draggedPhoto = newPhotos[draggedPhotoIndex];
 
       // Remove the dragged photo from its original position
       newPhotos.splice(draggedPhotoIndex, 1);
+      console.log('After remove:', newPhotos.map((p, i) => `${i}: ${p.name || p.id}`));
 
-      // Insert it at the drop position
-      newPhotos.splice(dropIndex, 0, draggedPhoto);
+      // Adjust target index if necessary
+      const adjustedIndex = draggedPhotoIndex < targetIndex ? targetIndex - 1 : targetIndex;
+      console.log('Adjusted index:', adjustedIndex);
+
+      // Insert it at the target position
+      newPhotos.splice(adjustedIndex, 0, draggedPhoto);
+      console.log('After insert:', newPhotos.map((p, i) => `${i}: ${p.name || p.id}`));
+      console.log('=======================');
 
       return {
         ...prev,
@@ -621,12 +703,16 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     });
 
     setDragOverIndex(null);
+    setDragOverSide(null);
   };
 
   const handleDragEnd = (e) => {
-    e.target.classList.remove('dragging');
+    // Sadece state'leri sıfırla, React render edince class'lar otomatik düzelir
     setDraggedPhotoIndex(null);
     setDragOverIndex(null);
+    setDragOverSide(null);
+
+    // Manuel class silme işlemlerini kaldırabilirsin, React halleder.
   };
 
   const handlePhotoClick = (index) => {
@@ -934,11 +1020,12 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
                   {formData.photos.map((photo, index) => (
                     <div
                       key={photo.id}
-                      className={`photo-preview-container ${draggedPhotoIndex === index ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
+                      className={`photo-preview-container ${draggedPhotoIndex === index ? 'dragging' : ''} ${dragOverIndex === index && dragOverSide === 'left' ? 'drag-over-left' : ''} ${dragOverIndex === index && dragOverSide === 'right' ? 'drag-over-right' : ''}`}
                       draggable="true"
                       onDragStart={(e) => handleDragStart(e, index)}
+                      onMouseDown={(e) => e.stopPropagation()}
                       onDragEnter={(e) => handleDragEnter(e, index)}
-                      onDragOver={handleDragOver}
+                      onDragOver={(e) => handleDragOver(e, index)}
                       onDragLeave={(e) => handleDragLeave(e, index)}
                       onDrop={(e) => handleDrop(e, index)}
                       onDragEnd={handleDragEnd}
@@ -949,6 +1036,8 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
                         alt={`Photo ${index + 1}`}
                         className="photo-preview"
                         onClick={() => handlePhotoClick(index)}
+                        draggable="false"  // <-- BU SATIRI EKLE
+                        style={{ userSelect: 'none', WebkitUserSelect: 'none' }} // <-- BUNU DA EKLERSEN İYİ OLU
                       />
                       <button
                         type="button"

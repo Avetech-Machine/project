@@ -30,6 +30,7 @@ const SendOfferModal = ({ service, onClose }) => {
     contactName: '',
     email: '',
     phone: '',
+    businessPhone: '',
     address: '',
     vergiDairesi: '',
     vergiNo: ''
@@ -39,6 +40,7 @@ const SendOfferModal = ({ service, onClose }) => {
     address: '',
     contactPerson: '',
     phone: '',
+    businessPhone: '',
     email: '',
     vergiDairesi: '',
     vergiNo: '',
@@ -56,10 +58,10 @@ const SendOfferModal = ({ service, onClose }) => {
   // Parse formatted input (remove thousand separators, keep decimal point)
   const parseFormattedInput = (value) => {
     if (value === '' || value === '.') return value;
-    
+
     // Remove all dots to get clean number
     const withoutDots = value.replace(/\./g, '');
-    
+
     // If original had dots, try to determine if last part was decimal
     const parts = value.split('.');
     if (parts.length > 1) {
@@ -71,7 +73,7 @@ const SendOfferModal = ({ service, onClose }) => {
         return `${integerPart}.${lastPart}`;
       }
     }
-    
+
     // No decimal detected, return without dots
     return withoutDots;
   };
@@ -79,23 +81,23 @@ const SendOfferModal = ({ service, onClose }) => {
   // Format input value with dots as thousand separators
   const formatInputValue = (value) => {
     if (value === '' || value === '.' || value === null || value === undefined) return value === null || value === undefined ? '' : value;
-    
+
     // Convert to string if it's a number
     const strValue = String(value);
     if (strValue === '' || strValue === '.') return strValue;
-    
+
     // Parse to get clean numeric string
     const cleaned = parseFormattedInput(strValue);
     if (cleaned === '' || cleaned === '.') return cleaned;
-    
+
     // Split by decimal point
     const parts = cleaned.split('.');
     const integerPart = parts[0].replace(/\D/g, ''); // Remove non-digits
     const decimalPart = parts[1] || '';
-    
+
     // Format integer part with dots
     const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    
+
     // Combine with decimal part
     if (decimalPart) {
       return `${formattedInteger}.${decimalPart}`;
@@ -107,11 +109,11 @@ const SendOfferModal = ({ service, onClose }) => {
   useEffect(() => {
     const fetchCostDetails = async () => {
       if (!service?.id) return;
-      
+
       setLoadingCostDetails(true);
       try {
         const costData = await projectService.getProjectCostDetails(service.id);
-        
+
         // Extract base price from priceDetails string
         // Format: "Base price: 12332, Total cost: 10200, Net profit: 2132"
         if (costData.priceDetails) {
@@ -120,7 +122,7 @@ const SendOfferModal = ({ service, onClose }) => {
             // Remove commas and parse as float
             const basePrice = parseFloat(basePriceMatch[1].replace(/,/g, ''));
             console.log('Extracted base price from API:', basePrice);
-            
+
             setFormData(prev => ({
               ...prev,
               salesPrice: basePrice
@@ -193,7 +195,7 @@ const SendOfferModal = ({ service, onClose }) => {
     };
   }, []);
 
-  const handleInputChange = (field, value) => { 
+  const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -203,17 +205,17 @@ const SendOfferModal = ({ service, onClose }) => {
   // Handle sales price input change
   const handleSalesPriceChange = (e) => {
     const rawValue = e.target.value;
-    
+
     // Allow empty string, numbers, dots, and decimal points
     if (rawValue === '' || rawValue === '.' || /^-?[\d.]*$/.test(rawValue)) {
       // Format the input value with dots
       const formattedValue = formatInputValue(rawValue);
       setSalesPriceDisplay(formattedValue);
-      
+
       // Parse to get numeric value (remove dots, keep decimal)
       const cleanedValue = parseFormattedInput(formattedValue);
       const numericValue = parseFloat(cleanedValue);
-      
+
       // Update the actual numeric value
       if (cleanedValue === '' || cleanedValue === '.' || isNaN(numericValue)) {
         setFormData(prev => ({
@@ -232,11 +234,11 @@ const SendOfferModal = ({ service, onClose }) => {
   // Handle sales price blur
   const handleSalesPriceBlur = (e) => {
     const rawValue = e.target.value;
-    
+
     // Parse to get numeric value (remove dots, keep decimal)
     const cleanedValue = parseFormattedInput(rawValue);
     const numericValue = parseFloat(cleanedValue);
-    
+
     if (cleanedValue === '' || cleanedValue === '.' || isNaN(numericValue)) {
       // Reset to current salesPrice
       setSalesPriceDisplay(formatInputValue(String(formData.salesPrice || '0')));
@@ -284,7 +286,7 @@ const SendOfferModal = ({ service, onClose }) => {
           try {
             // Fetch detailed client information
             const detailedClient = await clientService.getClientById(selectedClientId);
-            
+
             // Auto-fill form fields with client information
             setEditableTexts(prev => ({
               ...prev,
@@ -292,11 +294,12 @@ const SendOfferModal = ({ service, onClose }) => {
               address: detailedClient.address || '',
               contactPerson: detailedClient.contactName || '',
               phone: detailedClient.phone || '',
+              businessPhone: detailedClient.businessPhone || '',
               email: detailedClient.email || '',
               vergiDairesi: detailedClient.vergiDairesi || '',
               vergiNo: detailedClient.vergiNo || ''
             }));
-            
+
             setSelectedClient(client);
             setIsAutoFilled(true);
           } catch (error) {
@@ -321,6 +324,7 @@ const SendOfferModal = ({ service, onClose }) => {
         contactName: '',
         email: '',
         phone: '',
+        businessPhone: '',
         address: '',
         vergiDairesi: '',
         vergiNo: ''
@@ -332,6 +336,7 @@ const SendOfferModal = ({ service, onClose }) => {
         address: '',
         contactPerson: '',
         phone: '',
+        businessPhone: '',
         email: '',
         vergiDairesi: '',
         vergiNo: ''
@@ -362,6 +367,8 @@ const SendOfferModal = ({ service, onClose }) => {
       setNewClientData(prev => ({ ...prev, email: value }));
     } else if (field === 'phone') {
       setNewClientData(prev => ({ ...prev, phone: value }));
+    } else if (field === 'businessPhone') {
+      setNewClientData(prev => ({ ...prev, businessPhone: value }));
     } else if (field === 'address') {
       setNewClientData(prev => ({ ...prev, address: value }));
     } else if (field === 'vergiDairesi') {
@@ -408,6 +415,7 @@ const SendOfferModal = ({ service, onClose }) => {
       contactName: '',
       email: '',
       phone: '',
+      businessPhone: '',
       address: '',
       vergiDairesi: '',
       vergiNo: ''
@@ -419,6 +427,7 @@ const SendOfferModal = ({ service, onClose }) => {
       address: '',
       contactPerson: '',
       phone: '',
+      businessPhone: '',
       email: '',
       vergiDairesi: '',
       vergiNo: ''
@@ -436,6 +445,7 @@ const SendOfferModal = ({ service, onClose }) => {
       contactName: '',
       email: '',
       phone: '',
+      businessPhone: '',
       address: '',
       vergiDairesi: '',
       vergiNo: ''
@@ -446,6 +456,7 @@ const SendOfferModal = ({ service, onClose }) => {
       address: '',
       contactPerson: '',
       phone: '',
+      businessPhone: '',
       email: '',
       vergiDairesi: '',
       vergiNo: ''
@@ -505,14 +516,14 @@ const SendOfferModal = ({ service, onClose }) => {
     const isDeliveryTermsValid = editableTexts.deliveryTerms && editableTexts.deliveryTerms.trim().length > 0;
     const isPaymentTermsValid = editableTexts.paymentTerms && editableTexts.paymentTerms.trim().length > 0;
     const isDeliveryDateValid = editableTexts.deliveryDate && editableTexts.deliveryDate.trim().length > 0;
-    
+
     return isDeliveryTermsValid && isPaymentTermsValid && isDeliveryDateValid;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    
+
     // Step 1: First click - always show warning to review conditions
     if (!conditionsValidated) {
       // Validate that conditions are filled
@@ -550,7 +561,7 @@ const SendOfferModal = ({ service, onClose }) => {
     // Step 2: If conditions already validated, proceed with sending
     // This will be called from the confirmation modal
     setIsSubmitting(true);
-    
+
     try {
       let clientToUse = selectedClient;
 
@@ -559,7 +570,7 @@ const SendOfferModal = ({ service, onClose }) => {
         try {
           const createdClient = await clientService.createClient(newClientData);
           clientToUse = createdClient;
-          
+
           // Reset new client state
           setNewClientDataReady(false);
           setNewClientData({
@@ -567,6 +578,7 @@ const SendOfferModal = ({ service, onClose }) => {
             contactName: '',
             email: '',
             phone: '',
+            businessPhone: '',
             address: '',
             vergiDairesi: '',
             vergiNo: ''
@@ -593,17 +605,17 @@ const SendOfferModal = ({ service, onClose }) => {
 
       // Send offer to the client using new endpoint
       await projectService.sendOfferToClients(
-        service.id, 
-        [clientToUse.id], 
+        service.id,
+        [clientToUse.id],
         ccEmails,
         formData.salesPrice,
         description
       );
-      
+
       setIsSubmitting(false);
       setShowSuccess(true);
       setShowConfirmationModal(false);
-      
+
       // Close modal after showing success message
       setTimeout(() => {
         onClose();
@@ -631,26 +643,26 @@ const SendOfferModal = ({ service, onClose }) => {
     if (number === null || number === undefined || isNaN(number)) {
       return '0.00';
     }
-    
+
     // Handle negative numbers
     const isNegative = number < 0;
     const absNumber = Math.abs(number);
-    
+
     // Convert to string and split by decimal point
     const numStr = absNumber.toString();
     const parts = numStr.split('.');
-    
+
     // Format integer part with dots as thousand separators
     const integerPart = parts[0];
     const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    
+
     // Handle decimal part
     let decimalPart = '00';
     if (parts.length > 1) {
       // Keep decimal part, pad to 2 digits if needed
       decimalPart = parts[1].padEnd(2, '0').substring(0, 2);
     }
-    
+
     // Combine parts with negative sign if needed
     const formatted = `${formattedInteger}.${decimalPart}`;
     return isNegative ? `-${formatted}` : formatted;
@@ -677,9 +689,9 @@ const SendOfferModal = ({ service, onClose }) => {
         <div className="modal-header">
           <h2>Teklif Gönder</h2>
           <div className="header-right">
-            <img 
-              src="/assets/avitech_logo.png" 
-              alt="Avitech Logo" 
+            <img
+              src="/assets/avitech_logo.png"
+              alt="Avitech Logo"
               className="avitech-logo"
             />
             <button className="close-button" onClick={onClose}>
@@ -703,7 +715,7 @@ const SendOfferModal = ({ service, onClose }) => {
                   disabled={loadingCostDetails}
                 />
               </div>
-              
+
               {/* Client Selection Section */}
               <div className="input-group">
                 <div className="input-label-row">
@@ -721,20 +733,20 @@ const SendOfferModal = ({ service, onClose }) => {
                 </div>
                 <div className="client-selection-container">
                   <div className="custom-client-dropdown" ref={clientDropdownRef}>
-                    <div 
+                    <div
                       className={`custom-dropdown-trigger ${selectedClient ? 'disabled' : ''} ${isClientDropdownOpen ? 'active' : ''}`}
                       onClick={toggleClientDropdown}
                     >
                       <span className="dropdown-trigger-text">
-                        {loadingClients 
-                          ? 'Müşteriler yükleniyor...' 
-                          : selectedClient 
-                            ? `${selectedClient.companyName} - ${selectedClient.contactName}` 
+                        {loadingClients
+                          ? 'Müşteriler yükleniyor...'
+                          : selectedClient
+                            ? `${selectedClient.companyName} - ${selectedClient.contactName}`
                             : 'Müşteri seçin'}
                       </span>
                       <FaChevronDown className="dropdown-trigger-icon" />
                     </div>
-                    
+
                     {isClientDropdownOpen && !selectedClient && (
                       <div className="custom-dropdown-menu">
                         <div className="custom-dropdown-search">
@@ -772,7 +784,7 @@ const SendOfferModal = ({ service, onClose }) => {
                       </div>
                     )}
                   </div>
-                  
+
                   {selectedClient && (
                     <div className="client-list">
                       <div className="client-item">
@@ -819,9 +831,9 @@ const SendOfferModal = ({ service, onClose }) => {
                       <FaPlus />
                     </button>
                   </div>
-                  
+
                   {ccEmails.length > 0 && (
-                    <div className="cc-email-list"> 
+                    <div className="cc-email-list">
                       {ccEmails.map((email, index) => (
                         <div key={index} className="cc-email-item">
                           <span className="cc-email-text">{email}</span>
@@ -844,7 +856,7 @@ const SendOfferModal = ({ service, onClose }) => {
               <div className="document-header">
                 <div className="left-column">
                   <div className="info-row">
-                    <strong>Şirket Adı:</strong> 
+                    <strong>Şirket Adı:</strong>
                     {isAddingNewClient ? (
                       <input
                         type="text"
@@ -859,7 +871,7 @@ const SendOfferModal = ({ service, onClose }) => {
                     )}
                   </div>
                   <div className="info-row">
-                    <strong>Adres:</strong> 
+                    <strong>Adres:</strong>
                     {isAddingNewClient ? (
                       <input
                         type="text"
@@ -873,7 +885,7 @@ const SendOfferModal = ({ service, onClose }) => {
                     )}
                   </div>
                   <div className="info-row">
-                    <strong>İletişim Kişisi:</strong> 
+                    <strong>İletişim Kişisi:</strong>
                     {isAddingNewClient ? (
                       <input
                         type="text"
@@ -887,7 +899,7 @@ const SendOfferModal = ({ service, onClose }) => {
                     )}
                   </div>
                   <div className="info-row">
-                    <strong>Telefon:</strong> 
+                    <strong>Telefon:</strong>
                     {isAddingNewClient ? (
                       <input
                         type="tel"
@@ -901,7 +913,21 @@ const SendOfferModal = ({ service, onClose }) => {
                     )}
                   </div>
                   <div className="info-row">
-                    <strong>E-Mail:</strong> 
+                    <strong>İş Telefonu:</strong>
+                    {isAddingNewClient ? (
+                      <input
+                        type="tel"
+                        value={editableTexts.businessPhone}
+                        onChange={(e) => handleCompanyFieldChange('businessPhone', e.target.value)}
+                        placeholder="+902125555555"
+                        className="inline-edit-input"
+                      />
+                    ) : (
+                      <span className="info-value">{editableTexts.businessPhone || 'İş Telefonu'}</span>
+                    )}
+                  </div>
+                  <div className="info-row">
+                    <strong>E-Mail:</strong>
                     {isAddingNewClient ? (
                       <input
                         type="email"
@@ -915,7 +941,7 @@ const SendOfferModal = ({ service, onClose }) => {
                     )}
                   </div>
                   <div className="info-row">
-                    <strong>Vergi Dairesi:</strong> 
+                    <strong>Vergi Dairesi:</strong>
                     {isAddingNewClient ? (
                       <input
                         type="text"
@@ -929,7 +955,7 @@ const SendOfferModal = ({ service, onClose }) => {
                     )}
                   </div>
                   <div className="info-row">
-                    <strong>Vergi No:</strong> 
+                    <strong>Vergi No:</strong>
                     {isAddingNewClient ? (
                       <input
                         type="text"
@@ -943,10 +969,10 @@ const SendOfferModal = ({ service, onClose }) => {
                     )}
                   </div>
                   <div className="info-row">
-                    <strong>Belge Tarihi:</strong> 
+                    <strong>Belge Tarihi:</strong>
                     <span className="info-value">{formData.documentDate}</span>
                   </div>
-                  
+
                   {isAddingNewClient && (
                     <div className="inline-edit-actions">
                       <button
@@ -965,8 +991,8 @@ const SendOfferModal = ({ service, onClose }) => {
                       </button>
                     </div>
                   )}
-                  
-                  
+
+
                 </div>
 
                 <div className="right-column">
@@ -1020,10 +1046,10 @@ const SendOfferModal = ({ service, onClose }) => {
                     <span className="total-price">{formatCurrency(formData.salesPrice, 'EUR')}</span>
                   </div>
                 </div>
-                
+
                 <div className="terms-section">
                   <div className={`terms-row ${showConditionsWarning ? 'terms-row-warning' : ''}`}>
-                    <strong>Teslimat Şartları:</strong> 
+                    <strong>Teslimat Şartları:</strong>
                     {editingField === 'deliveryTerms' ? (
                       <div className="edit-input-container">
                         <input
@@ -1036,16 +1062,16 @@ const SendOfferModal = ({ service, onClose }) => {
                           autoFocus
                         />
                         <div className="edit-actions">
-                          <button 
-                            type="button" 
-                            className="btn-save-edit" 
+                          <button
+                            type="button"
+                            className="btn-save-edit"
                             onClick={() => handleEditSave('deliveryTerms', editableTexts.deliveryTerms)}
                           >
                             ✓
                           </button>
-                          <button 
-                            type="button" 
-                            className="btn-cancel-edit" 
+                          <button
+                            type="button"
+                            className="btn-cancel-edit"
                             onClick={handleEditCancel}
                           >
                             ✕
@@ -1068,7 +1094,7 @@ const SendOfferModal = ({ service, onClose }) => {
                     )}
                   </div>
                   <div className={`terms-row ${showConditionsWarning ? 'terms-row-warning' : ''}`}>
-                    <strong>Ödeme Şartları:</strong> 
+                    <strong>Ödeme Şartları:</strong>
                     {editingField === 'paymentTerms' ? (
                       <div className="edit-input-container">
                         <input
@@ -1081,16 +1107,16 @@ const SendOfferModal = ({ service, onClose }) => {
                           autoFocus
                         />
                         <div className="edit-actions">
-                          <button 
-                            type="button" 
-                            className="btn-save-edit" 
+                          <button
+                            type="button"
+                            className="btn-save-edit"
                             onClick={() => handleEditSave('paymentTerms', editableTexts.paymentTerms)}
                           >
                             ✓
                           </button>
-                          <button 
-                            type="button" 
-                            className="btn-cancel-edit" 
+                          <button
+                            type="button"
+                            className="btn-cancel-edit"
                             onClick={handleEditCancel}
                           >
                             ✕
@@ -1113,7 +1139,7 @@ const SendOfferModal = ({ service, onClose }) => {
                     )}
                   </div>
                   <div className={`terms-row ${showConditionsWarning ? 'terms-row-warning' : ''}`}>
-                    <strong>Teslimat Tarihi:</strong> 
+                    <strong>Teslimat Tarihi:</strong>
                     {editingField === 'deliveryDate' ? (
                       <div className="edit-input-container">
                         <input
@@ -1126,16 +1152,16 @@ const SendOfferModal = ({ service, onClose }) => {
                           autoFocus
                         />
                         <div className="edit-actions">
-                          <button 
-                            type="button" 
-                            className="btn-save-edit" 
+                          <button
+                            type="button"
+                            className="btn-save-edit"
                             onClick={() => handleEditSave('deliveryDate', editableTexts.deliveryDate)}
                           >
                             ✓
                           </button>
-                          <button 
-                            type="button" 
-                            className="btn-cancel-edit" 
+                          <button
+                            type="button"
+                            className="btn-cancel-edit"
                             onClick={handleEditCancel}
                           >
                             ✕
@@ -1158,7 +1184,7 @@ const SendOfferModal = ({ service, onClose }) => {
                     )}
                   </div>
                 </div>
-                
+
                 {showConditionsWarning && (
                   <div className="conditions-warning">
                     <div className="warning-icon">⚠</div>
@@ -1222,17 +1248,17 @@ const SendOfferModal = ({ service, onClose }) => {
                 </div>
               </div>
               <div className="confirmation-actions">
-                <button 
-                  type="button" 
-                  className="btn-confirmation-cancel" 
+                <button
+                  type="button"
+                  className="btn-confirmation-cancel"
                   onClick={handleCancelConfirmation}
                   disabled={isSubmitting}
                 >
                   Hayır
                 </button>
-                <button 
-                  type="button" 
-                  className="btn-confirmation-confirm" 
+                <button
+                  type="button"
+                  className="btn-confirmation-confirm"
                   onClick={handleConfirmSend}
                   disabled={isSubmitting}
                 >

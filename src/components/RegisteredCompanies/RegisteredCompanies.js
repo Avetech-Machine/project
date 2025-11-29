@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import clientService from '../../services/clientService';
 import { useAuth } from '../../contexts/AuthContext';
-import { 
+import {
   AiOutlineReload,
   AiOutlineHome,
   AiOutlineUser,
@@ -21,7 +21,7 @@ import './RegisteredCompanies.css';
 const RegisteredCompanies = () => {
   const { canAddCompany } = useAuth();
   const [clients, setClients] = useState([]);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
   const [isViewOfferModalOpen, setIsViewOfferModalOpen] = useState(false);
@@ -112,6 +112,7 @@ const RegisteredCompanies = () => {
       client.contactName,
       client.email,
       client.phone,
+      client.businessPhone,
       client.vergiDairesi,
       client.vergiNo
     ];
@@ -155,7 +156,7 @@ const RegisteredCompanies = () => {
             <h1>Kayıtlı Firmalar</h1>
             <p>Kayıtlı müşteri firmalarının listesi</p>
             {canAddCompany() && (
-              <button 
+              <button
                 className="add-company-button"
                 onClick={handleAddCompany}
               >
@@ -173,7 +174,7 @@ const RegisteredCompanies = () => {
                   onChange={handleSearchChange}
                 />
               </div>
-              <button 
+              <button
                 className="export-excel-button"
                 onClick={handleExportToExcel}
               >
@@ -206,7 +207,7 @@ const RegisteredCompanies = () => {
                   <AiOutlineHome className="company-icon" />
                   <h3 className="company-name">{client.companyName}</h3>
                 </div>
-                
+
                 <div className="company-details">
                   <div className="detail-item">
                     <AiOutlineUser className="detail-icon" />
@@ -215,7 +216,7 @@ const RegisteredCompanies = () => {
                       <span className="detail-value">{client.contactName}</span>
                     </div>
                   </div>
-                  
+
                   <div className="detail-item">
                     <AiOutlineMail className="detail-icon" />
                     <div className="detail-content">
@@ -223,7 +224,7 @@ const RegisteredCompanies = () => {
                       <span className="detail-value">{client.email}</span>
                     </div>
                   </div>
-                  
+
                   <div className="detail-item">
                     <AiOutlinePhone className="detail-icon" />
                     <div className="detail-content">
@@ -231,7 +232,17 @@ const RegisteredCompanies = () => {
                       <span className="detail-value">{client.phone}</span>
                     </div>
                   </div>
-                  
+
+                  {client.businessPhone && (
+                    <div className="detail-item">
+                      <AiOutlinePhone className="detail-icon" />
+                      <div className="detail-content">
+                        <span className="detail-label">İş Telefonu</span>
+                        <span className="detail-value">{client.businessPhone}</span>
+                      </div>
+                    </div>
+                  )}
+
                   {client.vergiDairesi && (
                     <div className="detail-item">
                       <AiOutlineFileText className="detail-icon" />
@@ -241,7 +252,7 @@ const RegisteredCompanies = () => {
                       </div>
                     </div>
                   )}
-                  
+
                   {client.vergiNo && (
                     <div className="detail-item">
                       <AiOutlineIdcard className="detail-icon" />
@@ -252,16 +263,16 @@ const RegisteredCompanies = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="company-actions">
-                  <button 
+                  <button
                     className="edit-button"
                     onClick={() => handleEditCompany(client)}
                   >
                     <AiOutlineEdit className="button-icon" />
                     Düzenle
                   </button>
-                  <button 
+                  <button
                     className="view-offer-button"
                     onClick={() => handleViewOffers(client)}
                   >
@@ -274,21 +285,21 @@ const RegisteredCompanies = () => {
           </div>
         )}
       </div>
-      
+
       <ViewOfferModal
         isOpen={isViewOfferModalOpen}
         onClose={handleCloseViewOfferModal}
         clientId={selectedClient?.id}
         clientName={selectedClient?.companyName}
       />
-      
+
       <EditCompanyModal
         isOpen={isEditModalOpen}
         onClose={handleCloseEditModal}
         client={editingClient}
         onSuccess={handleEditSuccess}
       />
-      
+
       <AddCompanyModal
         isOpen={isAddModalOpen}
         onClose={handleCloseAddModal}

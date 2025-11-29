@@ -9,6 +9,7 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
     contactName: '',
     email: '',
     phone: '',
+    businessPhone: '',
     address: '',
     vergiDairesi: '',
     vergiNo: ''
@@ -29,6 +30,7 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
             contactName: fullClientDetails.contactName || client.contactName || '',
             email: fullClientDetails.email || client.email || '',
             phone: fullClientDetails.phone || client.phone || '',
+            businessPhone: fullClientDetails.businessPhone || client.businessPhone || '',
             address: fullClientDetails.address || client.address || '',
             // Handle both "tax Office" (from API) and "vergiDairesi" (expected format)
             vergiDairesi: fullClientDetails.vergiDairesi || fullClientDetails['tax Office'] || client.vergiDairesi || client['tax Office'] || '',
@@ -43,6 +45,7 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
             contactName: client.contactName || '',
             email: client.email || '',
             phone: client.phone || '',
+            businessPhone: client.businessPhone || '',
             address: client.address || '',
             vergiDairesi: client.vergiDairesi || client['tax Office'] || '',
             vergiNo: client.vergiNo || ''
@@ -66,7 +69,7 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.companyName.trim() || !formData.contactName.trim() || !formData.email.trim()) {
       setError('Firma adı, iletişim kişisi ve e-posta alanları zorunludur');
       return;
@@ -94,6 +97,7 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
       contactName: '',
       email: '',
       phone: '',
+      businessPhone: '',
       address: '',
       vergiDairesi: '',
       vergiNo: ''
@@ -184,6 +188,19 @@ const EditCompanyModal = ({ isOpen, onClose, client, onSuccess }) => {
               value={formData.phone}
               onChange={handleChange}
               placeholder="Telefon numarasını girin"
+              disabled={loading || loadingClientDetails}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="businessPhone">İş Telefonu</label>
+            <input
+              type="tel"
+              id="businessPhone"
+              name="businessPhone"
+              value={formData.businessPhone}
+              onChange={handleChange}
+              placeholder="+902125555555"
               disabled={loading || loadingClientDetails}
             />
           </div>
