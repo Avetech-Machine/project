@@ -478,6 +478,8 @@
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 10px;
   margin-top: 10px;
+  isolation: isolate;
+  /* Create stacking context to prevent drag ghost issues */
 }
 
 .photo-preview-container {
@@ -529,6 +531,18 @@
   cursor: grabbing;
   z-index: 1000;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+  will-change: transform, opacity;
+  /* Optimize for drag performance */
+}
+
+/* Prevent child elements from being included in drag ghost */
+.photo-preview-container.dragging * {
+  pointer-events: none !important;
+}
+
+/* Ensure the image itself doesn't interfere with drag */
+.photo-preview-container img {
+  pointer-events: none;
 }
 
 .photo-preview-container.drag-over-left::before {

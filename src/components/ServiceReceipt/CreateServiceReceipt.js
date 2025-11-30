@@ -580,12 +580,31 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', index.toString());
 
-    // Use the image itself as the drag image to avoid "ghost" elements
-    // This fixes the issue where elements below or the container background might be dragged
+    // Create a clean, isolated drag image to prevent ghost elements
     const imgElement = e.currentTarget.querySelector('img');
-    if (e.dataTransfer.setDragImage && imgElement) {
-      // Center the drag image on the cursor (assuming 100x100 image)
-      e.dataTransfer.setDragImage(imgElement, 50, 50);
+    if (imgElement && e.dataTransfer.setDragImage) {
+      // Clone the image to create a completely isolated drag preview
+      const dragImage = imgElement.cloneNode(true);
+      dragImage.style.position = 'absolute';
+      dragImage.style.top = '-9999px'; // Move off-screen
+      dragImage.style.width = '100px';
+      dragImage.style.height = '100px';
+      dragImage.style.objectFit = 'cover';
+      dragImage.style.borderRadius = '8px';
+      dragImage.style.pointerEvents = 'none';
+
+      // Append to body temporarily
+      document.body.appendChild(dragImage);
+
+      // Set the cloned image as drag image
+      e.dataTransfer.setDragImage(dragImage, 50, 50);
+
+      // Clean up after drag starts (browser has already captured it)
+      setTimeout(() => {
+        if (dragImage && dragImage.parentNode) {
+          dragImage.parentNode.removeChild(dragImage);
+        }
+      }, 0);
     }
 
     // Use requestAnimationFrame for smoother state update, avoiding "hangs"
