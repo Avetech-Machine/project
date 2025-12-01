@@ -306,7 +306,13 @@ const QuotesSent = ({ onEditService }) => {
         </div>
       )}
 
-      {!loading && !error && (
+      {!loading && !error && services.length === 0 && (
+        <div className="empty-state">
+          <p>Teklif gönderilmiş proje bulunmamaktadır.</p>
+        </div>
+      )}
+
+      {!loading && !error && services.length > 0 && (
         <div className="services-grid">
           {services.map((service) => (
             <div

@@ -451,7 +451,7 @@ const AllServices = ({ onEditService }) => {
         <div className="header-content">
           <div className="header-text">
             <h1>Aktif Projeler</h1>
-            <p>Tüm makine servis projelerinizi buradan görüntüleyebilir ve yönetebilirsiniz.</p>
+            <p>Tüm makine projelerinizi buradan görüntüleyebilir ve yönetebilirsiniz.</p>
           </div>
 
         </div>

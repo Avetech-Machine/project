@@ -104,8 +104,8 @@ const ViewProposalsModal = ({ service, onClose, onSell }) => {
             <p className="selection-instruction">Bir teklif seçmek için tıklayın:</p>
             <div className="proposals-list">
               {proposals.map((proposal) => (
-                <div 
-                  key={proposal.id} 
+                <div
+                  key={proposal.id}
                   className={`proposal-card ${selectedProposalId === proposal.id ? 'selected' : ''}`}
                   onClick={() => handleProposalClick(proposal.id)}
                 >
@@ -118,7 +118,7 @@ const ViewProposalsModal = ({ service, onClose, onSell }) => {
                       {proposal.status}
                     </div>
                   </div>
-                  
+
                   <div className="proposal-details">
                     <div className="client-info">
                       <div className="client-name">{proposal.clientName}</div>
@@ -128,12 +128,12 @@ const ViewProposalsModal = ({ service, onClose, onSell }) => {
                         <span>{proposal.phone}</span>
                       </div>
                     </div>
-                    
+
                     <div className="proposal-price">
                       <span className="price-label">Teklif Edilen Fiyat:</span>
                       <span className="price-value">{formatCurrency(proposal.proposedPrice, proposal.currency)}</span>
                     </div>
-                    
+
                     <div className="proposal-notes">
                       <span className="notes-label">Notlar:</span>
                       <span className="notes-text">{proposal.notes}</span>

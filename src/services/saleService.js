@@ -53,7 +53,7 @@ class SaleService {
     }
   }
 
-  async createSaleFromOffer(projectId, offerId, description) {
+  async createSaleFromOffer(projectId, offerId, description, salePrice) {
     try {
       const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/${projectId}/createSaleFromOffer`, {
         method: 'POST',
@@ -63,7 +63,8 @@ class SaleService {
         },
         body: JSON.stringify({
           offerId: offerId,
-          description: description
+          description: description,
+          salePrice: salePrice
         }),
       });
 

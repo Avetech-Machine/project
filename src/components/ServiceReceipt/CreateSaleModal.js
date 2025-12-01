@@ -15,7 +15,7 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
-  const [originalPrice, setOriginalPrice] = useState(null);
+
   const [originalOfferDescription, setOriginalOfferDescription] = useState('');
 
   // Helper function to format number with periods as thousand separators
@@ -37,7 +37,6 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
       const priceValue = offer.price.toString();
       setSalePrice(priceValue);
       setSalePriceDisplay(formatNumberWithPeriods(offer.price));
-      setOriginalPrice(offer.price);
     }
 
     // Store the original offer description if it exists
@@ -131,9 +130,6 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
       setLoading(true);
       setError('');
 
-      // Compare prices with tolerance for floating point precision
-      const priceChanged = originalPrice !== null && Math.abs(numericPrice - originalPrice) > 0.01;
-
       // Combine original offer description with new sale notes
       const newNotes = saleNotes.trim();
       let finalDescription = '';
@@ -150,28 +146,13 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
       }
       // If neither exists, finalDescription remains empty string
 
-      if (!priceChanged) {
-        // Use default price - call createSaleFromOffer endpoint
-        await saleService.createSaleFromOffer(
-          offer.projectId,
-          offer.id,
-          finalDescription
-        );
-      } else {
-        // Price was changed - call createSale endpoint
-        // First, fetch the offer to get ccEmails
-        const offerDetails = await offerService.getOfferById(offer.id);
-
-        const saleData = {
-          projectId: offer.projectId,
-          clientId: offer.clientId,
-          ccEmails: offerDetails.ccEmails || [],
-          price: numericPrice, // Send as integer
-          description: finalDescription
-        };
-
-        await saleService.createSaleWithPrice(offer.projectId, saleData);
-      }
+      // Always use createSaleFromOffer endpoint with the sale price
+      await saleService.createSaleFromOffer(
+        offer.projectId,
+        offer.id,
+        finalDescription,
+        numericPrice // Send the sale price as integer
+      );
 
       // If financing cost was provided, update project's costDetails and priceDetails
       if (financingCost && parseInt(financingCost, 10) > 0) {
@@ -259,7 +240,6 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
     setFinancingCost('');
     setFinancingCostDisplay('');
     setError('');
-    setOriginalPrice(null);
     onClose();
   };
 

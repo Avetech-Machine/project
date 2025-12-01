@@ -202,7 +202,13 @@ const ClosedProjects = ({ onEditService }) => {
         </div>
       )}
 
-      {!loading && !error && (
+      {!loading && !error && services.length === 0 && (
+        <div className="empty-state">
+          <p>Tamamlanmış proje bulunmamaktadır.</p>
+        </div>
+      )}
+
+      {!loading && !error && services.length > 0 && (
         <>
           {/* Action buttons above the cards */}
           <div className="action-buttons-container">

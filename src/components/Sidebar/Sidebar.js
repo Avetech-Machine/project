@@ -1,9 +1,9 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { 
-  AiOutlineHome, 
-  AiOutlinePlus, 
+import {
+  AiOutlineHome,
+  AiOutlinePlus,
   AiOutlineFolder,
   AiOutlineUser,
   AiOutlineTeam,
@@ -22,11 +22,11 @@ const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout, user, isAdmin, canAccessUserManagement } = useAuth();
-  
+
   // Debug logging
   console.log('Sidebar - Current user:', user);
   console.log('Sidebar - isAdmin():', isAdmin());
-  
+
   // Menü öğeleri, daha kolay yönetim için bir nesne içinde gruplandırıldı.
   const menuItems = {
     main: [
@@ -78,15 +78,15 @@ const Sidebar = ({ isOpen, onClose }) => {
         return true;
       })
       .map(item => (
-        <div 
+        <div
           key={item.id}
           className={`menu-item ${location.pathname === item.path ? 'active' : ''}`}
           onClick={() => handleMenuItemClick(item.path)}
         >
           {item.isLogo ? (
-            <img 
-              src="/assets/avitech_logo.png" 
-              alt="Avitech Logo" 
+            <img
+              src="/assets/avitech_logo.png"
+              alt="Avitech Logo"
               className="menu-logo"
             />
           ) : (
@@ -113,7 +113,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         {/* Servis İşlemleri */}
         <div className="menu-section">
           <div className="section-header">
-            <span className="section-title">SERVİS İŞLEMLERİ</span>
+            <span className="section-title">PROJE İŞLEMLERİ</span>
           </div>
           {renderMenuItems(menuItems.services)}
         </div>
@@ -136,8 +136,8 @@ const Sidebar = ({ isOpen, onClose }) => {
 
         {/* Kullanıcı Bilgisi ve Çıkış */}
         <div className="menu-section user-section">
-         
-          <div 
+
+          <div
             className="menu-item logout-item"
             onClick={handleLogout}
           >
