@@ -208,9 +208,13 @@ const AdminPanel = () => {
     return value;
   };
 
-  const handleExportToExcel = () => {
-    // Placeholder for future Excel export functionality
-    console.log('Export to Excel clicked');
+  const handleExportToExcel = async () => {
+    try {
+      await projectService.exportProjectsToExcel();
+    } catch (err) {
+      console.error('Error exporting to Excel:', err);
+      alert('Excel dışa aktarma sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+    }
   };
 
   if (loading) {

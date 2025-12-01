@@ -94,6 +94,10 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   });
   const [isRatesLoading, setIsRatesLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [expenseItems, setExpenseItems] = useState([]);
+  const [isLoadingExpenseItems, setIsLoadingExpenseItems] = useState(true);
+  const [operatingSystems, setOperatingSystems] = useState([]);
+  const [isLoadingOperatingSystems, setIsLoadingOperatingSystems] = useState(true);
 
   // Parse formatted input (remove thousand separators, keep decimal point)
   const parseFormattedInput = (value) => {
@@ -165,6 +169,55 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     const intervalId = setInterval(fetchExchangeRates, 10 * 60 * 1000);
 
     return () => clearInterval(intervalId);
+  }, []);
+
+  // Fetch expense items from API
+  useEffect(() => {
+    const fetchExpenseItems = async () => {
+      setIsLoadingExpenseItems(true);
+      try {
+        const items = await projectService.getExpenseItems();
+        console.log('Fetched expense items:', items);
+        setExpenseItems(items);
+
+        // Initialize costDetails with fetched expense items if not editing
+        if (!editingService && items && items.length > 0) {
+          const initialCostDetails = items.map((item, index) => ({
+            id: index + 1,
+            description: item.name,
+            currency: 'EUR',
+            amount: ''
+          }));
+          setCostDetails(initialCostDetails);
+        }
+      } catch (error) {
+        console.error('Error fetching expense items:', error);
+        // Keep the default hardcoded values if API fails
+      } finally {
+        setIsLoadingExpenseItems(false);
+      }
+    };
+
+    fetchExpenseItems();
+  }, [editingService]);
+
+  // Fetch operating systems from API
+  useEffect(() => {
+    const fetchOperatingSystems = async () => {
+      setIsLoadingOperatingSystems(true);
+      try {
+        const systems = await projectService.getOperatingSystems();
+        console.log('Fetched operating systems:', systems);
+        setOperatingSystems(systems);
+      } catch (error) {
+        console.error('Error fetching operating systems:', error);
+        // Keep the default hardcoded values if API fails
+      } finally {
+        setIsLoadingOperatingSystems(false);
+      }
+    };
+
+    fetchOperatingSystems();
   }, []);
 
   // Populate form when editing a service
@@ -757,12 +810,77 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     cameraInputRef.current?.click();
   };
 
-  const addCostDetail = () => {
+  const addCostDetail = async () => {
     const newId = Math.max(...costDetails.map(item => item.id), 0) + 1;
-    setCostDetails(prev => [
-      ...prev,
-      { id: newId, description: '', currency: 'EUR', amount: 0 }
-    ]);
+    const newDescription = ''; // Empty initially, user will fill it
+
+    // Add the new cost detail to the UI immediately with empty description
+    const newCostDetail = { id: newId, description: newDescription, currency: 'EUR', amount: 0 };
+    setCostDetails(prev => [...prev, newCostDetail]);
+  };
+
+  // Function to create new expense items in bulk after project creation
+  const createNewExpenseItems = async () => {
+    try {
+      // Find all newly added cost items that don't exist in the expense items from API
+      const newExpenseItems = costDetails
+        .filter(item => {
+          // Only consider items with non-empty descriptions
+          if (!item.description || !item.description.trim()) {
+            return false;
+          }
+          // Check if this description already exists in the API
+          const exists = expenseItems.some(ei => ei.name === item.description.trim());
+          return !exists; // Only include items that DON'T exist in API
+        })
+        .map(item => ({ name: item.description.trim() }));
+
+      // If there are new items, create them via bulk API
+      if (newExpenseItems.length > 0) {
+        console.log('Creating new expense items:', newExpenseItems);
+        await projectService.createExpenseItems(newExpenseItems);
+        console.log('New expense items created successfully');
+
+        // Refresh the expense items list
+        const items = await projectService.getExpenseItems();
+        setExpenseItems(items);
+      }
+    } catch (error) {
+      console.error('Error creating new expense items:', error);
+      // Don't throw error - we don't want to fail project creation if expense items fail
+      // Just log it for debugging
+    }
+  };
+
+  // Function to create a new operating system after project creation
+  const createNewOperatingSystem = async () => {
+    try {
+      // Check if user selected "Other" and entered a custom OS
+      if (formData.operatingSystem === 'Other' && formData.customOperatingSystem && formData.customOperatingSystem.trim()) {
+        const customOSName = formData.customOperatingSystem.trim();
+
+        // Double-check that it doesn't already exist (case-insensitive)
+        const exists = operatingSystems.some(os =>
+          os.name.toLowerCase() === customOSName.toLowerCase()
+        );
+
+        if (!exists) {
+          console.log('Creating new operating system:', customOSName);
+          await projectService.createOperatingSystem({ name: customOSName });
+          console.log('New operating system created successfully');
+
+          // Refresh the operating systems list
+          const systems = await projectService.getOperatingSystems();
+          setOperatingSystems(systems);
+        } else {
+          console.log('Operating system already exists, skipping creation:', customOSName);
+        }
+      }
+    } catch (error) {
+      console.error('Error creating new operating system:', error);
+      // Don't throw error - we don't want to fail project creation if OS creation fails
+      // Just log it for debugging
+    }
   };
 
   const updateCostDetail = (id, field, value) => {
@@ -878,6 +996,20 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   const handleSave = async () => {
     if (isSaving) return; // Prevent multiple submissions
 
+    // Validate custom operating system before saving
+    if (formData.operatingSystem === 'Other' && formData.customOperatingSystem && formData.customOperatingSystem.trim()) {
+      const customOSName = formData.customOperatingSystem.trim();
+      const exists = operatingSystems.some(os =>
+        os.name.toLowerCase() === customOSName.toLowerCase()
+      );
+
+      if (exists) {
+        alert('Bu işletim sistemi zaten mevcut. Lütfen farklı bir isim giriniz veya listeden seçiniz.');
+        setIsSaving(false);
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       // Map form data to API format
@@ -892,6 +1024,12 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
 
       // Call API to create project with photo files
       const response = await projectService.createProject(apiData, formData.photos);
+
+      // After successful project creation, create any new expense items
+      await createNewExpenseItems();
+
+      // After successful project creation, create new operating system if needed
+      await createNewOperatingSystem();
 
       // Create service object for local storage (for backward compatibility)
       const serviceData = {
@@ -1318,21 +1456,60 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               onChange={(e) => handleInputChange('operatingSystem', e.target.value)}
               className="form-select"
             >
-              <option value="Heidenhain">Heidenhain</option>
-              <option value="Siemens">Siemens</option>
-              <option value="Fanuc">Fanuc</option>
+              {/* Dynamically populate from API */}
+              {operatingSystems.map(os => (
+                <option key={os.id} value={os.name}>{os.name}</option>
+              ))}
+              {/* Fallback options if API hasn't loaded yet */}
+              {operatingSystems.length === 0 && (
+                <>
+                  <option value="Heidenhain">Heidenhain</option>
+                  <option value="Siemens">Siemens</option>
+                  <option value="Fanuc">Fanuc</option>
+                </>
+              )}
               <option value="Other">Other</option>
             </select>
             {formData.operatingSystem === 'Other' && (
-              <input
-                type="text"
-                placeholder="İşletim sistemi adını giriniz"
-                value={formData.customOperatingSystem}
-                onChange={(e) => handleInputChange('customOperatingSystem', e.target.value)}
-                onKeyPress={handleEnterKeyPress}
-                className="form-input"
-                style={{ marginTop: '8px' }}
-              />
+              <div style={{ marginTop: '8px' }}>
+                <input
+                  type="text"
+                  placeholder="İşletim sistemi adını giriniz"
+                  value={formData.customOperatingSystem}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    handleInputChange('customOperatingSystem', value);
+
+                    // Check if the entered value already exists in the API (case-insensitive)
+                    const exists = operatingSystems.some(os =>
+                      os.name.toLowerCase() === value.trim().toLowerCase()
+                    );
+
+                    // Show visual feedback if duplicate
+                    if (exists && value.trim()) {
+                      e.target.style.borderColor = 'red';
+                      e.target.title = 'Bu işletim sistemi zaten mevcut';
+                    } else {
+                      e.target.style.borderColor = '';
+                      e.target.title = '';
+                    }
+                  }}
+                  onBlur={(e) => {
+                    const value = e.target.value;
+                    // Check if duplicate on blur
+                    const exists = operatingSystems.some(os =>
+                      os.name.toLowerCase() === value.trim().toLowerCase()
+                    );
+
+                    if (exists && value.trim()) {
+                      alert('Bu işletim sistemi zaten mevcut. Lütfen farklı bir isim giriniz.');
+                      e.target.focus();
+                    }
+                  }}
+                  onKeyPress={handleEnterKeyPress}
+                  className="form-input"
+                />
+              </div>
             )}
           </div>
           <div className="form-group justify-end">
@@ -1533,6 +1710,8 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
         onDeleteCost={deleteCostDetail}
         exchangeRates={exchangeRates}
         isRatesLoading={isRatesLoading}
+        expenseItems={expenseItems}
+        isLoadingExpenseItems={isLoadingExpenseItems}
       />
 
       {/* Sales and Profit Analysis */}

@@ -475,6 +475,130 @@ class ProjectService {
       throw error;
     }
   }
+
+  async exportProjectsToExcel() {
+    try {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/projects/export/excel`, {
+        method: 'GET',
+        headers: authService.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Excel dışa aktarma başarısız oldu');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0];
+      const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+      link.download = `projects_${dateStr}_${timeStr}.xlsx`;
+
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export projects to Excel error:', error);
+      throw error;
+    }
+  }
+
+  async getExpenseItems() {
+    try {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/expense-items`, {
+        method: 'GET',
+        headers: authService.getAuthHeaders(),
+      });
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Get expense items error:', error);
+      throw error;
+    }
+  }
+
+  async createExpenseItems(expenseItemsArray) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/expense-items/bulk`, {
+        method: 'POST',
+        headers: {
+          ...authService.getAuthHeaders(),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(expenseItemsArray),
+      });
+
+      // Handle 409 Conflict (duplicate resource) before calling handleApiResponse
+      if (response.status === 409) {
+        const errorData = await response.json();
+        const error = new Error(errorData.message || 'Duplicate resource');
+        error.errorCode = errorData.errorCode;
+        error.status = 409;
+        throw error;
+      }
+
+      // For other errors, use the standard error handling
+      await handleApiResponse(response);
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Create expense items error:', error);
+      throw error;
+    }
+  }
+
+  async getOperatingSystems() {
+    try {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/operating-systems`, {
+        method: 'GET',
+        headers: authService.getAuthHeaders(),
+      });
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Get operating systems error:', error);
+      throw error;
+    }
+  }
+
+  async createOperatingSystem(operatingSystemData) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/operating-systems`, {
+        method: 'POST',
+        headers: {
+          ...authService.getAuthHeaders(),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(operatingSystemData),
+      });
+
+      // Handle 409 Conflict (duplicate resource) before calling handleApiResponse
+      if (response.status === 409) {
+        const errorData = await response.json();
+        const error = new Error(errorData.message || 'Duplicate resource');
+        error.errorCode = errorData.errorCode;
+        error.status = 409;
+        throw error;
+      }
+
+      // For other errors, use the standard error handling
+      await handleApiResponse(response);
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Create operating system error:', error);
+      throw error;
+    }
+  }
 }
 
 export default new ProjectService();

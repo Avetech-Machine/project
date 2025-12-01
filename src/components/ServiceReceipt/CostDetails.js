@@ -3,24 +3,35 @@ import { convertCurrency } from '../../services/currencyService';
 import { FaEuroSign, FaTrashAlt } from 'react-icons/fa';
 import './CostDetails.css';
 
-const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, exchangeRates, isRatesLoading }) => {
+const CostDetails = ({
+  costDetails,
+  onAddCost,
+  onUpdateCost,
+  onDeleteCost,
+  exchangeRates,
+  isRatesLoading,
+  expenseItems = [],
+  isLoadingExpenseItems = false
+}) => {
   const totalCost = costDetails.reduce((sum, item) => {
     const eurValue = convertCurrency(item.amount, item.currency, 'EUR', exchangeRates);
     return sum + (parseFloat(eurValue) || 0);
   }, 0);
 
-  // Predefined cost items
-  const costItemOptions = [
-    'Makine Alım Bedeli',
-    'Dış Firma Komisyonu',
-    'Lojistik',
-    'Uçak',
-    'Araç Kirası',
-    'Ek Masraf',
-    'Gümrük',
-    'Ardiye Depolama',
-    'Kurulum'
-  ];
+  // Use expense items from API if available, otherwise use hardcoded defaults
+  const costItemOptions = expenseItems.length > 0
+    ? expenseItems.map(item => item.name)
+    : [
+      'Makine Alım Bedeli',
+      'Dış Firma Komisyonu',
+      'Lojistik',
+      'Uçak',
+      'Araç Kirası',
+      'Ek Masraf',
+      'Gümrük',
+      'Ardiye Depolama',
+      'Kurulum'
+    ];
 
   // Function to move focus to the next input field
   const moveToNextField = (currentInput) => {
@@ -73,7 +84,7 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
       if (lastPart.length <= 2 && /^\d+$/.test(lastPart)) {
         // Reconstruct: all parts except last are integer, last is decimal
         const integerPart = parts.slice(0, -1).join('').replace(/\./g, '');
-        return `${integerPart}.${lastPart}`;
+        return `${integerPart}.${lastPart} `;
       }
     }
 
@@ -103,7 +114,7 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
 
     // Combine with decimal part
     if (decimalPart) {
-      return `${formattedInteger}.${decimalPart}`;
+      return `${formattedInteger}.${decimalPart} `;
     }
     return formattedInteger;
   };
@@ -134,8 +145,8 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
     }
 
     // Combine parts with negative sign if needed
-    const formatted = `${formattedInteger}.${decimalPart}`;
-    return isNegative ? `-${formatted}` : formatted;
+    const formatted = `${formattedInteger}.${decimalPart} `;
+    return isNegative ? `- ${formatted} ` : formatted;
   };
 
   return (
@@ -158,9 +169,13 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
         </div>
 
         {costDetails.map((item) => {
-          // Items with id <= 9 are initial predefined items - they can use dropdown/datalist
-          // Items with id > 9 are newly added - they should only have plain text input
-          const isNewlyAdded = item.id > 9;
+          // Check if this item exists in the expense items from API
+          // If it does, it's from the API and should be readonly
+          // If it doesn't (or has empty description), it's newly added and should be editable
+          const existsInAPI = item.description &&
+            item.description.trim() &&
+            expenseItems.some(ei => ei.name === item.description);
+          const isNewlyAdded = !existsInAPI;
 
           return (
             <div key={item.id} className="table-row">
@@ -241,7 +256,7 @@ const CostDetails = ({ costDetails, onAddCost, onUpdateCost, onDeleteCost, excha
                   {isRatesLoading ? (
                     <span className="loading">Yükleniyor...</span>
                   ) : (
-                    `€${formatNumberWithDots(convertCurrency(item.amount, item.currency, 'EUR', exchangeRates))}`
+                    `€${formatNumberWithDots(convertCurrency(item.amount, item.currency, 'EUR', exchangeRates))} `
                   )}
                 </div>
               </div>
