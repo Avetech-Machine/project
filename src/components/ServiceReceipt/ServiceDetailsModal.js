@@ -19,6 +19,13 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
   const dragStartRef = useRef({ x: 0, y: 0 });
   const imagePositionRef = useRef({ x: 0, y: 0 });
 
+  // Photo loading optimization states
+  const [loadedImages, setLoadedImages] = useState(new Set());
+  const [loadingImages, setLoadingImages] = useState(new Set());
+  const [preloadedImages, setPreloadedImages] = useState(new Set());
+  const imageCache = useRef(new Map());
+  const preloadQueue = useRef([]);
+
   useEffect(() => {
     const fetchProjectDetails = async () => {
       if (!service?.id) {
@@ -47,6 +54,87 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
   useEffect(() => {
     imagePositionRef.current = imagePosition;
   }, [imagePosition]);
+
+  // Image preloading optimization
+  const preloadImage = useCallback((url) => {
+    return new Promise((resolve, reject) => {
+      // Check if already in cache
+      if (imageCache.current.has(url)) {
+        resolve(url);
+        return;
+      }
+
+      // Check if already loaded
+      if (loadedImages.has(url) || loadingImages.has(url)) {
+        resolve(url);
+        return;
+      }
+
+      setLoadingImages(prev => new Set([...prev, url]));
+
+      const img = new Image();
+      img.onload = () => {
+        imageCache.current.set(url, img);
+        setLoadedImages(prev => new Set([...prev, url]));
+        setLoadingImages(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(url);
+          return newSet;
+        });
+        resolve(url);
+      };
+      img.onerror = () => {
+        setLoadingImages(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(url);
+          return newSet;
+        });
+        reject(new Error(`Failed to load image: ${url}`));
+      };
+      img.src = url;
+    });
+  }, [loadedImages, loadingImages]);
+
+  // Preload adjacent photos for smooth navigation
+  const preloadAdjacentPhotos = useCallback((currentIndex, photos) => {
+    if (!photos || photos.length === 0) return;
+
+    // Preload current, next, and previous photos
+    const indicesToPreload = [
+      currentIndex,
+      currentIndex + 1 < photos.length ? currentIndex + 1 : 0,
+      currentIndex - 1 >= 0 ? currentIndex - 1 : photos.length - 1,
+    ];
+
+    // Also preload 2 photos ahead and behind for even smoother experience
+    if (photos.length > 3) {
+      indicesToPreload.push(
+        currentIndex + 2 < photos.length ? currentIndex + 2 : (currentIndex + 2) % photos.length,
+        currentIndex - 2 >= 0 ? currentIndex - 2 : photos.length + (currentIndex - 2)
+      );
+    }
+
+    // Preload in priority order
+    indicesToPreload.forEach((index, priority) => {
+      const url = photos[index];
+      if (url && !preloadedImages.has(url)) {
+        setTimeout(() => {
+          preloadImage(url).then(() => {
+            setPreloadedImages(prev => new Set([...prev, url]));
+          }).catch(err => {
+            console.warn('Failed to preload image:', err);
+          });
+        }, priority * 100); // Stagger preloading slightly
+      }
+    });
+  }, [preloadImage, preloadedImages]);
+
+  // Preload adjacent photos when selected photo changes
+  useEffect(() => {
+    if (showPhotoGallery && projectDetails?.photos) {
+      preloadAdjacentPhotos(selectedPhotoIndex, projectDetails.photos);
+    }
+  }, [showPhotoGallery, selectedPhotoIndex, projectDetails?.photos, preloadAdjacentPhotos]);
 
   // Image drag functionality handlers
   const handleMouseDown = useCallback((e) => {
@@ -199,7 +287,7 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
     try {
       setDownloading(true);
       const API_BASE_URL = 'https://avitech-backend-production.up.railway.app';
-      const response = await fetch(`${API_BASE_URL}/api/pdf/machines/${service.id}/info`, {
+      const response = await fetch(`${API_BASE_URL}/api/projects/${service.id}/pdf`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
@@ -511,6 +599,7 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                       src={projectDetails.photos[0]}
                       alt={projectDetails.machineName || 'Makine Görseli'}
                       className="machine-image"
+                      loading="eager"
                     />
                     {projectDetails.photos.length > 1 && (
                       <div className="photo-count-badge">
@@ -596,11 +685,19 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                 ‹
               </button>
               <div className="photo-gallery-main-image-container">
+                {loadingImages.has(projectDetails.photos[selectedPhotoIndex]) && (
+                  <div className="photo-loading-skeleton">
+                    <div className="loading-spinner"></div>
+                    <p>Fotoğraf yükleniyor...</p>
+                  </div>
+                )}
                 <div
                   className="photo-gallery-main-image"
                   style={{
                     cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
                     overflow: 'visible',
+                    opacity: loadingImages.has(projectDetails.photos[selectedPhotoIndex]) ? 0.3 : 1,
+                    transition: 'opacity 0.3s ease',
                   }}
                   onMouseDown={handleMouseDown}
                 >
@@ -619,6 +716,15 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                       userSelect: 'none',
                     }}
                     draggable={false}
+                    loading="eager"
+                    onLoad={() => {
+                      setLoadedImages(prev => new Set([...prev, projectDetails.photos[selectedPhotoIndex]]));
+                      setLoadingImages(prev => {
+                        const newSet = new Set(prev);
+                        newSet.delete(projectDetails.photos[selectedPhotoIndex]);
+                        return newSet;
+                      });
+                    }}
                   />
                 </div>
               </div>
@@ -638,17 +744,42 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                 </span>
                 <div className="photo-gallery-thumbnails">
                   {projectDetails.photos.map((photo, index) => (
-                    <img
+                    <div
                       key={index}
-                      src={photo}
-                      alt={`Thumbnail ${index + 1}`}
-                      className={`photo-thumbnail ${selectedPhotoIndex === index ? 'active' : ''}`}
+                      className={`photo-thumbnail-wrapper ${selectedPhotoIndex === index ? 'active' : ''}`}
                       onClick={() => {
                         setSelectedPhotoIndex(index);
                         setZoomLevel(1);
                         setImagePosition({ x: 0, y: 0 });
                       }}
-                    />
+                    >
+                      {!loadedImages.has(photo) && loadingImages.has(photo) && (
+                        <div className="thumbnail-loading">
+                          <div className="thumbnail-spinner"></div>
+                        </div>
+                      )}
+                      <img
+                        src={photo}
+                        alt={`Thumbnail ${index + 1}`}
+                        className={`photo-thumbnail ${selectedPhotoIndex === index ? 'active' : ''}`}
+                        loading="lazy"
+                        onLoad={() => {
+                          setLoadedImages(prev => new Set([...prev, photo]));
+                          setLoadingImages(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(photo);
+                            return newSet;
+                          });
+                        }}
+                        onError={() => {
+                          setLoadingImages(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(photo);
+                            return newSet;
+                          });
+                        }}
+                      />
+                    </div>
                   ))}
                 </div>
               </div>

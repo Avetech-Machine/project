@@ -177,7 +177,7 @@ const QuotesSent = ({ onEditService }) => {
 
     try {
       const API_BASE_URL = 'https://avitech-backend-production.up.railway.app';
-      const response = await fetch(`${API_BASE_URL}/api/pdf/offers/${service.offerId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/offers/${service.offerId}/quote-pdf`, {
         method: 'GET',
         headers: authService.getAuthHeaders(),
       });
