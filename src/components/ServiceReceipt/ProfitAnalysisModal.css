@@ -70,6 +70,31 @@
   color: #495057;
 }
 
+.export-button {
+  position: absolute;
+  top: 16px;
+  right: 56px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.export-button:hover {
+  background-color: #f8f9fa;
+  color: #495057;
+}
+
 .modal-content {
   padding: 24px;
   position: relative;
@@ -241,15 +266,15 @@
     margin: 10px;
     max-height: calc(100vh - 20px);
   }
-  
+
   .modal-content {
     padding: 20px;
   }
-  
+
   .analysis-grid {
     gap: 16px;
   }
-  
+
   .cost-section,
   .sales-section,
   .profit-section {
@@ -261,11 +286,11 @@
   .profit-analysis-modal-overlay {
     padding: 10px;
   }
-  
+
   .modal-header h2 {
     font-size: 20px;
   }
-  
+
   .service-info h3 {
     font-size: 18px;
   }

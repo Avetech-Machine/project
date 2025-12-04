@@ -263,7 +263,9 @@ const AllServices = ({ onEditService }) => {
 
   // Calculate and set column widths based on content
   useEffect(() => {
-    if (!tableRef.current || projects.length === 0) return;
+    // Skip column width calculations on mobile devices
+    const isMobile = window.innerWidth <= 768;
+    if (!tableRef.current || projects.length === 0 || isMobile) return;
 
     // Wait for DOM to be fully rendered
     const timeoutId = setTimeout(() => {
@@ -444,6 +446,7 @@ const AllServices = ({ onEditService }) => {
 
     return () => clearTimeout(timeoutId);
   }, [projects, loading, isSearching, isFiltering]);
+
 
   return (
     <div className="all-services">

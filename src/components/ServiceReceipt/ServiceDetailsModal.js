@@ -248,6 +248,13 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
     return formatted ? `${formatted} kg` : '-';
   };
 
+  // Format dimension with unit
+  const formatDimension = (value) => {
+    if (!value && value !== 0) return '-';
+    const formatted = formatNumberWithDots(value);
+    return formatted ? `${formatted} cm` : '-';
+  };
+
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -466,7 +473,7 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                   </div>
 
                   <div className="spec-row">
-                    <span className="spec-label">Kontrol Ünitesi:</span>
+                    <span className="spec-label">İşletim Sistemi:</span>
                     <span className="spec-value">{projectDetails.operatingSystem || '-'}</span>
                   </div>
                 </div>
@@ -561,17 +568,17 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
 
                   <div className="spec-row">
                     <span className="spec-label">Makine Genişliği:</span>
-                    <span className="spec-value">{projectDetails.machineWidth || '-'}</span>
+                    <span className="spec-value">{formatDimension(projectDetails.machineWidth)}</span>
                   </div>
 
                   <div className="spec-row">
                     <span className="spec-label">Makine Uzunluğu:</span>
-                    <span className="spec-value">{projectDetails.machineLength || '-'}</span>
+                    <span className="spec-value">{formatDimension(projectDetails.machineLength)}</span>
                   </div>
 
                   <div className="spec-row">
                     <span className="spec-label">Makine Yüksekliği:</span>
-                    <span className="spec-value">{projectDetails.machineHeight || '-'}</span>
+                    <span className="spec-value">{formatDimension(projectDetails.machineHeight)}</span>
                   </div>
 
                   <div className="spec-row">

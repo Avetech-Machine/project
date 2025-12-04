@@ -60,8 +60,13 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .error-message {
@@ -493,10 +498,15 @@
 }
 
 @media (max-width: 768px) {
+  .all-services {
+    padding: 20px 0;
+  }
+
   .header-content {
     flex-direction: column;
     align-items: stretch;
     gap: 16px;
+    padding: 0 16px;
   }
 
   .refresh-button {
@@ -504,17 +514,45 @@
   }
 
   .services-table-container {
-    margin: 0 16px;
+    margin: 0;
+    border-radius: 0;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100vw;
+    max-width: 100%;
   }
-  
+
   .services-table {
-    min-width: 800px;
+    min-width: 900px;
+    width: 100%;
+    display: table;
+    table-layout: auto;
   }
-  
+
+  .services-table thead {
+    display: table-header-group;
+  }
+
+  .services-table tbody {
+    display: table-row-group;
+  }
+
+  .services-table tr {
+    display: table-row;
+  }
+
   .services-table th,
   .services-table td {
+    display: table-cell;
     padding: 12px 16px;
+  }
+
+  /* Override any JavaScript-set widths on mobile */
+  .services-table th,
+  .services-table td {
+    width: auto !important;
+    min-width: auto !important;
+    max-width: none !important;
   }
 
   .delete-column {
@@ -524,6 +562,7 @@
   .action-buttons-container {
     flex-direction: column;
     gap: 12px;
+    padding: 0 16px;
   }
 
   .btn-see-cost-all,
@@ -536,6 +575,7 @@
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
+    margin: 0 16px;
   }
 
   .retry-button {
@@ -545,30 +585,42 @@
 
 @media (max-width: 480px) {
   .all-services {
-    padding: 16px;
+    padding: 16px 0;
   }
-  
+
+  .services-header {
+    padding: 0 16px;
+  }
+
   .services-header h1 {
     font-size: 24px;
   }
-  
+
   .services-table-container {
-    margin: 0 8px;
+    margin: 0;
+    border-radius: 0;
+    width: 100vw;
+    max-width: 100%;
   }
-  
+
+  .services-table {
+    min-width: 850px;
+  }
+
   .services-table th,
   .services-table td {
     padding: 8px 12px;
     font-size: 12px;
+    width: auto !important;
+    min-width: auto !important;
+    max-width: none !important;
   }
 
   .operations {
-    width: 160px;
     padding: 6px 8px !important;
   }
 
   .delete-column {
-    width: 90px;
     padding: 6px 8px !important;
   }
 
@@ -584,5 +636,6 @@
 
   .operation-buttons {
     gap: 6px;
+    flex-wrap: nowrap;
   }
 }

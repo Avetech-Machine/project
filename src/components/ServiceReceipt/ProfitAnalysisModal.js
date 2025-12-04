@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AiOutlineClose, AiOutlineEuro } from 'react-icons/ai';
+import { AiOutlineClose, AiOutlineEuro, AiOutlineDownload } from 'react-icons/ai';
 import { FaChartLine } from 'react-icons/fa';
 import projectService from '../../services/projectService';
 import './ProfitAnalysisModal.css';
@@ -43,6 +43,12 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
     return `€${amount.toLocaleString('de-DE')}`;
   };
 
+  const handleExport = () => {
+    // Export functionality - no API connection as requested
+    console.log('Export button clicked');
+    // Future implementation will go here
+  };
+
   const getDisplayStatus = (status) => {
     switch (status) {
       case 'TEMPLATE':
@@ -63,7 +69,7 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
   // Parse cost details from API response
   const parseCostDetails = (costDetailsString) => {
     if (!costDetailsString) return [];
-    
+
     const items = costDetailsString.split(',').map(item => {
       const [description, currencyAmount] = item.trim().split(':');
       const [currency, amount] = currencyAmount.trim().split(' ');
@@ -74,20 +80,20 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
         amount: isNaN(parseFloat(amount)) ? 0 : parseFloat(amount)
       };
     });
-    
+
     return items;
   };
 
   // Parse price details from API response
   const parsePriceDetails = (priceDetailsString) => {
     if (!priceDetailsString) return {};
-    
+
     const details = {};
     const items = priceDetailsString.split(',').map(item => {
       const [key, value] = item.trim().split(':');
       return { key: key.trim(), value: value.trim() };
     });
-    
+
     items.forEach(item => {
       const numericValue = parseFloat(item.value) || 0;
       if (item.key.includes('Base price') || item.key.includes('Satış Fiyatı')) {
@@ -98,13 +104,13 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
         details.netProfit = numericValue;
       }
     });
-    
+
     return details;
   };
 
   const parsedCostDetails = parseCostDetails(costDetails);
   const parsedPriceDetails = parsePriceDetails(priceDetails);
-  
+
   const totalCost = parsedPriceDetails.totalCost || parsedCostDetails.reduce((sum, item) => sum + item.amount, 0);
   const salesPrice = parsedPriceDetails.salesPrice || service.salesPrice || 0;
   const netProfit = parsedPriceDetails.netProfit || (salesPrice - totalCost);
@@ -124,11 +130,11 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
           void modalRef.current.scrollTop;
         }
       };
-      
+
       // Use ResizeObserver to watch for content size changes
       let resizeObserver;
       const contentElement = modalRef.current.querySelector('.modal-content');
-      
+
       if (window.ResizeObserver && contentElement) {
         resizeObserver = new ResizeObserver(() => {
           // Delay to ensure layout is complete
@@ -138,7 +144,7 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
         });
         resizeObserver.observe(contentElement);
       }
-      
+
       // Initial recalculation with multiple delays to ensure DOM is ready
       const timeout1 = setTimeout(() => {
         requestAnimationFrame(() => {
@@ -147,11 +153,11 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
           });
         });
       }, 0);
-      
+
       const timeout2 = setTimeout(() => {
         forceScrollRecalculation();
       }, 100);
-      
+
       return () => {
         clearTimeout(timeout1);
         clearTimeout(timeout2);
@@ -164,16 +170,19 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
 
   return (
     <div className="profit-analysis-modal-overlay" onClick={onClose}>
-      <div 
+      <div
         ref={modalRef}
-        className="profit-analysis-modal" 
+        className="profit-analysis-modal"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-content">
+          <button className="export-button" onClick={handleExport}>
+            Excel ile Dışa Aktar
+          </button>
           <button className="close-button" onClick={onClose}>
             <AiOutlineClose />
           </button>
-          
+
           <div className="service-info">
             <h3>{service.machineName}</h3>
           </div>
@@ -246,7 +255,7 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
                       {profitMargin.toFixed(1)}%
                     </span>
                   </div>
-                 
+
                 </div>
               </div>
             </div>
