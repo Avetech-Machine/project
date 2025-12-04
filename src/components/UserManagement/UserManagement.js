@@ -72,7 +72,7 @@ const UserManagement = () => {
     setIsModalOpen(true);
     document.body.classList.add('modal-open');
   };
-  
+
   const closeModal = () => {
     setIsModalOpen(false);
     document.body.classList.remove('modal-open');
@@ -83,13 +83,13 @@ const UserManagement = () => {
   const openProfileModal = async () => {
     setIsProfileModalOpen(true);
     document.body.classList.add('modal-open');
-    
+
     // Fetch all users to get current user's role and createdAt
     try {
       setLoadingProfile(true);
       const allUsers = await userService.getUsers();
       const usersArray = Array.isArray(allUsers) ? allUsers : [];
-      
+
       // Find the current user by ID
       const currentUser = usersArray.find(u => u.id === user?.id);
       if (currentUser) {
@@ -102,7 +102,7 @@ const UserManagement = () => {
       setLoadingProfile(false);
     }
   };
-  
+
   const closeProfileModal = () => {
     setIsProfileModalOpen(false);
     setCurrentUserProfile(null);
@@ -121,7 +121,7 @@ const UserManagement = () => {
     setIsEditModalOpen(true);
     document.body.classList.add('modal-open');
   };
-  
+
   const closeEditModal = () => {
     setIsEditModalOpen(false);
     setSelectedUser(null);
@@ -153,14 +153,14 @@ const UserManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.email || !form.password || !form.firstName || !form.lastName) return;
-    
+
     // Validate password match
     if (form.password !== form.passwordConfirm) {
       setPasswordMismatch(true);
       setError('Şifreler eşleşmiyor');
       return;
     }
-    
+
     try {
       setSubmitting(true);
       setError(null);
@@ -189,7 +189,7 @@ const UserManagement = () => {
     try {
       setEditSubmitting(true);
       setError(null);
-      
+
       // Prepare the data for API - include original username and role
       // Only include password if it's not empty (PATCH allows partial updates)
       const userData = {
@@ -199,14 +199,14 @@ const UserManagement = () => {
         lastName: editForm.lastName,
         role: editForm.role || 'VIEWER'
       };
-      
+
       // Only include password if user provided a new one
       if (editForm.password && editForm.password.trim() !== '') {
         userData.password = editForm.password;
       }
-      
+
       const updated = await userService.updateUser(selectedUser.id, userData);
-      
+
       // Update the user in the local state
       setUsers(prev => prev.map(u => u.id === selectedUser.id ? updated : u));
       closeEditModal();
@@ -267,11 +267,11 @@ const UserManagement = () => {
             <tbody>
               {users.map(u => (
                 <tr key={u.id}>
-                  <td>{u.firstName}</td>
-                  <td>{u.lastName}</td>
-                  <td>{u.email}</td>
-                  <td>{getRoleDisplayName(u.role)}</td>
-                  <td>{u.createdAt ? new Date(u.createdAt).toLocaleDateString('tr-TR', {
+                  <td data-label="Ad">{u.firstName}</td>
+                  <td data-label="Soyad">{u.lastName}</td>
+                  <td data-label="E-posta">{u.email}</td>
+                  <td data-label="Rol">{getRoleDisplayName(u.role)}</td>
+                  <td data-label="Oluşturma Tarihi">{u.createdAt ? new Date(u.createdAt).toLocaleDateString('tr-TR', {
                     year: 'numeric',
                     month: '2-digit',
                     day: '2-digit',
@@ -280,15 +280,15 @@ const UserManagement = () => {
                   }) : 'N/A'}</td>
                   <td className="operations">
                     <div className="operation-buttons">
-                      <button 
-                        className="operation-btn edit-btn" 
+                      <button
+                        className="operation-btn edit-btn"
                         onClick={() => openEditModal(u)}
                         title="Düzenle"
                       >
                         <AiOutlineEdit />
                       </button>
-                      <button 
-                        className="operation-btn delete-btn" 
+                      <button
+                        className="operation-btn delete-btn"
                         onClick={() => handleDeleteUser(u.id)}
                         title="Sil"
                       >
@@ -326,20 +326,20 @@ const UserManagement = () => {
               </div>
               <div className="form-row">
                 <label>Şifre *</label>
-                <input 
-                  type="password" 
-                  name="password" 
-                  value={form.password} 
+                <input
+                  type="password"
+                  name="password"
+                  value={form.password}
                   onChange={handleChange}
                   className={passwordMismatch ? 'error-input' : ''}
                 />
               </div>
               <div className="form-row">
                 <label>Şifre Tekrar *</label>
-                <input 
-                  type="password" 
-                  name="passwordConfirm" 
-                  value={form.passwordConfirm} 
+                <input
+                  type="password"
+                  name="passwordConfirm"
+                  value={form.passwordConfirm}
                   onChange={handleChange}
                   placeholder="Şifreyi tekrar girin"
                   className={passwordMismatch ? 'error-input' : ''}
@@ -397,14 +397,14 @@ const UserManagement = () => {
                   <div className="profile-field">
                     <label>Kayıt Tarihi:</label>
                     <span>
-                      {currentUserProfile?.createdAt 
+                      {currentUserProfile?.createdAt
                         ? new Date(currentUserProfile.createdAt).toLocaleDateString('tr-TR', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })
                         : 'N/A'}
                     </span>
                   </div>
