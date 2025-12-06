@@ -15,11 +15,11 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
 
   useEffect(() => {
     isMountedRef.current = isOpen;
-    
+
     if (isOpen && projectId) {
       // Only reload if projectId actually changed
       const projectIdChanged = lastProjectIdRef.current !== projectId;
-      
+
       if (projectIdChanged) {
         // Clear previous data only if projectId changed
         setOffers([]);
@@ -41,7 +41,7 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
       setLoading(false);
       lastProjectIdRef.current = null;
     }
-    
+
     return () => {
       if (!isOpen) {
         isMountedRef.current = false;
@@ -58,17 +58,17 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
     try {
       setLoading(true);
       setError('');
-      
+
       // Load offers for the project
       const offersData = await offerService.getOffersByProject(projectId);
-      
+
       // Only update state if modal is still open
       if (!isMountedRef.current || !isOpen) {
         return;
       }
-      
+
       setOffers(offersData);
-      
+
       // Load project details for each offer using offer.projectId
       const projectDetailsMap = {};
       const projectPromises = offersData.map(async (offer) => {
@@ -87,10 +87,10 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
           }
         }
       });
-      
+
       // Wait for all project details to load
       await Promise.all(projectPromises);
-      
+
       // Only update state if modal is still open
       if (isMountedRef.current && isOpen) {
         setProjectsDetails(projectDetailsMap);
@@ -138,6 +138,26 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
       return `₺${amount.toLocaleString('tr-TR')}`;
     }
     return `€${amount.toLocaleString('de-DE')}`;
+  };
+
+  // Helper function to parse description and separate offer note from sales note
+  const parseDescription = (description) => {
+    if (!description) return { offerNote: '', salesNote: '' };
+
+    // Check if description contains "Satış Notu" heading
+    const salesNoteIndex = description.indexOf('Satış Notu');
+
+    if (salesNoteIndex === -1) {
+      // No sales note found, entire description is offer note
+      return { offerNote: description.trim(), salesNote: '' };
+    }
+
+    // Split at "Satış Notu"
+    const offerNote = description.substring(0, salesNoteIndex).trim();
+    // Get everything after "Satış Notu\n"
+    const salesNote = description.substring(salesNoteIndex + 'Satış Notu'.length).trim();
+
+    return { offerNote, salesNote };
   };
 
   const handleClose = () => {
@@ -224,12 +244,6 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
                           <span className="info-label">Müşteri:</span>
                           <span className="info-value">{offer.clientCompanyName}</span>
                         </div>
-                        {offer.description && (
-                          <div className="info-item full-width">
-                            <span className="info-label">Açıklama:</span>
-                            <span className="info-value">{offer.description}</span>
-                          </div>
-                        )}
                         {projectsDetails[offer.id].totalCost && (
                           <div className="info-item">
                             <span className="info-label">Toplam Maliyet:</span>
@@ -243,6 +257,37 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
                           </div>
                         )}
                       </div>
+
+                      {/* Description Section - matching ProposalInformationModal layout */}
+                      {offer.description && (() => {
+                        const { offerNote, salesNote } = parseDescription(offer.description);
+                        return (
+                          <>
+                            {offerNote && (
+                              <div className="offer-description">
+                                <div className="description-header">
+                                  <AiOutlineFileText className="detail-icon" />
+                                  <span className="description-label">Teklif Notu:</span>
+                                </div>
+                                <div className="description-content">
+                                  {offerNote}
+                                </div>
+                              </div>
+                            )}
+                            {salesNote && (
+                              <div className="offer-description">
+                                <div className="description-header">
+                                  <AiOutlineFileText className="detail-icon" />
+                                  <span className="description-label">Satış Notu:</span>
+                                </div>
+                                <div className="description-content">
+                                  {salesNote}
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   ) : loading ? (
                     <div className="project-loading">
@@ -255,7 +300,7 @@ const ViewOfferModal = ({ isOpen, onClose, projectId, projectCode, onCreateSale 
                   )}
 
                   <div className="offer-actions">
-                    <button 
+                    <button
                       className="create-sale-btn"
                       onClick={() => onCreateSale(offer)}
                       title="Bu teklif için satış oluştur"

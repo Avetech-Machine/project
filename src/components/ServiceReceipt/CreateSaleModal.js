@@ -173,7 +173,7 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
 
       if (originalOfferDescription && newNotes) {
         // Both exist: combine them with "Sales Note" heading
-        finalDescription = `${originalOfferDescription}\n\\Satış Notu\n${newNotes}`;
+        finalDescription = `${originalOfferDescription}\nSatış Notu\n${newNotes}`;
       } else if (originalOfferDescription) {
         // Only original exists: use it
         finalDescription = originalOfferDescription;

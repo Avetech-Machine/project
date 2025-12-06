@@ -457,7 +457,7 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
               {/* Left side - Machine specifications */}
               <div className="machine-specifications">
                 <div className="machine-identification">
-                  <h3 className="machine-title">{projectDetails.machineName}</h3>
+                  <h3 className="machine-title">Makine Bilgileri</h3>
 
                   <div className="spec-row">
                     <span className="spec-label">Proje Kodu:</span>
@@ -466,7 +466,7 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
 
                   <div className="spec-row">
                     <span className="spec-label">Marka:</span>
-                    <span className="spec-value">{projectDetails.make || '-'}</span>
+                    <span className="spec-value">{projectDetails.machineName || projectDetails.make || '-'}</span>
                   </div>
 
                   <div className="spec-row">

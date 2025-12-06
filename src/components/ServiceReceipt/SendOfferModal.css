@@ -1020,6 +1020,79 @@
   font-style: italic;
 }
 
+/* Inline Edit Textarea Styles */
+.inline-edit-textarea {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Times New Roman', serif;
+  color: #000;
+  background-color: #fffbf0;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+.inline-edit-textarea:focus {
+  outline: none;
+  border-color: #0056b3;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  background-color: #fff;
+}
+
+.inline-edit-textarea::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+/* Edit Actions Container */
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  align-items: center;
+}
+
+.btn-save-edit,
+.btn-cancel-edit {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+}
+
+.btn-save-edit {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-save-edit:hover {
+  background-color: #218838;
+  transform: scale(1.05);
+}
+
+.btn-cancel-edit {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-cancel-edit:hover {
+  background-color: #c82333;
+  transform: scale(1.05);
+}
+
+
 .inline-edit-actions {
   display: flex;
   justify-content: flex-end;
@@ -1116,6 +1189,25 @@
 
   .inline-edit-input {
     font-size: 13px;
+    padding: 6px 10px;
+  }
+
+  .inline-edit-textarea {
+    font-size: 13px;
+    padding: 10px;
+    min-height: 80px;
+  }
+
+  .edit-actions {
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .btn-save-edit,
+  .btn-cancel-edit {
+    font-size: 18px;
+    min-width: 36px;
+    height: 36px;
     padding: 6px 10px;
   }
 

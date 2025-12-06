@@ -232,6 +232,14 @@ const ProposalInformationModal = ({ service, onClose }) => {
                               </div>
                             )}
 
+                            {offer.salePrice && (
+                              <div className="detail-row">
+                                <AiOutlineEuro className="detail-icon" />
+                                <span className="detail-label">Satış Fiyatı:</span>
+                                <span className="detail-value highlight-price">{formatCurrency(offer.salePrice)}</span>
+                              </div>
+                            )}
+
                             {offer.ccEmails && offer.ccEmails.length > 0 && (
                               <div className="detail-row">
                                 <AiOutlineMail className="detail-icon" />

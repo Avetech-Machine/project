@@ -1059,13 +1059,13 @@ const SendOfferModal = ({ service, onClose }) => {
                     <strong>Teslimat Şartları:</strong>
                     {editingField === 'deliveryTerms' ? (
                       <div className="edit-input-container">
-                        <input
-                          type="text"
+                        <textarea
                           value={editableTexts.deliveryTerms}
                           onChange={(e) => setEditableTexts(prev => ({ ...prev, deliveryTerms: e.target.value }))}
                           onKeyDown={(e) => handleEditKeyPress(e, 'deliveryTerms')}
                           onBlur={() => handleEditSave('deliveryTerms', editableTexts.deliveryTerms)}
-                          className="inline-edit-input"
+                          className="inline-edit-textarea"
+                          rows={4}
                           autoFocus
                         />
                         <div className="edit-actions">
@@ -1104,13 +1104,13 @@ const SendOfferModal = ({ service, onClose }) => {
                     <strong>Ödeme Şartları:</strong>
                     {editingField === 'paymentTerms' ? (
                       <div className="edit-input-container">
-                        <input
-                          type="text"
+                        <textarea
                           value={editableTexts.paymentTerms}
                           onChange={(e) => setEditableTexts(prev => ({ ...prev, paymentTerms: e.target.value }))}
                           onKeyDown={(e) => handleEditKeyPress(e, 'paymentTerms')}
                           onBlur={() => handleEditSave('paymentTerms', editableTexts.paymentTerms)}
-                          className="inline-edit-input"
+                          className="inline-edit-textarea"
+                          rows={4}
                           autoFocus
                         />
                         <div className="edit-actions">
@@ -1149,13 +1149,13 @@ const SendOfferModal = ({ service, onClose }) => {
                     <strong>Teslimat Tarihi:</strong>
                     {editingField === 'deliveryDate' ? (
                       <div className="edit-input-container">
-                        <input
-                          type="text"
+                        <textarea
                           value={editableTexts.deliveryDate}
                           onChange={(e) => setEditableTexts(prev => ({ ...prev, deliveryDate: e.target.value }))}
                           onKeyDown={(e) => handleEditKeyPress(e, 'deliveryDate')}
                           onBlur={() => handleEditSave('deliveryDate', editableTexts.deliveryDate)}
-                          className="inline-edit-input"
+                          className="inline-edit-textarea"
+                          rows={4}
                           autoFocus
                         />
                         <div className="edit-actions">

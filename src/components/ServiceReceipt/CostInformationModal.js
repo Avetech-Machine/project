@@ -88,7 +88,10 @@ const CostInformationModal = ({ service, onClose }) => {
 
         items.forEach(item => {
             const numericValue = parseFloat(item.value) || 0;
-            if (item.key.includes('Base price') || item.key.includes('Satış Fiyatı')) {
+            if (item.key.includes('Base price')) {
+                details.targetPrice = numericValue;
+                details.salesPrice = numericValue;
+            } else if (item.key.includes('Satış Fiyatı')) {
                 details.salesPrice = numericValue;
             } else if (item.key.includes('Total cost') || item.key.includes('Toplam Maliyet')) {
                 details.totalCost = numericValue;
@@ -106,6 +109,8 @@ const CostInformationModal = ({ service, onClose }) => {
     const totalCost = parsedPriceDetails.totalCost || parsedCostDetails.reduce((sum, item) => sum + item.amount, 0);
     // Use price from offer if available, otherwise fallback to parsed price details or service data
     const salesPrice = offerPrice ?? parsedPriceDetails.salesPrice ?? service.salesPrice ?? 0;
+    const targetPrice = parsedPriceDetails.targetPrice ?? 0;
+    const bidPrice = salesPrice; // Bid price is set to the same value as ask price (salesPrice)
     const netProfit = parsedPriceDetails.netProfit || (salesPrice - totalCost);
     const profitMargin = totalCost > 0 ? ((netProfit / totalCost) * 100) : 0;
 
@@ -167,6 +172,14 @@ const CostInformationModal = ({ service, onClose }) => {
                                         <h4>Satış Bilgileri</h4>
                                     </div>
                                     <div className="sales-info">
+                                        <div className="sales-item">
+                                            <span>Hedef Fiyat:</span>
+                                            <span className="sales-price">{formatCurrency(targetPrice)}</span>
+                                        </div>
+                                        <div className="sales-item">
+                                            <span>Teklif Fiyatı:</span>
+                                            <span className="sales-price">{formatCurrency(bidPrice)}</span>
+                                        </div>
                                         <div className="sales-item">
                                             <span>Net Satış Fiyatı:</span>
                                             <span className="sales-price">{formatCurrency(salesPrice)}</span>
