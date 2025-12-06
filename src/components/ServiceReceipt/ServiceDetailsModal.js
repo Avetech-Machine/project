@@ -255,6 +255,18 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
     return formatted ? `${formatted} cm` : '-';
   };
 
+  // Format condition enum to Turkish labels
+  const formatCondition = (value) => {
+    if (!value) return '-';
+    const conditionMap = {
+      'NEW': 'Sıfır / Yeni',
+      'VERY_GOOD': 'Çok İyi / Az Kullanılmış',
+      'GOOD': 'İyi / Kullanılmış',
+      'POOR': 'Kötü / Bakım Gerekir'
+    };
+    return conditionMap[value] || value;
+  };
+
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -470,6 +482,16 @@ const ServiceDetailsModal = ({ service, onClose, isCompletedProject = false }) =
                   <div className="spec-row">
                     <span className="spec-label">Seri Numarası:</span>
                     <span className="spec-value">{projectDetails.serialNumber || '-'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Makine Tipi:</span>
+                    <span className="spec-value">{projectDetails.type || '-'}</span>
+                  </div>
+
+                  <div className="spec-row">
+                    <span className="spec-label">Makine Durumu:</span>
+                    <span className="spec-value">{formatCondition(projectDetails.condition)}</span>
                   </div>
 
                   <div className="spec-row">

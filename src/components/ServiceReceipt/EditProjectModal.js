@@ -19,6 +19,8 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
     teamCount: '2',
     machineNetWeight: '', // New field
     additionalWeight: '', // New field
+    machineType: '', // Machine type (sent as string)
+    condition: '', // Machine condition (sent as enum: NEW, VERY_GOOD, GOOD, POOR)
 
     // Operating System
     operatingSystem: 'Heidenhain',
@@ -162,6 +164,8 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
         teamCount: (project.teamNumber || project.takimSayisi) ? (project.teamNumber || project.takimSayisi).toString() : (project.teamCount || '2'),
         machineNetWeight: project.netWeight ? project.netWeight.toString() : (project.machineNetWeight || ''),
         additionalWeight: project.additionalWeight ? project.additionalWeight.toString() : '',
+        machineType: project.type || '',
+        condition: project.condition || '',
         operatingSystem: (() => {
           const os = project.operatingSystem || 'Heidenhain';
           const predefinedOS = ['Heidenhain', 'Siemens', 'Fanuc'];
@@ -793,6 +797,8 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
       takimSayisi: parseInt(formData.teamCount) || 0,
       netWeight: (formData.machineNetWeight && !isNaN(parseFloat(formData.machineNetWeight))) ? parseFloat(formData.machineNetWeight) : null,
       additionalWeight: (formData.additionalWeight && !isNaN(parseFloat(formData.additionalWeight))) ? parseFloat(formData.additionalWeight) : null,
+      type: formData.machineType || '', // Machine type sent as string
+      condition: formData.condition || '', // Machine condition sent as enum
       operatingSystem: formData.operatingSystem === 'Other' ? (formData.customOperatingSystem || '') : (formData.operatingSystem || 'Heidenhain'),
       anahtarBilgisi: keyInformation ? keyInformation.toString() : '',
       takimOlcmeProbu: formData.teamMeasurementProbe === 'Var',
@@ -1079,6 +1085,32 @@ const EditProjectModal = ({ project, onClose, onSaveComplete }) => {
                       value={formData.teamCount}
                       onChange={(e) => handleInputChange('teamCount', e.target.value)}
                     />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Makine Tipi</label>
+                    <input
+                      type="text"
+                      value={formData.machineType}
+                      onChange={(e) => handleInputChange('machineType', e.target.value)}
+                      placeholder="CNC işleme merkezi"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Makine Durumu</label>
+                    <select
+                      value={formData.condition}
+                      onChange={(e) => handleInputChange('condition', e.target.value)}
+                      className="form-select"
+                    >
+                      <option value="">Seçiniz</option>
+                      <option value="NEW">Sıfır / Yeni</option>
+                      <option value="VERY_GOOD">Çok İyi / Az Kullanılmış</option>
+                      <option value="GOOD">İyi / Kullanılmış</option>
+                      <option value="POOR">Kötü / Bakım Gerekir</option>
+                    </select>
                   </div>
                 </div>
 

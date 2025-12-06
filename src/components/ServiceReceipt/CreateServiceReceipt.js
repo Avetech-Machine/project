@@ -22,6 +22,8 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     teamCount: '',
     machineNetWeight: '', // New field
     additionalWeight: '', // New field
+    machineType: '', // Machine type (sent as string)
+    condition: '', // Machine condition (sent as enum: NEW, VERY_GOOD, GOOD, POOR)
 
     // Operating System
     operatingSystem: 'Heidenhain',
@@ -963,6 +965,8 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
         const numeric = parseFloat(cleaned);
         return (!isNaN(numeric) && cleaned !== '') ? Math.round(numeric) : null;
       })(),
+      type: formData.machineType || '', // Machine type sent as string
+      condition: formData.condition || '', // Machine condition sent as enum
       operatingSystem: formData.operatingSystem === 'Other' ? (formData.customOperatingSystem || '') : (formData.operatingSystem || ''),
       anahtarBilgisi: keyInformation ? keyInformation.toString() : '',
       takimOlcmeProbu: formData.teamMeasurementProbe === 'Var',
@@ -1082,6 +1086,8 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
           teamCount: '',
           machineNetWeight: '',
           additionalWeight: '',
+          machineType: '',
+          condition: '',
           operatingSystem: 'Heidenhain',
           teamMeasurementProbe: 'Var',
           partMeasurementProbe: 'Var',
@@ -1246,6 +1252,33 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               onKeyPress={handleEnterKeyPress}
               placeholder="Makine yılı"
             />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Makine Tipi</label>
+            <input
+              type="text"
+              value={formData.machineType}
+              onChange={(e) => handleInputChange('machineType', e.target.value)}
+              onKeyPress={handleEnterKeyPress}
+              placeholder="CNC işleme merkezi"
+            />
+          </div>
+          <div className="form-group">
+            <label>Makine Durumu</label>
+            <select
+              value={formData.condition}
+              onChange={(e) => handleInputChange('condition', e.target.value)}
+              className="form-select"
+            >
+              <option value="">Seçiniz</option>
+              <option value="NEW">Sıfır / Yeni</option>
+              <option value="VERY_GOOD">Çok İyi / Az Kullanılmış</option>
+              <option value="GOOD">İyi / Kullanılmış</option>
+              <option value="POOR">Kötü / Bakım Gerekir</option>
+            </select>
           </div>
         </div>
 

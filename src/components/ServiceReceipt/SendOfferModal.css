@@ -194,7 +194,8 @@
 }
 
 .sender-info .company-name {
-  display: none; /* Hide the old company name since we're using editable fields now */
+  display: none;
+  /* Hide the old company name since we're using editable fields now */
 }
 
 .info-row {
@@ -721,6 +722,7 @@
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1096,7 +1098,7 @@
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .btn-add-client {
     width: 100%;
     margin-top: 8px;
@@ -1106,7 +1108,7 @@
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .btn-add-cc {
     width: 100%;
     margin-top: 8px;
@@ -1177,9 +1179,19 @@
 }
 
 @keyframes warningShake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 .terms-row-warning strong {
@@ -1205,10 +1217,13 @@
 }
 
 @keyframes warningPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     border-color: #dc3545;
     background-color: #fff3cd;
   }
+
   50% {
     border-color: #ff4757;
     background-color: #ffe8cc;
@@ -1247,6 +1262,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -1268,6 +1284,7 @@
     transform: translateY(50px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -1291,7 +1308,7 @@
   padding: 24px;
 }
 
-.confirmation-body > p {
+.confirmation-body>p {
   margin: 0 0 16px 0;
   font-size: 16px;
   font-weight: 500;

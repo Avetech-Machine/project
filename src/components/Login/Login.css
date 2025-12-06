@@ -13,7 +13,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #1a1d2e 0%, #0f1117 100%);
+  /* background satırını kaldırdık/transparent yaptık */
+  background: transparent;
   overflow: hidden;
   padding: 40px 0;
 }
@@ -46,7 +47,8 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #1a1d2e 0%, #0f1117 100%);
+  /* background satırını kaldırdık/transparent yaptık */
+  background: transparent;
   padding: 40px;
   position: relative;
 }

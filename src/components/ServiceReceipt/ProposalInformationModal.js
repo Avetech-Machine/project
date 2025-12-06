@@ -123,6 +123,26 @@ const ProposalInformationModal = ({ service, onClose }) => {
     setSelectedOffer(null);
   };
 
+  // Helper function to parse description and separate offer note from sales note
+  const parseDescription = (description) => {
+    if (!description) return { offerNote: '', salesNote: '' };
+
+    // Check if description contains "Satış Notu" heading
+    const salesNoteIndex = description.indexOf('Satış Notu');
+
+    if (salesNoteIndex === -1) {
+      // No sales note found, entire description is offer note
+      return { offerNote: description.trim(), salesNote: '' };
+    }
+
+    // Split at "Satış Notu"
+    const offerNote = description.substring(0, salesNoteIndex).trim();
+    // Get everything after "Satış Notu\n"
+    const salesNote = description.substring(salesNoteIndex + 'Satış Notu'.length).trim();
+
+    return { offerNote, salesNote };
+  };
+
   return (
     <div className="proposal-modal-overlay" onClick={onClose}>
       <div className="proposal-modal" onClick={(e) => e.stopPropagation()}>
@@ -232,17 +252,36 @@ const ProposalInformationModal = ({ service, onClose }) => {
                             </button>
                           </div>
 
-                          {offer.description && (
-                            <div className="offer-description">
-                              <div className="description-header">
-                                <AiOutlineFileText className="detail-icon" />
-                                <span className="description-label">Satış Notu:</span>
-                              </div>
-                              <div className="description-content">
-                                {offer.description}
-                              </div>
-                            </div>
-                          )}
+
+                          {offer.description && (() => {
+                            const { offerNote, salesNote } = parseDescription(offer.description);
+                            return (
+                              <>
+                                {offerNote && (
+                                  <div className="offer-description">
+                                    <div className="description-header">
+                                      <AiOutlineFileText className="detail-icon" />
+                                      <span className="description-label">Teklif Notu:</span>
+                                    </div>
+                                    <div className="description-content">
+                                      {offerNote}
+                                    </div>
+                                  </div>
+                                )}
+                                {salesNote && (
+                                  <div className="offer-description">
+                                    <div className="description-header">
+                                      <AiOutlineFileText className="detail-icon" />
+                                      <span className="description-label">Satış Notu:</span>
+                                    </div>
+                                    <div className="description-content">
+                                      {salesNote}
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       );
                     })}
@@ -340,16 +379,33 @@ const ProposalInformationModal = ({ service, onClose }) => {
                       </div>
 
                       {/* Description Section */}
-                      {selectedOffer.description && (
-                        <div className="description-section">
-                          <div className="description-header">
-                            <strong>Açıklama:</strong>
-                          </div>
-                          <div className="description-content">
-                            {selectedOffer.description}
-                          </div>
-                        </div>
-                      )}
+                      {selectedOffer.description && (() => {
+                        const { offerNote, salesNote } = parseDescription(selectedOffer.description);
+                        return (
+                          <>
+                            {offerNote && (
+                              <div className="description-section">
+                                <div className="description-header">
+                                  <strong>Teklif Notu:</strong>
+                                </div>
+                                <div className="description-content">
+                                  {offerNote}
+                                </div>
+                              </div>
+                            )}
+                            {salesNote && (
+                              <div className="description-section">
+                                <div className="description-header">
+                                  <strong>Satış Notu:</strong>
+                                </div>
+                                <div className="description-content">
+                                  {salesNote}
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -362,4 +418,4 @@ const ProposalInformationModal = ({ service, onClose }) => {
   );
 };
 
-export default ProposalInformationModal;
+export default ProposalInformationModal;  
