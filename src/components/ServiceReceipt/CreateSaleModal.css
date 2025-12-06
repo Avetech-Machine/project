@@ -88,11 +88,43 @@
   border: 1px solid #e5e7eb;
 }
 
+.offer-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
 .offer-info-section h3 {
-  margin: 0 0 16px 0;
+  margin: 0;
   color: #374151;
   font-size: 1.1rem;
   font-weight: 600;
+}
+
+.view-offer-btn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.view-offer-btn:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+}
+
+.view-offer-btn:active {
+  transform: translateY(0);
 }
 
 .offer-details {

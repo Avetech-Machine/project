@@ -24,16 +24,16 @@ const CostInformationModal = ({ service, onClose }) => {
                 setLoading(true);
                 setError(null);
 
-                // Fetch offer details to extract price
+                // Fetch offer details from the new endpoint to extract salePrice
                 const offerData = await offerService.getOffersByProject(service.id);
 
-                // Extract price from the first available offer
-                if (offerData && offerData.length > 0) {
-                    // Find the first offer with a price, preferring SENT status offers
-                    const sentOffer = offerData.find(offer => offer.status === 'SENT' && offer.price);
-                    const anyOfferWithPrice = offerData.find(offer => offer.price);
-                    const priceToUse = sentOffer?.price || anyOfferWithPrice?.price || null;
-                    setOfferPrice(priceToUse);
+                // Extract salePrice from offers with status "COMPLETED"
+                if (offerData && Array.isArray(offerData) && offerData.length > 0) {
+                    // Find the first offer with status "COMPLETED" and a salePrice
+                    const completedOffer = offerData.find(offer => offer.status === 'COMPLETED' && offer.salePrice);
+                    if (completedOffer && completedOffer.salePrice) {
+                        setOfferPrice(completedOffer.salePrice);
+                    }
                 }
 
                 // Fetch cost details

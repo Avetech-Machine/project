@@ -838,3 +838,31 @@
   border-color: #007bff;
   box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
 }
+
+/* Form Validation Error Styles */
+.form-group.has-error input,
+.form-group.has-error select {
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.form-group.has-error input:focus,
+.form-group.has-error select:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.error-message::before {
+  content: "⚠";
+  font-size: 14px;
+}

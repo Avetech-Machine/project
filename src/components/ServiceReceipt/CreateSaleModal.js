@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { AiOutlineClose, AiOutlineDollar, AiOutlineFileText, AiOutlineCalendar, AiOutlineUser } from 'react-icons/ai';
+import { AiOutlineClose, AiOutlineDollar, AiOutlineFileText, AiOutlineCalendar, AiOutlineUser, AiOutlineFilePdf } from 'react-icons/ai';
 import { FaHandshake } from 'react-icons/fa';
 import saleService from '../../services/saleService';
 import offerService from '../../services/offerService';
 import projectService from '../../services/projectService';
 import './CreateSaleModal.css';
+import './ProposalInformationModal.css';
 
 const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
   const [salePrice, setSalePrice] = useState('');
@@ -15,6 +16,8 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showOfferForm, setShowOfferForm] = useState(false);
+  const [projectDetails, setProjectDetails] = useState(null);
 
   const [originalOfferDescription, setOriginalOfferDescription] = useState('');
 
@@ -29,6 +32,27 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
   const parseFormattedNumber = (str) => {
     if (!str) return '';
     return str.replace(/\./g, '');
+  };
+
+  const cleanMachineName = (name) => {
+    if (!name) return name;
+    return name.replace(/\s*\(AVEMAK-\d+\)\s*$/, '').trim();
+  };
+
+  const formatNumberWithDots = (number) => {
+    if (number === null || number === undefined || isNaN(number)) {
+      return '0.00';
+    }
+    const numStr = Math.abs(number).toString();
+    const parts = numStr.split('.');
+    const integerPart = parts[0];
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const decimalPart = parts.length > 1 ? parts[1].padEnd(2, '0').substring(0, 2) : '00';
+    return `${formattedInteger}.${decimalPart}`;
+  };
+
+  const formatCurrencyDetailed = (amount) => {
+    return `€${formatNumberWithDots(amount)}`;
   };
 
   // Set initial price and store original description from offer when modal opens
@@ -58,6 +82,19 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
         }
       };
       fetchOfferDescription();
+    }
+
+    // Fetch project details
+    if (offer?.projectId) {
+      const fetchProjectDetails = async () => {
+        try {
+          const project = await projectService.getProjectById(offer.projectId);
+          setProjectDetails(project);
+        } catch (err) {
+          console.error('Error fetching project details:', err);
+        }
+      };
+      fetchProjectDetails();
     }
   }, [offer]);
 
@@ -136,7 +173,7 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
 
       if (originalOfferDescription && newNotes) {
         // Both exist: combine them with "Sales Note" heading
-        finalDescription = `${originalOfferDescription}\n\Satış Notu\n${newNotes}`;
+        finalDescription = `${originalOfferDescription}\n\\Satış Notu\n${newNotes}`;
       } else if (originalOfferDescription) {
         // Only original exists: use it
         finalDescription = originalOfferDescription;
@@ -240,7 +277,16 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
     setFinancingCost('');
     setFinancingCostDisplay('');
     setError('');
+    setShowOfferForm(false);
     onClose();
+  };
+
+  const handleViewOfferForm = () => {
+    setShowOfferForm(true);
+  };
+
+  const handleCloseOfferForm = () => {
+    setShowOfferForm(false);
   };
 
   const formatDate = (dateString) => {
@@ -261,146 +307,259 @@ const CreateSaleModal = ({ offer, onClose, onSaleComplete }) => {
   if (!offer) return null;
 
   return (
-    <div className="create-sale-modal-overlay">
-      <div className="create-sale-modal">
-        <div className="modal-header">
-          <h2>
-            <FaHandshake className="header-icon" />
-            Satış Oluştur
-          </h2>
-          <button className="close-button" onClick={handleClose}>
-            <AiOutlineClose />
-          </button>
-        </div>
-
-        <div className="modal-body">
-          <div className="offer-info-section">
-            <h3>Teklif Bilgileri</h3>
-            <div className="offer-details">
-              <div className="info-item">
-                <AiOutlineFileText className="info-icon" />
-                <span className="info-label">Proje Kodu:</span>
-                <span className="info-value">{offer.projectCode}</span>
-              </div>
-              <div className="info-item">
-                <AiOutlineUser className="info-icon" />
-                <span className="info-label">Müşteri:</span>
-                <span className="info-value">{offer.clientCompanyName}</span>
-              </div>
-              <div className="info-item">
-                <AiOutlineCalendar className="info-icon" />
-                <span className="info-label">Teklif Tarihi:</span>
-                <span className="info-value">{formatDate(offer.sentAt)}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Durum:</span>
-                <span className="info-value status">{offer.status}</span>
-              </div>
-            </div>
+    <>
+      <div className="create-sale-modal-overlay">
+        <div className="create-sale-modal">
+          <div className="modal-header">
+            <h2>
+              <FaHandshake className="header-icon" />
+              Satış Oluştur
+            </h2>
+            <button className="close-button" onClick={handleClose}>
+              <AiOutlineClose />
+            </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="sale-form">
-            <div className="form-group">
-              <label htmlFor="salePrice">
-                <AiOutlineDollar className="label-icon" />
-                Satış Fiyatı {offer?.price && `(${formatNumberWithPeriods(offer.price)} EUR)`} *
-              </label>
-              <div className="price-input-wrapper">
-                <input
-                  type="text"
-                  id="salePrice"
-                  value={salePriceDisplay}
-                  onChange={handlePriceChange}
-                  placeholder={offer?.price ? `${formatNumberWithPeriods(offer.price)}` : "Satış fiyatını giriniz"}
-                  required
-                  inputMode="numeric"
+          <div className="modal-body">
+            <div className="offer-info-section">
+              <div className="offer-info-header">
+                <h3>Teklif Bilgileri</h3>
+                <button
+                  className="view-offer-btn"
+                  onClick={handleViewOfferForm}
+                  type="button"
+                >
+                  <AiOutlineFilePdf className="btn-icon" />
+                  Teklifi Görüntüle
+                </button>
+              </div>
+              <div className="offer-details">
+                <div className="info-item">
+                  <AiOutlineFileText className="info-icon" />
+                  <span className="info-label">Proje Kodu:</span>
+                  <span className="info-value">{offer.projectCode}</span>
+                </div>
+                <div className="info-item">
+                  <AiOutlineUser className="info-icon" />
+                  <span className="info-label">Müşteri:</span>
+                  <span className="info-value">{offer.clientCompanyName}</span>
+                </div>
+                <div className="info-item">
+                  <AiOutlineCalendar className="info-icon" />
+                  <span className="info-label">Teklif Tarihi:</span>
+                  <span className="info-value">{formatDate(offer.sentAt)}</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Durum:</span>
+                  <span className="info-value status">{offer.status}</span>
+                </div>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="sale-form">
+              <div className="form-group">
+                <label htmlFor="salePrice">
+                  <AiOutlineDollar className="label-icon" />
+                  Satış Fiyatı {offer?.price && `(${formatNumberWithPeriods(offer.price)} EUR)`} *
+                </label>
+                <div className="price-input-wrapper">
+                  <input
+                    type="text"
+                    id="salePrice"
+                    value={salePriceDisplay}
+                    onChange={handlePriceChange}
+                    placeholder={offer?.price ? `${formatNumberWithPeriods(offer.price)}` : "Satış fiyatını giriniz"}
+                    required
+                    inputMode="numeric"
+                  />
+                  <span className="currency-label">EUR</span>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="financingCost">
+                  <AiOutlineDollar className="label-icon" />
+                  Finansman Maliyeti (EUR)
+                </label>
+                <div className="price-input-wrapper">
+                  <input
+                    type="text"
+                    id="financingCost"
+                    value={financingCostDisplay}
+                    onChange={handleFinancingCostChange}
+                    placeholder="Finansman maliyetini giriniz"
+                    inputMode="numeric"
+                  />
+                  <span className="currency-label">EUR</span>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="saleNotes">
+                  <AiOutlineFileText className="label-icon" />
+                  Satış Notları
+                </label>
+                <textarea
+                  id="saleNotes"
+                  value={saleNotes}
+                  onChange={(e) => setSaleNotes(e.target.value)}
+                  placeholder="Satış ile ilgili notlarınızı buraya yazabilirsiniz..."
+                  rows="4"
                 />
-                <span className="currency-label">EUR</span>
               </div>
-            </div>
 
-            <div className="form-group">
-              <label htmlFor="financingCost">
-                <AiOutlineDollar className="label-icon" />
-                Finansman Maliyeti (EUR)
-              </label>
-              <div className="price-input-wrapper">
-                <input
-                  type="text"
-                  id="financingCost"
-                  value={financingCostDisplay}
-                  onChange={handleFinancingCostChange}
-                  placeholder="Finansman maliyetini giriniz"
-                  inputMode="numeric"
-                />
-                <span className="currency-label">EUR</span>
+              {error && (
+                <div className="error-message">
+                  <p>{error}</p>
+                </div>
+              )}
+
+              <div className="form-actions">
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={handleClose}
+                  disabled={loading}
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  className="submit-btn"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <div className="loading-spinner-small"></div>
+                      Oluşturuluyor...
+                    </>
+                  ) : (
+                    <>
+                      <FaHandshake className="btn-icon" />
+                      Satış Oluştur
+                    </>
+                  )}
+                </button>
               </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="saleNotes">
-                <AiOutlineFileText className="label-icon" />
-                Satış Notları
-              </label>
-              <textarea
-                id="saleNotes"
-                value={saleNotes}
-                onChange={(e) => setSaleNotes(e.target.value)}
-                placeholder="Satış ile ilgili notlarınızı buraya yazabilirsiniz..."
-                rows="4"
-              />
-            </div>
-
-            {error && (
-              <div className="error-message">
-                <p>{error}</p>
-              </div>
-            )}
-
-            <div className="form-actions">
-              <button
-                type="button"
-                className="cancel-btn"
-                onClick={handleClose}
-                disabled={loading}
-              >
-                İptal
-              </button>
-              <button
-                type="submit"
-                className="submit-btn"
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <div className="loading-spinner-small"></div>
-                    Oluşturuluyor...
-                  </>
-                ) : (
-                  <>
-                    <FaHandshake className="btn-icon" />
-                    Satış Oluştur
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
+
+        {showSuccess && (
+          <div className="success-overlay">
+            <div className="success-message-box">
+              <div className="success-icon">
+                <FaHandshake />
+              </div>
+              <h3>Satış Başarıyla Oluşturuldu!</h3>
+              <p>Satış kaydı başarıyla oluşturuldu.</p>
+              <p className="success-detail">Satış Fiyatı: {salePriceDisplay || formatNumberWithPeriods(salePrice)} EUR</p>
+            </div>
+          </div>
+        )}
       </div>
 
-      {showSuccess && (
-        <div className="success-overlay">
-          <div className="success-message-box">
-            <div className="success-icon">
-              <FaHandshake />
+      {/* Offer Form Modal */}
+      {showOfferForm && offer && (
+        <div className="proposal-form-overlay" onClick={handleCloseOfferForm}>
+          <div className="proposal-form-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="form-modal-header">
+              <h2>Teklif Formu</h2>
+              <button className="close-button" onClick={handleCloseOfferForm}>
+                <AiOutlineClose />
+              </button>
             </div>
-            <h3>Satış Başarıyla Oluşturuldu!</h3>
-            <p>Satış kaydı başarıyla oluşturuldu.</p>
-            <p className="success-detail">Satış Fiyatı: {salePriceDisplay || formatNumberWithPeriods(salePrice)} EUR</p>
+
+            <div className="form-modal-content">
+              <div className="offer-document">
+                {/* Document Header */}
+                <div className="document-header">
+                  <div className="left-column">
+                    <div className="info-row">
+                      <strong>Şirket Adı:</strong>
+                      <span className="info-value">{offer.clientCompanyName || 'N/A'}</span>
+                    </div>
+                    <div className="info-row">
+                      <strong>Proje Kodu:</strong>
+                      <span className="info-value">{offer.projectCode || 'N/A'}</span>
+                    </div>
+                    <div className="info-row">
+                      <strong>Belge Tarihi:</strong>
+                      <span className="info-value">{formatDate(offer.sentAt)}</span>
+                    </div>
+                  </div>
+
+                  <div className="right-column">
+                    <div className="company-name">Avitech Metal Teknolojileri Anonim Şirketi</div>
+                    <div className="info-row">
+                      <strong>Adres:</strong> Rüzgarlıbahçe, K Plaza 34805 Beykoz/Istanbul, Turkey
+                    </div>
+                    <div className="info-row">
+                      <strong>Telefon:</strong> +90 541 563 49 90
+                    </div>
+                    <div className="info-row">
+                      <strong>İletişim Kişisi:</strong> Bora Urçar
+                    </div>
+                    <div className="info-row">
+                      <strong>E-Mail:</strong> bora.urcar@avitech.com.tr
+                    </div>
+                  </div>
+                </div>
+
+                {/* Offer Title */}
+                <div className="offer-title">
+                  <h3>TEKLİF</h3>
+                </div>
+
+                {/* Machine Details */}
+                <div className="machine-details">
+                  <table className="machine-table">
+                    <thead>
+                      <tr>
+                        <th>Pos.</th>
+                        <th>Item Description</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="position">1</td>
+                        <td className="machine-name">{cleanMachineName(projectDetails?.title || projectDetails?.machineName || 'Makine Adı')}</td>
+                        <td className="quantity">1</td>
+                        <td className="machine-price">{formatCurrencyDetailed(offer.price || 0)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Offer Footer */}
+                <div className="offer-footer">
+                  <div className="total-section">
+                    <div className="total-row">
+                      <span>TOPLAM:</span>
+                      <span className="total-price">{formatCurrencyDetailed(offer.price || 0)}</span>
+                    </div>
+                  </div>
+
+                  {/* Description Section */}
+                  {offer.description && (
+                    <div className="description-section">
+                      <div className="description-header">
+                        <strong>Açıklama:</strong>
+                      </div>
+                      <div className="description-content">
+                        {offer.description}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

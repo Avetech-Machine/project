@@ -100,6 +100,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   const [isLoadingExpenseItems, setIsLoadingExpenseItems] = useState(true);
   const [operatingSystems, setOperatingSystems] = useState([]);
   const [isLoadingOperatingSystems, setIsLoadingOperatingSystems] = useState(true);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   // Parse formatted input (remove thousand separators, keep decimal point)
   const parseFormattedInput = (value) => {
@@ -323,6 +324,15 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   }, [editingService]);
 
   const handleInputChange = (field, value) => {
+    // Clear error for this field when user starts typing
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -330,21 +340,22 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
   };
 
   const handleMovementBlur = (field, value) => {
-    let processedValue = value;
+    // Only process if there's a value
+    if (!value || !value.trim()) {
+      return;
+    }
+
+    let processedValue = value.trim();
 
     // Auto-add units for movement fields on blur
     if (['xMovement', 'yMovement', 'zMovement'].includes(field)) {
-      // Remove existing 'mm' or ' mm' if present to avoid duplication
-      processedValue = value.replace(/\s*mm$/, '').trim();
-      // Add ' mm' if there's a value and it doesn't already end with 'mm' or ' mm'
-      if (processedValue && !processedValue.endsWith('mm') && !processedValue.endsWith(' mm')) {
+      // Only add 'mm' if not already present
+      if (!processedValue.endsWith('mm') && !processedValue.endsWith(' mm')) {
         processedValue = processedValue + ' mm';
       }
     } else if (['bMovement', 'cMovement'].includes(field)) {
-      // Remove existing '°' or ' °' if present to avoid duplication
-      processedValue = value.replace(/\s*°$/, '').trim();
-      // Add ' °' if there's a value and it doesn't already end with '°' or ' °'
-      if (processedValue && !processedValue.endsWith('°') && !processedValue.endsWith(' °')) {
+      // Only add '°' if not already present
+      if (!processedValue.endsWith('°') && !processedValue.endsWith(' °')) {
         processedValue = processedValue + ' °';
       }
     }
@@ -372,6 +383,15 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
 
   // Unified handler that enforces numeric-only when letters are not allowed
   const handleRestrictedInput = (field, value) => {
+    // Clear error for this field when user starts typing
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+
     const nextValue = isAlphabetAllowed(field) ? value : sanitizeNumeric(value);
     setFormData(prev => ({
       ...prev,
@@ -381,10 +401,29 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
 
   // Round dimension fields to nearest cm and append unit on blur
   const handleDimensionBlur = (field, value) => {
+    // Only process if there's a value
+    if (!value || !value.trim()) {
+      return;
+    }
+
+    // If already has 'cm', don't reprocess
+    if (value.trim().endsWith('cm')) {
+      return;
+    }
+
     // Remove existing 'cm' or ' cm' if present
     const cleanedValue = String(value).replace(/\s*cm$/, '').trim();
     const numeric = parseFloat(cleanedValue.replace(/[^\d.,-]/g, '').replace(',', '.'));
-    const processedValue = isNaN(numeric) ? '' : `${Math.round(numeric)} cm`;
+
+    if (isNaN(numeric)) {
+      setFormData(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+      return;
+    }
+
+    const processedValue = `${Math.round(numeric)} cm`;
     setFormData(prev => ({
       ...prev,
       [field]: processedValue
@@ -393,24 +432,39 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
 
   // Handle weight input change (format with dots while typing)
   const handleWeightInput = (field, value) => {
-    // Remove "kg" if present
-    const cleanedValue = value.replace(/kg$/, '').trim();
+    // If value ends with 'kg', allow editing before the unit
+    let cleanedValue = value;
+    const hasKg = value.endsWith('kg') || value.endsWith(' kg');
+
+    if (hasKg) {
+      // Remove 'kg' and any space before it for processing
+      cleanedValue = value.replace(/\s*kg$/, '').trim();
+    }
 
     // Allow empty string, numbers, dots, and decimal points
     if (cleanedValue === '' || cleanedValue === '.' || /^-?[\d.]*$/.test(cleanedValue)) {
-      // Format the input value with dots
-      const formattedValue = formatInputValue(cleanedValue);
+      // Don't format while typing, just update the value
       setFormData(prev => ({
         ...prev,
-        [field]: formattedValue
+        [field]: cleanedValue
       }));
     }
   };
 
   // Round weight to nearest kg and append unit on blur
   const handleWeightBlur = (field, value) => {
+    // Only process if there's a value
+    if (!value || !value.trim()) {
+      return;
+    }
+
+    // If already properly formatted with 'kg', don't reprocess
+    if (value.trim().endsWith('kg') && /^[\d.\s]+kg$/.test(value.trim())) {
+      return;
+    }
+
     // Remove "kg" if present
-    let cleanedValue = value.replace(/kg$/, '').trim();
+    let cleanedValue = value.replace(/\s*kg$/, '').trim();
 
     // Parse to get numeric value (remove dots, keep decimal)
     cleanedValue = parseFormattedInput(cleanedValue);
@@ -449,30 +503,33 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
 
   const handleRpmInput = (e) => {
     const value = e.target.value;
-    // If the value already contains "Max 1/min" (formatted), keep it as is
-    if (value.includes('Max 1/min')) {
+
+    // If value ends with 'Max 1/min', allow editing before the unit
+    let cleanedValue = value;
+    const hasUnit = value.includes('Max 1/min');
+
+    if (hasUnit) {
+      // Remove 'Max 1/min' and any space before it for processing
+      cleanedValue = value.replace(/\s*Max 1\/min$/, '').trim();
+    }
+
+    // Allow empty string, numbers, commas, dots, and decimal points
+    if (cleanedValue === '' || /^-?[\d.,]*$/.test(cleanedValue)) {
+      // Don't format while typing, just update the value
       setFormData(prev => ({
         ...prev,
-        repairHours: value
+        repairHours: cleanedValue
       }));
-    } else {
-      // Remove "Max 1/min" if present
-      const cleanedValue = value.replace(/Max 1\/min$/, '').trim();
-
-      // Allow empty string, numbers, commas, dots, and decimal points
-      if (cleanedValue === '' || /^-?[\d.,]*$/.test(cleanedValue)) {
-        // Format with dots as thousand separators (consistent with other fields)
-        const formattedValue = formatInputValue(cleanedValue);
-        setFormData(prev => ({
-          ...prev,
-          repairHours: formattedValue
-        }));
-      }
     }
   };
 
   const handleRpmBlur = (e) => {
     const value = e.target.value;
+
+    // Only process if there's a value
+    if (!value || !value.trim()) {
+      return;
+    }
 
     // If already formatted with "Max 1/min", don't process again
     if (value.includes('Max 1/min')) {
@@ -495,29 +552,52 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
         ...prev,
         repairHours: finalValue
       }));
+    } else {
+      // Clear invalid input
+      setFormData(prev => ({
+        ...prev,
+        repairHours: ''
+      }));
     }
   };
 
   const handleWorkingHoursInput = (e) => {
     const value = e.target.value;
-    // Remove "saat" if present
-    const cleanedValue = value.replace(/saat$/, '').trim();
+
+    // If value ends with 'saat', allow editing before the unit
+    let cleanedValue = value;
+    const hasSaat = value.endsWith('saat') || value.endsWith(' saat');
+
+    if (hasSaat) {
+      // Remove 'saat' and any space before it for processing
+      cleanedValue = value.replace(/\s*saat$/, '').trim();
+    }
 
     // Allow empty string, numbers, dots, and decimal points
     if (cleanedValue === '' || cleanedValue === '.' || /^-?[\d.]*$/.test(cleanedValue)) {
-      // Format the input value with dots
-      const formattedValue = formatInputValue(cleanedValue);
+      // Don't format while typing, just update the value
       setFormData(prev => ({
         ...prev,
-        workingHours: formattedValue
+        workingHours: cleanedValue
       }));
     }
   };
 
   const handleWorkingHoursBlur = (e) => {
     const value = e.target.value;
+
+    // Only process if there's a value
+    if (!value || !value.trim()) {
+      return;
+    }
+
+    // If already properly formatted with 'saat', don't reprocess
+    if (value.trim().endsWith('saat') && /^[\d.\s]+saat$/.test(value.trim())) {
+      return;
+    }
+
     // Remove "saat" if present
-    let cleanedValue = value.replace(/saat$/, '').trim();
+    let cleanedValue = value.replace(/\s*saat$/, '').trim();
 
     // Parse to get numeric value (remove dots, keep decimal)
     cleanedValue = parseFormattedInput(cleanedValue);
@@ -901,8 +981,9 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
     const amount = parseFloat(item.amount);
     return sum + (isNaN(amount) ? 0 : amount);
   }, 0);
-  const netProfit = salesPrice - totalCost;
-  const profitMargin = totalCost > 0 ? ((netProfit / salesPrice) * 100).toFixed(1) : 0;
+  // Only calculate profit when salesPrice is greater than 0
+  const netProfit = salesPrice > 0 ? salesPrice - totalCost : 0;
+  const profitMargin = (salesPrice > 0 && totalCost > 0) ? ((netProfit / salesPrice) * 100).toFixed(1) : 0;
 
   const generateServiceId = () => {
     const machinePrefix = formData.machineName
@@ -1122,7 +1203,55 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
       alert(editingService ? 'Proje güncellendi!' : 'Proje başarıyla oluşturuldu!');
     } catch (error) {
       console.error('Proje kaydetme hatası:', error);
-      alert(`Proje kaydedilirken bir hata oluştu: ${error.message}`);
+      console.log('Error response:', error.response);
+      console.log('Error response data:', error.response?.data);
+
+      // Check if the error response contains validationErrors
+      const errorData = error.response?.data;
+
+      if (errorData && errorData.validationErrors && Array.isArray(errorData.validationErrors) && errorData.validationErrors.length > 0) {
+        const validationErrors = errorData.validationErrors;
+        console.log('Validation errors found:', validationErrors);
+
+        // Parse validation errors to extract field names and messages
+        const errors = {};
+        const errorMessagesList = [];
+
+        validationErrors.forEach(errorMsg => {
+          // Error format: "fieldName: Error message"
+          const colonIndex = errorMsg.indexOf(':');
+          if (colonIndex !== -1) {
+            const fieldName = errorMsg.substring(0, colonIndex).trim();
+            const errorMessage = errorMsg.substring(colonIndex + 1).trim();
+            errors[fieldName] = errorMessage;
+            errorMessagesList.push(`• ${fieldName}: ${errorMessage}`);
+          } else {
+            // If no colon, just add the error message as is
+            errorMessagesList.push(`• ${errorMsg}`);
+          }
+        });
+
+        setFieldErrors(errors);
+
+        // Show validation errors in alert
+        alert(`Doğrulama Hataları:\n\n${errorMessagesList.join('\n')}`);
+      } else {
+        // Generic error handling - show more detail if available
+        let errorMessage = 'Proje kaydedilirken bir hata oluştu';
+
+        if (errorData) {
+          if (errorData.message) {
+            errorMessage += `:\n${errorData.message}`;
+          }
+          if (errorData.status) {
+            errorMessage += `\n(Status: ${errorData.status})`;
+          }
+        } else if (error.message) {
+          errorMessage += `:\n${error.message}`;
+        }
+
+        alert(errorMessage);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -1243,7 +1372,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               placeholder="Model adı"
             />
           </div>
-          <div className="form-group machine-year">
+          <div className={`form-group machine-year ${fieldErrors.year ? 'has-error' : ''}`}>
             <label>Makine Yılı</label>
             <input
               type="text"
@@ -1251,7 +1380,11 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               onChange={(e) => handleRestrictedInput('year', e.target.value)}
               onKeyPress={handleEnterKeyPress}
               placeholder="Makine yılı"
+              className={fieldErrors.year ? 'error' : ''}
             />
+            {fieldErrors.year && (
+              <div className="error-message">{fieldErrors.year}</div>
+            )}
           </div>
         </div>
 
@@ -1263,7 +1396,7 @@ const CreateServiceReceipt = ({ editingService, onSaveComplete }) => {
               value={formData.machineType}
               onChange={(e) => handleInputChange('machineType', e.target.value)}
               onKeyPress={handleEnterKeyPress}
-              placeholder="CNC işleme merkezi"
+              placeholder="CNC"
             />
           </div>
           <div className="form-group">

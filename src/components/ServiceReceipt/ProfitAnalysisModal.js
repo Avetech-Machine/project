@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineClose, AiOutlineEuro, AiOutlineDownload } from 'react-icons/ai';
 import { FaChartLine } from 'react-icons/fa';
 import projectService from '../../services/projectService';
+import offerService from '../../services/offerService';
 import './ProfitAnalysisModal.css';
 
 const ProfitAnalysisModal = ({ service, onClose }) => {
   const [costDetails, setCostDetails] = useState(null);
   const [priceDetails, setPriceDetails] = useState(null);
+  const [offerSalePrice, setOfferSalePrice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const modalRef = useRef(null);
@@ -22,9 +24,28 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
       try {
         setLoading(true);
         setError(null);
+
+        // Fetch cost details
         const data = await projectService.getProjectCostDetails(service.id);
         setCostDetails(data.costDetails);
         setPriceDetails(data.priceDetails);
+
+        // If the original status is COMPLETED, fetch the salePrice from offers API
+        if (service.originalStatus === 'COMPLETED') {
+          try {
+            const offers = await offerService.getOffersByProject(service.id);
+            if (offers && Array.isArray(offers) && offers.length > 0) {
+              // Find the first offer with a salePrice
+              const offerWithSalePrice = offers.find(offer => offer.salePrice != null);
+              if (offerWithSalePrice && offerWithSalePrice.salePrice) {
+                setOfferSalePrice(offerWithSalePrice.salePrice);
+              }
+            }
+          } catch (offerError) {
+            console.error('Error fetching offer salePrice:', offerError);
+            // Continue without setting offerSalePrice - will fallback to service.salesPrice
+          }
+        }
       } catch (err) {
         console.error('Error fetching cost details:', err);
         setError(err.message || 'Maliyet detayları yüklenirken bir hata oluştu');
@@ -34,7 +55,7 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
     };
 
     fetchCostDetails();
-  }, [service?.id]);
+  }, [service?.id, service?.originalStatus]);
 
   const formatCurrency = (amount, currency = 'EUR') => {
     if (currency === 'TRY') {
@@ -112,7 +133,11 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
   const parsedPriceDetails = parsePriceDetails(priceDetails);
 
   const totalCost = parsedPriceDetails.totalCost || parsedCostDetails.reduce((sum, item) => sum + item.amount, 0);
-  const salesPrice = parsedPriceDetails.salesPrice || service.salesPrice || 0;
+
+  // Use offerSalePrice if available (for COMPLETED status), otherwise fallback to parsed or service salesPrice
+  // For CLOSED status, offerSalePrice will be null, so it will use service.salesPrice as the current value
+  const salesPrice = offerSalePrice ?? parsedPriceDetails.salesPrice ?? service.salesPrice ?? 0;
+
   const netProfit = parsedPriceDetails.netProfit || (salesPrice - totalCost);
   const profitMargin = totalCost > 0 ? ((netProfit / totalCost) * 100) : 0;
 
@@ -166,7 +191,7 @@ const ProfitAnalysisModal = ({ service, onClose }) => {
         }
       };
     }
-  }, [loading, error, costDetails, priceDetails]);
+  }, [loading, error, costDetails, priceDetails, offerSalePrice]);
 
   return (
     <div className="profit-analysis-modal-overlay" onClick={onClose}>

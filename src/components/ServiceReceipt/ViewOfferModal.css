@@ -91,8 +91,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-container p {
@@ -177,6 +182,9 @@
   margin-bottom: 20px;
   padding-bottom: 16px;
   border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .offer-info h3 {
@@ -224,6 +232,36 @@
 
 .date-icon {
   font-size: 14px;
+}
+
+.view-pdf-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.view-pdf-button:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.view-pdf-button:active {
+  transform: translateY(0);
+}
+
+.pdf-icon {
+  font-size: 16px;
 }
 
 .project-details h4 {
@@ -329,30 +367,41 @@
   .view-offer-modal-overlay {
     padding: 10px;
   }
-  
+
   .view-offer-modal {
     max-height: 95vh;
   }
-  
+
   .modal-header {
     padding: 15px 20px;
   }
-  
+
   .modal-header h2 {
     font-size: 20px;
   }
-  
+
   .modal-body {
     padding: 20px;
   }
-  
+
   .project-info-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .offer-meta {
     flex-direction: column;
     gap: 6px;
+  }
+
+  .offer-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .view-pdf-button {
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -360,19 +409,19 @@
   .view-offer-modal-overlay {
     padding: 5px;
   }
-  
+
   .modal-header {
     padding: 12px 15px;
   }
-  
+
   .modal-header h2 {
     font-size: 18px;
   }
-  
+
   .modal-body {
     padding: 15px;
   }
-  
+
   .offer-card {
     padding: 16px;
   }

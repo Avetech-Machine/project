@@ -83,6 +83,7 @@ const QuotesSent = ({ onEditService }) => {
               year: derivedYear,
               serialNumber: projectDetails.serialNumber || '-',
               createdDate: offer.sentAt ? new Date(offer.sentAt).toLocaleDateString('tr-TR') : '-',
+              originalStatus: offer.status, // Keep original API status for conditional logic
               status: getStatusDisplayText(offer.status),
               totalCost: projectDetails.totalCost || 0,
               salesPrice: projectDetails.salesPrice || 0,
@@ -120,6 +121,7 @@ const QuotesSent = ({ onEditService }) => {
               year: '-',
               serialNumber: '-',
               createdDate: offer.sentAt ? new Date(offer.sentAt).toLocaleDateString('tr-TR') : '-',
+              originalStatus: offer.status, // Keep original API status for conditional logic
               status: getStatusDisplayText(offer.status),
               totalCost: 0,
               salesPrice: 0,

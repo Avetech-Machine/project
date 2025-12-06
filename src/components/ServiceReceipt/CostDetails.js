@@ -69,6 +69,37 @@ const CostDetails = ({
     }
   };
 
+  // Custom handler for amount field Enter key - moves to next cost item's amount field
+  const handleAmountEnterKey = (e, currentItemId) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+
+      // Find the current item's index
+      const currentIndex = costDetails.findIndex(item => item.id === currentItemId);
+
+      // If there's a next item, focus on its amount field
+      if (currentIndex !== -1 && currentIndex < costDetails.length - 1) {
+        const nextItem = costDetails[currentIndex + 1];
+
+        // Find the next item's amount input by looking for the amount field in the next row
+        const form = e.target.closest('.create-service-receipt') || e.target.closest('.cost-details-section');
+        if (form) {
+          const allRows = form.querySelectorAll('.table-row');
+          if (allRows[currentIndex + 1]) {
+            const nextAmountInput = allRows[currentIndex + 1].querySelector('.col-amount input');
+            if (nextAmountInput) {
+              nextAmountInput.focus();
+              return;
+            }
+          }
+        }
+      }
+
+      // If no next item, move to the next field in the parent form
+      moveToNextField(e.target);
+    }
+  };
+
   // Parse formatted input (remove thousand separators, keep decimal point)
   const parseFormattedInput = (value) => {
     if (value === '' || value === '.') return value;
@@ -247,7 +278,7 @@ const CostDetails = ({
                       onUpdateCost(item.id, 'amount', numericValue);
                     }
                   }}
-                  onKeyPress={handleEnterKeyPress}
+                  onKeyPress={(e) => handleAmountEnterKey(e, item.id)}
                   placeholder="0"
                 />
               </div>

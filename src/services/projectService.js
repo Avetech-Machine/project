@@ -86,8 +86,66 @@ class ProjectService {
       console.log('Status Text:', response.statusText);
       console.log('Headers:', Object.fromEntries(response.headers.entries()));
 
-      // Use handleApiResponse to check for auth errors (401) and handle logout/redirect
-      await handleApiResponse(response);
+      // Check for authentication errors first (401)
+      if (response.status === 401) {
+        console.warn('Authentication expired - clearing auth data and redirecting to login');
+        authService.logout();
+        alert('Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.');
+        window.location.href = '/login';
+        throw new Error('Oturum süresi doldu. Lütfen tekrar giriş yapın.');
+      }
+
+      // Check for 403 Forbidden - use the same detailed algorithm from apiUtils.js
+      if (response.status === 403) {
+        const errorData = await response.json();
+        const errorMessage = errorData.message || '';
+
+        console.log('403 Error received:', errorMessage);
+
+        // Check if this is specifically a PERMISSION error
+        const isPermissionError =
+          errorMessage.toLowerCase().includes('permission') ||
+          errorMessage.toLowerCase().includes('access denied') ||
+          errorMessage.toLowerCase().includes('yetkisiz') ||
+          errorMessage.toLowerCase().includes('yetki') ||
+          errorMessage.toLowerCase().includes('izin') ||
+          errorMessage.toLowerCase().includes('forbidden');
+
+        if (isPermissionError) {
+          // This is a permission error, not token expiration
+          console.log('Permission error detected - not logging out');
+          const error = new Error(errorMessage || 'Bu işlemi gerçekleştirmek için yetkiniz yok.');
+          error.response = {
+            status: response.status,
+            statusText: response.statusText,
+            data: errorData
+          };
+          throw error;
+        } else {
+          // Token is expired - logout and redirect
+          console.warn('403 without permission keywords - assuming token expired');
+          authService.logout();
+          alert('Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.');
+          window.location.href = '/login';
+          throw new Error('Oturum süresi doldu. Lütfen tekrar giriş yapın.');
+        }
+      }
+
+      // Check if response is not OK (other errors like 400, 500, etc.)
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log('Error Response Data:', errorData);
+
+        // Create a custom error with the full error data (including validationErrors)
+        const error = new Error(errorData.message || 'Request failed');
+        error.response = {
+          status: response.status,
+          statusText: response.statusText,
+          data: errorData
+        };
+
+        throw error;
+      }
 
       const data = await response.json();
       console.log('Success Response:', data);
@@ -156,8 +214,66 @@ class ProjectService {
       console.log('Status Text:', response.statusText);
       console.log('Headers:', Object.fromEntries(response.headers.entries()));
 
-      // Use handleApiResponse to check for auth errors (401) and handle logout/redirect
-      await handleApiResponse(response);
+      // Check for authentication errors first (401)
+      if (response.status === 401) {
+        console.warn('Authentication expired - clearing auth data and redirecting to login');
+        authService.logout();
+        alert('Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.');
+        window.location.href = '/login';
+        throw new Error('Oturum süresi doldu. Lütfen tekrar giriş yapın.');
+      }
+
+      // Check for 403 Forbidden - use the same detailed algorithm from apiUtils.js
+      if (response.status === 403) {
+        const errorData = await response.json();
+        const errorMessage = errorData.message || '';
+
+        console.log('403 Error received:', errorMessage);
+
+        // Check if this is specifically a PERMISSION error
+        const isPermissionError =
+          errorMessage.toLowerCase().includes('permission') ||
+          errorMessage.toLowerCase().includes('access denied') ||
+          errorMessage.toLowerCase().includes('yetkisiz') ||
+          errorMessage.toLowerCase().includes('yetki') ||
+          errorMessage.toLowerCase().includes('izin') ||
+          errorMessage.toLowerCase().includes('forbidden');
+
+        if (isPermissionError) {
+          // This is a permission error, not token expiration
+          console.log('Permission error detected - not logging out');
+          const error = new Error(errorMessage || 'Bu işlemi gerçekleştirmek için yetkiniz yok.');
+          error.response = {
+            status: response.status,
+            statusText: response.statusText,
+            data: errorData
+          };
+          throw error;
+        } else {
+          // Token is expired - logout and redirect
+          console.warn('403 without permission keywords - assuming token expired');
+          authService.logout();
+          alert('Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.');
+          window.location.href = '/login';
+          throw new Error('Oturum süresi doldu. Lütfen tekrar giriş yapın.');
+        }
+      }
+
+      // Check if response is not OK (other errors like 400, 500, etc.)
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log('Error Response Data:', errorData);
+
+        // Create a custom error with the full error data (including validationErrors)
+        const error = new Error(errorData.message || 'Request failed');
+        error.response = {
+          status: response.status,
+          statusText: response.statusText,
+          data: errorData
+        };
+
+        throw error;
+      }
 
       const data = await response.json();
       console.log('Success Response:', data);

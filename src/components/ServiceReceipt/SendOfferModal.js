@@ -374,7 +374,9 @@ const SendOfferModal = ({ service, onClose }) => {
     } else if (field === 'vergiDairesi') {
       setNewClientData(prev => ({ ...prev, vergiDairesi: value }));
     } else if (field === 'vergiNo') {
-      setNewClientData(prev => ({ ...prev, vergiNo: value }));
+      // Only allow numbers for tax number
+      const numericValue = value.replace(/\D/g, '');
+      setNewClientData(prev => ({ ...prev, vergiNo: numericValue }));
     }
   };
 
@@ -959,8 +961,13 @@ const SendOfferModal = ({ service, onClose }) => {
                     {isAddingNewClient ? (
                       <input
                         type="text"
+                        inputMode="numeric"
                         value={editableTexts.vergiNo}
-                        onChange={(e) => handleCompanyFieldChange('vergiNo', e.target.value)}
+                        onChange={(e) => {
+                          // Only allow numeric input
+                          const numericValue = e.target.value.replace(/\D/g, '');
+                          handleCompanyFieldChange('vergiNo', numericValue);
+                        }}
                         placeholder="Vergi numarasını girin"
                         className="inline-edit-input"
                       />
@@ -1058,7 +1065,7 @@ const SendOfferModal = ({ service, onClose }) => {
                           onChange={(e) => setEditableTexts(prev => ({ ...prev, deliveryTerms: e.target.value }))}
                           onKeyDown={(e) => handleEditKeyPress(e, 'deliveryTerms')}
                           onBlur={() => handleEditSave('deliveryTerms', editableTexts.deliveryTerms)}
-                          className="edit-input"
+                          className="inline-edit-input"
                           autoFocus
                         />
                         <div className="edit-actions">
@@ -1103,7 +1110,7 @@ const SendOfferModal = ({ service, onClose }) => {
                           onChange={(e) => setEditableTexts(prev => ({ ...prev, paymentTerms: e.target.value }))}
                           onKeyDown={(e) => handleEditKeyPress(e, 'paymentTerms')}
                           onBlur={() => handleEditSave('paymentTerms', editableTexts.paymentTerms)}
-                          className="edit-input"
+                          className="inline-edit-input"
                           autoFocus
                         />
                         <div className="edit-actions">
@@ -1148,7 +1155,7 @@ const SendOfferModal = ({ service, onClose }) => {
                           onChange={(e) => setEditableTexts(prev => ({ ...prev, deliveryDate: e.target.value }))}
                           onKeyDown={(e) => handleEditKeyPress(e, 'deliveryDate')}
                           onBlur={() => handleEditSave('deliveryDate', editableTexts.deliveryDate)}
-                          className="edit-input"
+                          className="inline-edit-input"
                           autoFocus
                         />
                         <div className="edit-actions">
